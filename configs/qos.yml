@@ -514,11 +514,11 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
+          sn: 6
           t-reassembly: 10
   -
     # 5QI = 83 e.g Discrete Automation
@@ -541,11 +541,11 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
+          sn: 6
           t-reassembly: 10
   -
     # 5QI = 84 e.g Intelligent transport systems
@@ -568,12 +568,12 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 30
   -
     # 5QI = 85 e.g Electricity Distribution-high voltage
     # PDB = 5ms PER = 10^-5
@@ -595,12 +595,12 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 5
   -
     # 5QI = 86 e.g V2X messages
     # PDB = 5ms PER = 10^-4
@@ -622,12 +622,12 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 5
   -
     # 5QI = 87 e.g Interactive Service-Motion tracking data
     # PDB = 5ms PER = 10^-3
@@ -649,12 +649,12 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 5
   -
     # 5QI = 88 e.g Interactive Service-Motion tracking data
     # PDB = 10ms PER = 10^-3
@@ -676,12 +676,12 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 5
   -
     # 5QI = 89 e.g Visual content for cloud/edge/split rendering
     # PDB = 15ms PER = 10^-4
@@ -703,12 +703,12 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 15
   -
     # 5QI = 90 e.g Visual content for cloud/edge/split rendering
     # PDB = 20ms PER = 10^-4
@@ -730,9 +730,9 @@ qos:
       mode: um-bidir
       um-bidir:
         tx:
-          sn: 12
+          sn: 6
           queue-size: 16384
           queue-bytes: 6172672
         rx:
-          sn: 12
-          t-reassembly: 10
+          sn: 6
+          t-reassembly: 20

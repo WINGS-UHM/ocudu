@@ -510,6 +510,17 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
     return;
   }
 
+  /// Register peeled-off socket in IO broker.
+  assoc_ctxt.io_sub = broker.register_fd(
+      std::move(assoc_fd),
+      io_rx_executor,
+      [&assoc_ctxt]() { assoc_ctxt.receive(); },
+      [this, &assoc_ctxt](io_broker::error_code code) {
+        logger.info("Connection loss due to IO error code={}.", (int)code);
+        handle_association_shutdown(assoc_ctxt.assoc_id, "IO broker error");
+        remove_association(assoc_ctxt.assoc_id);
+      });
+
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);
 
   // If this was a pending outgoing connection, defer to enqueue the success signal so that any tasks enqueued by the

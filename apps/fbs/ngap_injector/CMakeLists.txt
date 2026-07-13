@@ -15,6 +15,7 @@ target_link_libraries(ngap_injector PRIVATE
     ocudu_support
     ocudulog
     ngap_asn1
+    rrc_nr_asn1
 )
 
 install(TARGETS ngap_injector

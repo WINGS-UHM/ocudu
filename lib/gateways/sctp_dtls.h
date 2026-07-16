@@ -16,17 +16,24 @@
 
 namespace ocudu {
 
+struct dtls_context_config {
+  enum class dtls_mode { client, server } mode;
+  std::string session_id;
+  std::string cert_filename;
+  std::string key_filename;
+};
+
 /// DTLS context interface used to abstract away OpenSSL specific details if
 /// no openSSL with SCTP DTLS is present.
 class dtls_context
 {
 public:
-  virtual bool init(std::string session_id) = 0;
-  virtual ~dtls_context()                   = default;
+  virtual bool init(int scoket) = 0;
+  virtual ~dtls_context()       = default;
 };
 
 /// Creates an instance of a DTLS context.
-std::unique_ptr<dtls_context> create_dtls_context();
+std::unique_ptr<dtls_context> create_dtls_context(dtls_context_config dtls_cfg);
 
 #ifdef OCUDU_HAVE_OPENSSL_DTLS
 
@@ -35,11 +42,12 @@ constexpr bool OCUDU_DTLS_SCTP_SUPPORT = true;
 class openssl_dtls_context : public dtls_context
 {
 public:
-  openssl_dtls_context();
+  openssl_dtls_context(dtls_context_config cfg_);
   ~openssl_dtls_context() override;
-  bool init(std::string session_id) override;
+  bool init(int socket) override;
 
 private:
+  dtls_context_config     cfg;
   ocudulog::basic_logger& logger;
   SSL_CTX*                ssl_ctx = nullptr;
 };

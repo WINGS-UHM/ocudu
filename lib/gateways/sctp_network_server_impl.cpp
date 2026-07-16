@@ -49,15 +49,15 @@ public:
 
     transport_layer_address::native_type dest_addr  = client_addr.native();
     int                                  bytes_sent = ::sctp_sendmsg(fd,
-                                    pdu_span.data(),
-                                    pdu_span.size(),
-                                    const_cast<struct sockaddr*>(dest_addr.addr),
-                                    dest_addr.addrlen,
-                                    htonl(ppid),
-                                    0,
-                                    stream_no,
-                                    0,
-                                    0);
+                                                                     pdu_span.data(),
+                                                                     pdu_span.size(),
+                                                                     const_cast<struct sockaddr*>(dest_addr.addr),
+                                                                     dest_addr.addrlen,
+                                                                     htonl(ppid),
+                                                                     0,
+                                                                     stream_no,
+                                                                     0,
+                                                                     0);
     if (bytes_sent == -1) {
       logger.error("{} assoc={}: Closing SCTP association. Cause: Couldn't send {} B of data. errno={}",
                    if_name,
@@ -200,12 +200,6 @@ sctp_network_server_impl::sctp_network_server_impl(const ocudu::sctp_network_gat
   assoc_factory(assoc_factory_),
   keepalive_token(std::make_shared<bool>(true))
 {
-  if (OCUDU_DTLS_SCTP_SUPPORT) {
-    dtls_ctxt = create_dtls_context();
-    if (not dtls_ctxt->init(node_cfg.if_name)) {
-      report_error("Could not initialize DTLS context in SCTP gateway. if={}", node_cfg.if_name);
-    }
-  }
 }
 
 sctp_network_server_impl::~sctp_network_server_impl()
@@ -225,7 +219,16 @@ void sctp_network_server_impl::stop()
 
 bool sctp_network_server_impl::create_and_bind()
 {
-  return this->create_and_bind_common();
+  if (not this->create_and_bind_common()) {
+    return false;
+  }
+  if (OCUDU_DTLS_SCTP_SUPPORT and dtls_cfg.has_value()) {
+    dtls_ctxt = create_dtls_context(*dtls_cfg);
+    if (not dtls_ctxt->init(socket.fd().value())) {
+      report_error("Could not initialize DTLS context in SCTP gateway. if={}", node_cfg.if_name);
+    }
+  }
+  return true;
 }
 
 void sctp_network_server_impl::receive()

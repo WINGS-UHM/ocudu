@@ -44,7 +44,8 @@ class openssl_dtls_context : public dtls_context
 public:
   openssl_dtls_context(dtls_context_config cfg_);
   ~openssl_dtls_context() override;
-  bool init(int socket) override;
+  bool     init(int socket) override;
+  SSL_CTX* get_ssl_ctx() { return ssl_ctx; }
 
 private:
   dtls_context_config     cfg;

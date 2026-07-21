@@ -10,6 +10,7 @@ add_library(ocudu_gateway
         sctp_network_client_impl.cpp
         sctp_network_server_impl.cpp
         sctp_dtls.cpp
+        sctp_dtls_ssl.cpp
         udp_network_gateway_impl.cpp
         sctp_network_client_factory.cpp
         sctp_network_server_factory.cpp

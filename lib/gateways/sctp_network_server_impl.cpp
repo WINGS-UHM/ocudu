@@ -510,6 +510,8 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
     return;
   }
 
+  /// TODO create DTLS SSL association.
+
   /// Register peeled-off socket in IO broker.
   assoc_ctxt.io_sub = broker.register_fd(
       std::move(assoc_fd),

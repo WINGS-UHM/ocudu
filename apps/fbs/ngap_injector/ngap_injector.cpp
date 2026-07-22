@@ -2964,7 +2964,7 @@ static bool wait_for_amf_message(sctp_socket& socket, const std::string& expecte
   }
 }
 
-static probe_config parse_args(int argc, char** argv)
+[[maybe_unused]] static probe_config parse_args(int argc, char** argv)
 {
   probe_config cfg;
   CLI::App     app{"Send NG Setup Request and interactive UE Context Release Request packets to a target AMF over SCTP"};
@@ -3000,7 +3000,7 @@ static probe_config parse_args(int argc, char** argv)
   return cfg;
 }
 
-static int run_probe(const probe_config& cfg)
+[[maybe_unused]] static int run_probe(const probe_config& cfg)
 {
   auto& logger = ocudulog::fetch_basic_logger("SCTP-GW");
 
@@ -3130,6 +3130,7 @@ static int run_probe(const probe_config& cfg)
 
 } // namespace
 
+#ifndef NGAP_INJECTOR_EMBEDDED
 int main(int argc, char** argv)
 {
   ocudulog::init();
@@ -3143,3 +3144,4 @@ int main(int argc, char** argv)
 
   return 0;
 }
+#endif

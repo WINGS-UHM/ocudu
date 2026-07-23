@@ -152,8 +152,12 @@ public:
           // Start tracing.
           trace_point tp = ru_tracer.now();
 
+          // Build port weights for the modulator. Only the current port is active.
+          static_vector<cf_t, MAX_PORTS> port_weights(nof_ports, {0, 0});
+          port_weights[i_port] = {1, 0};
+
           // OFDM modulation.
-          modulator.modulate(cf_buf, current_grid.get_reader(), i_port, i_symbol_sf);
+          modulator.modulate(cf_buf, current_grid.get_reader(), span<const cf_t>(port_weights), i_symbol_sf);
 
           // Apply amplitude control.
           amplitude_control.process(cf_buf, cf_buf);

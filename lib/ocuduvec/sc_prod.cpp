@@ -184,6 +184,18 @@ void ocuduvec::sc_prod(span<cbf16_t> z, span<const cf_t> x, cf_t h)
   sc_prod_ccc_simd(z.data(), x.data(), h, x.size());
 }
 
+void ocuduvec::sc_prod(span<cf_t> z, span<const cbf16_t> x, cf_t h)
+{
+  ocudu_ocuduvec_assert_size(x, z);
+  sc_prod_ccc_simd(z.data(), x.data(), h, x.size());
+}
+
+void ocuduvec::sc_prod(span<cf_t> z, span<const cbf16_t> x, float h)
+{
+  ocudu_ocuduvec_assert_size(x, z);
+  sc_prod_cfc_simd(z.data(), x.data(), h, x.size());
+}
+
 void ocuduvec::sc_prod_and_add(span<cf_t> z, span<const cf_t> x, span<const cf_t> y, cf_t h)
 {
   ocudu_ocuduvec_assert_size(x, z);

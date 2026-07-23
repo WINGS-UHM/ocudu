@@ -38,8 +38,10 @@ public:
   }
 
   // See the interface for documentation.
-  void
-  modulate(span<cf_t> output, const resource_grid_reader& grid, unsigned port_index, unsigned symbol_index) override
+  void modulate(span<cf_t>                  output,
+                const resource_grid_reader& grid,
+                span<const cf_t>            port_weights,
+                unsigned                    symbol_index) override
   {
     auto modulator = modulators->get();
     if (!modulator) {
@@ -53,7 +55,7 @@ public:
       modulator->set_center_frequency(current_center_frequency_Hz);
     }
 
-    modulator->modulate(output, grid, port_index, symbol_index);
+    modulator->modulate(output, grid, port_weights, symbol_index);
   }
 
 private:

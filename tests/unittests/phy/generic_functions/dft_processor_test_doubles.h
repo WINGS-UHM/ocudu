@@ -5,7 +5,6 @@
 #pragma once
 
 #include "ocudu/phy/generic_functions/generic_functions_factories.h"
-#include "ocudu/support/error_handling.h"
 #include <random>
 
 namespace ocudu {
@@ -19,7 +18,7 @@ public:
   };
 
   dft_processor_spy(unsigned seed, const configuration& config) :
-    size(config.size), dir(config.dir), input_buffer(config.size), output_buffer(config.size), rgen(seed), dist(-1, 1)
+    size(config.size), dir(config.dir), input_buffer(config.size), rgen(seed), dist(-1, 1)
   {
     // Do nothing.
   }
@@ -28,39 +27,27 @@ public:
   span<cf_t>       get_input() override { return input_buffer; }
   span<const cf_t> run() override
   {
-    // Generate some random output if ouput buffer was not set.
-    if (generate_random_output) {
-      for (cf_t& value : output_buffer) {
-        value = {dist(rgen), dist(rgen)};
-      }
-    }
+    // Generate some random output.
+    std::vector<cf_t> output_buffer;
+    output_buffer.reserve(size);
+    std::generate_n(std::back_inserter(output_buffer), size, [this]() { return cf_t{dist(rgen), dist(rgen)}; });
 
     entries.emplace_back();
     entry& e = entries.back();
     e.input  = input_buffer;
     e.output = output_buffer;
 
-    return output_buffer;
+    return e.output;
   }
 
   void clear_entries() { entries.clear(); }
 
   const std::vector<entry>& get_entries() const { return entries; }
 
-  void set_output_buffer(const std::vector<cf_t>& buffer)
-  {
-    report_fatal_error_if_not(
-        buffer.size() == size, "Buffer size {} is not equal to the DFT size {}.", buffer.size(), size);
-    generate_random_output = false;
-    output_buffer          = buffer;
-  }
-
 private:
-  bool                                  generate_random_output = true;
   unsigned                              size;
   direction                             dir;
   std::vector<cf_t>                     input_buffer;
-  std::vector<cf_t>                     output_buffer;
   std::mt19937                          rgen;
   std::uniform_real_distribution<float> dist;
   std::vector<entry>                    entries;

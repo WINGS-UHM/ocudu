@@ -39,49 +39,107 @@ ofdm_symbol_modulator_impl::ofdm_symbol_modulator_impl(const ofdm_modulator_conf
 
 void ofdm_symbol_modulator_impl::modulate(span<cf_t>                  output,
                                           const resource_grid_reader& grid,
-                                          unsigned                    port_index,
-                                          unsigned                    symbol_index)
+                                          span<const cf_t>            port_weights,
+                                          unsigned                    i_symbol_sf)
 {
+  // Beamforming weights must match the number of ports in the grid.
+  ocudu_assert(port_weights.size() == grid.get_nof_ports(),
+               "Beamforming weights size ({}) must match the number of ports in the resource grid ({}).",
+               port_weights.size(),
+               grid.get_nof_ports());
+
   // Recalculate phase compensation if the center frequency has changed.
   double center_freq_Hz = next_center_freq_Hz.load(std::memory_order::memory_order_relaxed);
   if (center_freq_Hz != current_center_freq_Hz) {
-    phase_compensation_table = phase_compensation_lut(scs, cp, dft_size, center_freq_Hz, false);
+    phase_compensation_table = phase_compensation_lut(scs, cp, dft_size, center_freq_Hz, true);
     current_center_freq_Hz   = center_freq_Hz;
   }
 
   // Calculate number of symbols per slot.
-  unsigned nsymb = get_nsymb_per_slot(cp);
+  unsigned nof_symbols_per_slot = get_nsymb_per_slot(cp);
+
+  unsigned i_symbol = i_symbol_sf % nof_symbols_per_slot;
 
   // Calculate cyclic prefix length.
-  unsigned cp_len = cp.get_length(symbol_index, scs).to_samples(sampling_rate_Hz);
+  unsigned cp_len = cp.get_length(i_symbol_sf, scs).to_samples(sampling_rate_Hz);
 
   // Make sure output buffer matches the symbol size.
   ocudu_assert(output.size() == (cp_len + dft_size),
                "The output buffer size ({}) does not match the symbol index {} size ({}+{}={}). SCS={}kHz.",
                output.size(),
-               symbol_index,
+               i_symbol_sf,
                cp_len,
                dft_size,
                cp_len + dft_size,
                scs_to_khz(scs));
 
-  // Skip modulator if the grid is empty for the given port and symbol.
-  if (grid.get_allocation_range(port_index, symbol_index % nsymb).empty()) {
+  span<cf_t> lower_dft_input = dft->get_input().last(rg_size / 2);
+  span<cf_t> upper_dft_input = dft->get_input().first(rg_size / 2);
+
+  bool is_empty = true;
+  for (unsigned i_port = 0, nof_ports = port_weights.size(); i_port != nof_ports; ++i_port) {
+    // Select port weights.
+    cf_t port_weight = port_weights[i_port];
+
+    // Skip port if the coefficient is zero, nan or infinity.
+    if (!std::isnormal(std::norm(port_weight))) {
+      continue;
+    }
+
+    // Extract resource allocation for the selected port and OFDM symbol.
+    crb_interval       allocation           = grid.get_allocation_range(i_port, i_symbol);
+    interval<unsigned> full_subc_allocation = {allocation.start() * NOF_SUBCARRIERS_PER_RB,
+                                               allocation.stop() * NOF_SUBCARRIERS_PER_RB};
+
+    interval<unsigned> lower_subc_allocation = interval(full_subc_allocation).intersect({0, rg_size / 2});
+    interval<unsigned> upper_subc_allocation = interval(full_subc_allocation).intersect({rg_size / 2, rg_size});
+
+    // Skip port if the allocation is empty.
+    if (allocation.empty()) {
+      continue;
+    }
+
+    // Extract resource grid.
+    span<const cbf16_t> ofdm_symbol = grid.get_view(i_port, i_symbol);
+
+    // If it is empty, then apply the port weight on the entire OFDM symbol.
+    if (is_empty && (!lower_subc_allocation.empty() || !upper_subc_allocation.empty())) {
+      ocuduvec::sc_prod(lower_dft_input, ofdm_symbol.first(rg_size / 2), port_weight);
+      ocuduvec::sc_prod(upper_dft_input, ofdm_symbol.last(rg_size / 2), port_weight);
+      is_empty = false;
+      continue;
+    }
+
+    // Accumulate lower subcarrier allocation if available.
+    if (!lower_subc_allocation.empty()) {
+      unsigned nof_subc = lower_subc_allocation.length();
+      ocuduvec::sc_prod_and_add(lower_dft_input.first(nof_subc),
+                                ofdm_symbol.first(rg_size / 2).first(nof_subc),
+                                lower_dft_input.first(nof_subc),
+                                port_weight);
+    }
+
+    // Accumulate upper subcarrier allocation if available.
+    if (!upper_subc_allocation.empty()) {
+      unsigned nof_subc = upper_subc_allocation.length();
+      ocuduvec::sc_prod_and_add(upper_dft_input.last(nof_subc),
+                                ofdm_symbol.last(rg_size / 2).last(nof_subc),
+                                upper_dft_input.last(nof_subc),
+                                port_weight);
+    }
+  }
+
+  // Skip modulator there is nothing to be modulated.
+  if (is_empty) {
     ocuduvec::zero(output);
     return;
   }
-
-  // Prepare lower bound frequency domain data.
-  grid.get(dft->get_input().last(rg_size / 2), port_index, symbol_index % nsymb, 0);
-
-  // Prepare upper bound frequency domain data.
-  grid.get(dft->get_input().first(rg_size / 2), port_index, symbol_index % nsymb, rg_size / 2);
 
   // Execute DFT.
   span<const cf_t> dft_output = dft->run();
 
   // Get phase correction (TS138.211, Section 5.4)
-  cf_t phase_compensation = phase_compensation_table.get_coefficient(symbol_index);
+  cf_t phase_compensation = phase_compensation_table.get_coefficient(i_symbol_sf);
 
   // Apply scaling and phase compensation.
   ocuduvec::sc_prod(output.last(dft_size), dft_output, phase_compensation * scale);
@@ -102,10 +160,14 @@ unsigned ofdm_slot_modulator_impl::get_slot_size(unsigned slot_index) const
 
   return count;
 }
+void ofdm_slot_modulator_impl::set_center_frequency(double center_frequency_Hz)
+{
+  symbol_modulator->set_center_frequency(center_frequency_Hz);
+}
 
 void ofdm_slot_modulator_impl::modulate(span<cf_t>                  output,
                                         const resource_grid_reader& grid,
-                                        unsigned                    port_index,
+                                        span<const cf_t>            port_weights,
                                         unsigned                    slot_index)
 {
   unsigned nsymb = get_nsymb_per_slot(cp);
@@ -122,7 +184,7 @@ void ofdm_slot_modulator_impl::modulate(span<cf_t>                  output,
     unsigned symbol_sz = symbol_modulator->get_symbol_size(nsymb * slot_index + symbol_idx);
 
     // Modulate symbol.
-    symbol_modulator->modulate(output.first(symbol_sz), grid, port_index, nsymb * slot_index + symbol_idx);
+    symbol_modulator->modulate(output.first(symbol_sz), grid, port_weights, nsymb * slot_index + symbol_idx);
 
     // Advance output buffer.
     output = output.last(output.size() - symbol_sz);

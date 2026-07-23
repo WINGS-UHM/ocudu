@@ -21,7 +21,7 @@ private:
   struct modulate_entry {
     std::vector<cf_t>           output;
     const resource_grid_reader* grid;
-    unsigned                    port_index;
+    std::vector<cf_t>           port_weights;
     unsigned                    symbol_index;
   };
   std::vector<modulate_entry> modulate_entries;
@@ -42,15 +42,17 @@ public:
            configuration.dft_size;
   }
 
-  void
-  modulate(span<cf_t> output, const resource_grid_reader& grid, unsigned port_index, unsigned symbol_index) override
+  void modulate(span<cf_t>                  output,
+                const resource_grid_reader& grid,
+                span<const cf_t>            port_weights,
+                unsigned                    symbol_index) override
   {
     TESTASSERT_EQ(output.size(), get_symbol_size(symbol_index));
 
     modulate_entries.emplace_back();
     modulate_entry& entry = modulate_entries.back();
     entry.grid            = &grid;
-    entry.port_index      = port_index;
+    entry.port_weights    = std::vector<cf_t>(port_weights.begin(), port_weights.end());
     entry.symbol_index    = symbol_index;
 
     // Prepare output.

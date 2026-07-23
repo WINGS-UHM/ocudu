@@ -60,8 +60,10 @@ public:
   }
 
   // See the interface for documentation.
-  void
-  modulate(span<cf_t> ouput, const resource_grid_reader& grid, unsigned port_index, unsigned symbol_index) override;
+  void modulate(span<cf_t>                  ouput,
+                const resource_grid_reader& grid,
+                span<const cf_t>            port_weights,
+                unsigned                    symbol_index) override;
 };
 
 /// Describes a generic OFDM slot modulator.
@@ -89,7 +91,13 @@ public:
   unsigned get_slot_size(unsigned slot_index) const override;
 
   // See interface for documentation;
-  void modulate(span<cf_t> output, const resource_grid_reader& grid, unsigned port_index, unsigned slot_index) override;
+  void set_center_frequency(double center_frequency_Hz) override;
+
+  // See interface for documentation;
+  void modulate(span<cf_t>                  output,
+                const resource_grid_reader& grid,
+                span<const cf_t>            port_weights,
+                unsigned                    slot_index) override;
 };
 
 } // namespace ocudu

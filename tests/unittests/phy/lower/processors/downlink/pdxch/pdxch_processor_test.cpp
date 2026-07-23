@@ -322,7 +322,16 @@ TEST_P(LowerPhyDownlinkProcessorFixture, FlowFloodRequest)
       for (unsigned i_port = 0; i_port != nof_tx_ports; ++i_port) {
         const auto& ofdm_mod_entry = ofdm_mod_entries[i_symbol * nof_tx_ports + i_port];
         ASSERT_EQ(static_cast<const void*>(ofdm_mod_entry.grid), static_cast<const void*>(&rg_reader_spy));
-        ASSERT_EQ(ofdm_mod_entry.port_index, i_port);
+        ASSERT_EQ(ofdm_mod_entry.port_weights.size(), nof_tx_ports);
+        for (unsigned j = 0; j != nof_tx_ports; ++j) {
+          if (j == i_port) {
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].real(), 1.0f);
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].imag(), 0.0f);
+          } else {
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].real(), 0.0f);
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].imag(), 0.0f);
+          }
+        }
         ASSERT_EQ(ofdm_mod_entry.symbol_index, i_symbol_subframe);
       }
     }
@@ -450,7 +459,17 @@ TEST_P(LowerPhyDownlinkProcessorFixture, OverflowWithRequest)
       for (unsigned i_port = 0; i_port != nof_tx_ports; ++i_port, ++entry_index) {
         const auto& ofdm_mod_entry = ofdm_mod_entries[entry_index];
         ASSERT_EQ(static_cast<const void*>(ofdm_mod_entry.grid), static_cast<const void*>(&rg_reader_spy));
-        ASSERT_EQ(ofdm_mod_entry.port_index, i_port);
+        // Verify only the expected port has a non-zero weight.
+        ASSERT_EQ(ofdm_mod_entry.port_weights.size(), nof_tx_ports);
+        for (unsigned j = 0; j != nof_tx_ports; ++j) {
+          if (j == i_port) {
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].real(), 1.0f);
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].imag(), 0.0f);
+          } else {
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].real(), 0.0f);
+            ASSERT_EQ(ofdm_mod_entry.port_weights[j].imag(), 0.0f);
+          }
+        }
         ASSERT_EQ(ofdm_mod_entry.symbol_index, i_symbol_subframe);
       }
     }

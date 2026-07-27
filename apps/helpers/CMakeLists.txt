@@ -4,6 +4,7 @@
 
 
 
+add_subdirectory(config)
 add_subdirectory(e2)
 add_subdirectory(f1)
 add_subdirectory(f1u)

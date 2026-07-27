@@ -16,6 +16,16 @@ target_link_libraries(timer_test ocudulog ocudu_support GTest::gtest ocudu_gtest
 add_test(timer_test timer_test)
 set_tests_properties(timer_test PROPERTIES LABELS "tsan")
 
+add_executable(config_schema_test config_schema_test.cpp)
+target_link_libraries(config_schema_test ocudu_support GTest::gtest ocudu_gtest_main)
+target_include_directories(config_schema_test PRIVATE ${CMAKE_SOURCE_DIR}/external)
+add_test(config_schema_test config_schema_test)
+
+add_executable(cli11_utils_schema_test cli11_utils_schema_test.cpp)
+target_link_libraries(cli11_utils_schema_test ocudu_support ocudu_yaml_util GTest::gtest ocudu_gtest_main)
+target_include_directories(cli11_utils_schema_test PRIVATE ${CMAKE_SOURCE_DIR}/external)
+add_test(cli11_utils_schema_test cli11_utils_schema_test)
+
 add_executable(function_signature_test function_signature_test.cpp)
 add_test(function_signature_test function_signature_test)
 

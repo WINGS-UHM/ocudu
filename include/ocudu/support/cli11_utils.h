@@ -3,9 +3,14 @@
 
 #pragma once
 
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/config_schema.h"
 #include "ocudu/support/string_parsing_utils.h"
 #include "CLI/CLI11.hpp"
+#include <functional>
+#include <memory>
 #include <optional>
+#include <sstream>
 
 namespace ocudu {
 
@@ -37,11 +42,12 @@ inline std::string get_first_option_name(const std::string& option_name)
 /// \return A pointer to the subcommand added to the application.
 inline CLI::App* add_subcommand(CLI::App& app, const std::string& name, const std::string& desc)
 {
-  if (CLI::App* subcommand = app.get_subcommand_no_throw(name)) {
-    return subcommand;
+  CLI::App* subcommand = app.get_subcommand_no_throw(name);
+  if (!subcommand) {
+    subcommand = app.add_subcommand(name, desc)->configurable();
   }
-
-  return app.add_subcommand(name, desc)->configurable();
+  config::record_subcommand(app, *subcommand, name, desc);
+  return subcommand;
 }
 
 /// \brief Adds an option to the given application.
@@ -60,54 +66,75 @@ inline CLI::App* add_subcommand(CLI::App& app, const std::string& name, const st
 template <typename T>
 CLI::Option* add_option(CLI::App& app, const std::string& option_name, T& param, const std::string& desc)
 {
-  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
-  if (!opt) {
-    return app.add_option(option_name, param, desc);
+  auto*        existing = app.get_option_no_throw(get_first_option_name(option_name));
+  CLI::Option* opt      = nullptr;
+  if (!existing) {
+    opt = app.add_option(option_name, param, desc);
+  } else {
+    // Option was found. Get the callback and create new option.
+    auto callbck = existing->get_callback();
+    app.remove_option(existing);
+
+    opt = app.add_option(
+                 option_name,
+                 [&param, callback = std::move(callbck)](const CLI::results_t& res) {
+                   callback(res);
+                   return CLI::detail::lexical_conversion<T, T>(res, param);
+                 },
+                 desc,
+                 false,
+                 [&param]() -> std::string { return CLI::detail::checked_to_string<T, T>(param); })
+              ->run_callback_for_default();
   }
-
-  // Option was found. Get the callback and create new option.
-  auto callbck = opt->get_callback();
-  app.remove_option(opt);
-
-  return app
-      .add_option(
-          option_name,
-          [&param, callback = std::move(callbck)](const CLI::results_t& res) {
-            callback(res);
-            return CLI::detail::lexical_conversion<T, T>(res, param);
-          },
-          desc,
-          false,
-          [&param]() -> std::string { return CLI::detail::checked_to_string<T, T>(param); })
-      ->run_callback_for_default();
+  config::record_option(app, option_name, param, desc, opt);
+  return opt;
 }
 
 /// Specialization for bools than changes the default function for capture the default string.
 template <>
 inline CLI::Option* add_option(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
 {
-  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
-  if (!opt) {
-    return app.add_option(option_name, param, desc)->default_function([&param]() -> std::string {
+  auto*        existing = app.get_option_no_throw(get_first_option_name(option_name));
+  CLI::Option* opt      = nullptr;
+  if (!existing) {
+    opt = app.add_option(option_name, param, desc)->default_function([&param]() -> std::string {
       return param ? "true" : "false";
     });
+  } else {
+    // Option was found. Get the callback and create new option.
+    auto callbck = existing->get_callback();
+    app.remove_option(existing);
+
+    opt = app.add_option(
+                 option_name,
+                 [&param, callback = std::move(callbck)](const CLI::results_t& res) {
+                   callback(res);
+                   return CLI::detail::lexical_conversion<bool, bool>(res, param);
+                 },
+                 desc,
+                 false,
+                 [&param]() -> std::string { return param ? "true" : "false"; })
+              ->run_callback_for_default();
   }
+  config::record_option(app, option_name, param, desc, opt);
+  return opt;
+}
 
-  // Option was found. Get the callback and create new option.
-  auto callbck = opt->get_callback();
-  app.remove_option(opt);
-
-  return app
-      .add_option(
-          option_name,
-          [&param, callback = std::move(callbck)](const CLI::results_t& res) {
-            callback(res);
-            return CLI::detail::lexical_conversion<bool, bool>(res, param);
-          },
-          desc,
-          false,
-          [&param]() -> std::string { return param ? "true" : "false"; })
-      ->run_callback_for_default();
+/// \brief Adds a boolean flag to the given application and records it in the configuration schema.
+///
+/// Thin wrapper over \c CLI::App::add_flag that additionally records the flag as a boolean option in the schema
+/// (a no-op when the app is not registered against a schema root).
+///
+/// \param app Application where the flag will be added.
+/// \param option_name Flag name.
+/// \param param Boolean parameter where the flag value will be stored after parsing.
+/// \param desc Human readable description of the flag.
+/// \return A pointer to the flag option added to the application.
+inline CLI::Option* add_flag(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
+{
+  CLI::Option* opt = app.add_flag(option_name, param, desc);
+  config::record_flag(app, option_name, desc, opt);
+  return opt;
 }
 
 /// \brief Adds an option function to the given application.
@@ -128,24 +155,32 @@ CLI::Option* add_option_function(CLI::App&                            app,
                                  const std::function<void(const T&)>& func,
                                  const std::string&                   desc)
 {
-  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
-  if (!opt) {
-    return app.add_option_function<T>(option_name, func, desc)->run_callback_for_default();
+  auto*        existing = app.get_option_no_throw(get_first_option_name(option_name));
+  CLI::Option* opt      = nullptr;
+  if (!existing) {
+    opt = app.add_option_function<T>(option_name, func, desc)->run_callback_for_default();
+  } else {
+    // Option was found. Chain the previous callback with the new function. Generic over T: the results callback
+    // runs the previous option's callback with the raw results, then converts them to T and calls the function.
+    auto callbck = existing->get_callback();
+    app.remove_option(existing);
+
+    opt = app.add_option(
+                 option_name,
+                 [func, callback = std::move(callbck)](const CLI::results_t& res) -> bool {
+                   callback(res);
+                   T value{};
+                   if (!CLI::detail::lexical_conversion<T, T>(res, value)) {
+                     return false;
+                   }
+                   func(value);
+                   return true;
+                 },
+                 desc)
+              ->run_callback_for_default();
   }
-
-  // Option was found. Get the callback and create new option.
-  auto callbck = opt->get_callback();
-  app.remove_option(opt);
-
-  return app
-      .add_option_function<T>(
-          option_name,
-          [func, callback = std::move(callbck)](const std::string& value) {
-            func(value);
-            callback({value});
-          },
-          desc)
-      ->run_callback_for_default();
+  config::record_function_option<T>(app, option_name, desc, opt);
+  return opt;
 }
 
 /// \brief Adds an option of type cell to the given application.
@@ -178,6 +213,75 @@ inline CLI::Option* add_option_cell(CLI::App&                                   
           },
           desc)
       ->run_callback_for_default();
+}
+
+/// \brief Adds a list-of-struct option to the given application.
+///
+/// Parses each element blob into \c target[i] using \c configure, resizing \c target beforehand, reproducing the
+/// semantics of the hand-written cell lambdas exactly. Additionally captures the element schema: \c configure is run
+/// once against a default-constructed exemplar element, on a throwaway CLI::App bound to the array's item shape, so
+/// the schema records the element structure through the same recording path as ordinary options.
+///
+/// \param app Application where the option will be added.
+/// \param option_name Option name.
+/// \param target Vector where the parsed elements will be stored.
+/// \param configure Function that registers the element options on a per-element subapp.
+/// \param desc Human readable description of the option.
+/// \param prepare_element Optional function run on every element after the resize and before parsing (e.g. to seed
+/// elements from a common configuration).
+/// \return A pointer to the option added to the application.
+/// \brief Records the element schema of a list-of-struct option \c option_name without registering a parser.
+///
+/// Runs \c configure once against a default-constructed exemplar element, on a throwaway CLI::App bound to the
+/// array's item shape, so the schema records the element structure. Use this alongside a hand-written parse lambda
+/// for options that cannot use the \ref add_option_cell overload (e.g. a map target, or a configurator that does
+/// more than resize+configure+parse). A no-op when the app is not registered against a schema root.
+template <typename T>
+void declare_cell_schema(CLI::App&                                 app,
+                         const std::string&                        option_name,
+                         const std::function<void(CLI::App&, T&)>& configure,
+                         const std::string&                        desc)
+{
+  auto exemplar_app  = std::make_shared<CLI::App>();
+  auto exemplar_elem = std::make_shared<T>();
+  config::record_array(app, option_name, desc, exemplar_app);
+  configure(*exemplar_app, *exemplar_elem);
+  // Anchor the exemplar element's lifetime to the exemplar app (its options bind to the element by reference); the
+  // callback is never invoked as the exemplar app is never parsed.
+  exemplar_app->parse_complete_callback([exemplar_elem]() {});
+}
+
+template <typename T>
+CLI::Option* add_option_cell(CLI::App&                                 app,
+                             const std::string&                        option_name,
+                             std::vector<T>&                           target,
+                             const std::function<void(CLI::App&, T&)>& configure,
+                             const std::string&                        desc,
+                             const std::function<void(T&)>&            prepare_element = nullptr)
+{
+  // Capture the element shape once, on a throwaway exemplar app bound to the array's item shape.
+  declare_cell_schema<T>(app, option_name, configure, desc);
+
+  return add_option_cell(
+      app,
+      option_name,
+      [&target, configure, prepare_element, desc](const cli11_cell& values) {
+        target.resize(values.size());
+        if (prepare_element) {
+          for (auto& element : target) {
+            prepare_element(element);
+          }
+        }
+        for (unsigned i = 0, e = values.size(); i != e; ++i) {
+          CLI::App subapp(desc, "item #" + std::to_string(i));
+          subapp.config_formatter(create_yaml_config_parser());
+          subapp.allow_config_extras(CLI::config_extras_mode::capture);
+          configure(subapp, target[i]);
+          std::istringstream ss(values[i]);
+          subapp.parse_from_stream(ss);
+        }
+      },
+      desc);
 }
 
 /// Parse string into optional type.

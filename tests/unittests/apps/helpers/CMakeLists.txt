@@ -13,3 +13,5 @@ target_link_libraries(f1_gateway_helpers_test PRIVATE
         GTest::gtest
         GTest::gtest_main)
 gtest_discover_tests(f1_gateway_helpers_test)
+
+add_subdirectory(config)

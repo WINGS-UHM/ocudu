@@ -120,6 +120,23 @@ inline CLI::Option* add_option(CLI::App& app, const std::string& option_name, bo
   return opt;
 }
 
+/// \brief Adds an option group to the application and records it in the configuration schema.
+///
+/// Thin wrapper over \c CLI::App::add_option_group. Option groups share the parent's configuration namespace, so
+/// their options are recorded as properties of the parent app in the schema (rather than being skipped, as a bare
+/// CLI11 option group would be).
+///
+/// \param app Application where the option group will be added.
+/// \param name Option group name.
+/// \param desc Human readable description of the option group.
+/// \return A pointer to the option group added to the application.
+inline CLI::App* add_option_group(CLI::App& app, const std::string& name, const std::string& desc = "")
+{
+  CLI::App* group = app.add_option_group(name, desc);
+  config::record_option_group(app, *group);
+  return group;
+}
+
 /// \brief Adds a boolean flag to the given application and records it in the configuration schema.
 ///
 /// Thin wrapper over \c CLI::App::add_flag that additionally records the flag as a boolean option in the schema

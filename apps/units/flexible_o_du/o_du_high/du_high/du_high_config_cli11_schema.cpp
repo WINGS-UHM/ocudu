@@ -548,11 +548,11 @@ static void configure_cli11_mac_sr_args(CLI::App& app, mac_sr_unit_config& sr_pa
 static void configure_cli11_mac_cell_group_args(CLI::App& app, du_high_unit_mac_cell_group_config& mcg_params)
 {
   // BSR configuration.
-  CLI::App* bsr_subcmd = app.add_subcommand("bsr_cfg", "Buffer status report configuration parameters");
+  CLI::App* bsr_subcmd = add_subcommand(app, "bsr_cfg", "Buffer status report configuration parameters");
   configure_cli11_mac_bsr_args(*bsr_subcmd, mcg_params.bsr_cfg);
-  CLI::App* phr_subcmd = app.add_subcommand("phr_cfg", "Power Headroom report configuration parameters");
+  CLI::App* phr_subcmd = add_subcommand(app, "phr_cfg", "Power Headroom report configuration parameters");
   configure_cli11_mac_phr_args(*phr_subcmd, mcg_params.phr_cfg);
-  CLI::App* sr_subcmd = app.add_subcommand("sr_cfg", "Scheduling Request configuration parameters");
+  CLI::App* sr_subcmd = add_subcommand(app, "sr_cfg", "Scheduling Request configuration parameters");
   configure_cli11_mac_sr_args(*sr_subcmd, mcg_params.sr_cfg);
 }
 
@@ -1156,36 +1156,41 @@ static void configure_cli11_pusch_args(CLI::App& app, du_high_unit_pusch_config&
   add_option(app, "--max_rb_size", pusch_params.max_rb_size, "Maximum RB size for UE PUSCH resource allocation")
       ->capture_default_str()
       ->check(CLI::Range(1U, (unsigned)MAX_NOF_PRBS));
-  app.add_option("--start_rb", pusch_params.start_rb, "Start RB for resource allocation of UE PUSCHs")
+  add_option(app, "--start_rb", pusch_params.start_rb, "Start RB for resource allocation of UE PUSCHs")
       ->capture_default_str()
       ->check(CLI::Range(0U, (unsigned)MAX_NOF_PRBS));
-  app.add_option("--end_rb", pusch_params.end_rb, "End RB for resource allocation of UE PUSCHs")
+  add_option(app, "--end_rb", pusch_params.end_rb, "End RB for resource allocation of UE PUSCHs")
       ->capture_default_str()
       ->check(CLI::Range(0U, (unsigned)MAX_NOF_PRBS));
-  app.add_option("--enable_cl_loop_pw_control",
-                 pusch_params.enable_closed_loop_pw_control,
-                 "Enable closed-loop power control for PUSCH")
+  add_option(app,
+             "--enable_cl_loop_pw_control",
+             pusch_params.enable_closed_loop_pw_control,
+             "Enable closed-loop power control for PUSCH")
       ->capture_default_str();
-  app.add_option("--enable_phr_bw_adaptation",
-                 pusch_params.enable_phr_bw_adaptation,
-                 "Enable bandwidth adaptation to prevent negative PHR")
+  add_option(app,
+             "--enable_phr_bw_adaptation",
+             pusch_params.enable_phr_bw_adaptation,
+             "Enable bandwidth adaptation to prevent negative PHR")
       ->capture_default_str();
-  app.add_option("--target_sinr", pusch_params.target_pusch_sinr, "Target PUSCH SINR in dB")
+  add_option(app, "--target_sinr", pusch_params.target_pusch_sinr, "Target PUSCH SINR in dB")
       ->capture_default_str()
       ->check(CLI::Range(-5.0, 30.0));
-  app.add_option("--ref_path_loss",
-                 pusch_params.path_loss_for_target_pusch_sinr,
-                 "Reference path-loss for target PUSCH SINR in dB")
+  add_option(app,
+             "--ref_path_loss",
+             pusch_params.path_loss_for_target_pusch_sinr,
+             "Reference path-loss for target PUSCH SINR in dB")
       ->capture_default_str()
       ->check(CLI::Range(50.0, 120.0));
-  app.add_option("--pl_compensation_factor",
-                 pusch_params.path_loss_compensation_factor,
-                 "Fractional path-loss compensation factor in PUSCH power control")
+  add_option(app,
+             "--pl_compensation_factor",
+             pusch_params.path_loss_compensation_factor,
+             "Fractional path-loss compensation factor in PUSCH power control")
       ->capture_default_str()
       ->check(CLI::IsMember({0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}));
-  app.add_option("--ema_alpha_cl_pw_control_sinr",
-                 pusch_params.ema_alpha_cl_pw_control_sinr,
-                 "Smoothing factor alpha for EMA filter of PUSCH closed-loop power control SINR")
+  add_option(app,
+             "--ema_alpha_cl_pw_control_sinr",
+             pusch_params.ema_alpha_cl_pw_control_sinr,
+             "Smoothing factor alpha for EMA filter of PUSCH closed-loop power control SINR")
       ->capture_default_str()
       ->check([](const std::string& value) -> std::string {
         const auto alpha = parse_float(value);
@@ -1199,9 +1204,10 @@ static void configure_cli11_pusch_args(CLI::App& app, du_high_unit_pusch_config&
         }
         return "";
       });
-  app.add_option("--enable_transform_precoding",
-                 pusch_params.enable_transform_precoding,
-                 "Enable transform precoding for PUSCH.")
+  add_option(app,
+             "--enable_transform_precoding",
+             pusch_params.enable_transform_precoding,
+             "Enable transform precoding for PUSCH.")
       ->capture_default_str();
 }
 
@@ -1392,22 +1398,24 @@ static void configure_cli11_pucch_args(CLI::App& app, du_high_unit_pucch_config&
              "filtering is applied.")
       ->capture_default_str()
       ->check(CLI::Range(-50.0, 50.0));
-  app.add_option("--enable_cl_loop_pw_control",
-                 pucch_params.enable_closed_loop_pw_control,
-                 "Enable closed-loop power control for PUCCH")
+  add_option(app,
+             "--enable_cl_loop_pw_control",
+             pucch_params.enable_closed_loop_pw_control,
+             "Enable closed-loop power control for PUCCH")
       ->capture_default_str();
-  app.add_option("--target_sinr_f0", pucch_params.pucch_f0_sinr_target_dB, "Target PUCCH F0 SINR in dB")
+  add_option(app, "--target_sinr_f0", pucch_params.pucch_f0_sinr_target_dB, "Target PUCCH F0 SINR in dB")
       ->capture_default_str()
       ->check(CLI::Range(-10.0, 20.0));
-  app.add_option("--target_sinr_f2", pucch_params.pucch_f2_sinr_target_dB, "Target PUCCH F2 SINR in dB")
+  add_option(app, "--target_sinr_f2", pucch_params.pucch_f2_sinr_target_dB, "Target PUCCH F2 SINR in dB")
       ->capture_default_str()
       ->check(CLI::Range(-10.0, 20.0));
-  app.add_option("--target_sinr_f3", pucch_params.pucch_f3_sinr_target_dB, "Target PUCCH F3 SINR in dB")
+  add_option(app, "--target_sinr_f3", pucch_params.pucch_f3_sinr_target_dB, "Target PUCCH F3 SINR in dB")
       ->capture_default_str()
       ->check(CLI::Range(-15.0, 10.0));
-  app.add_option("--ema_alpha_cl_pw_control_sinr",
-                 pucch_params.ema_alpha_cl_pw_control_sinr,
-                 "Smoothing factor alpha for EMA filter of PUCCH closed-loop power control SINR")
+  add_option(app,
+             "--ema_alpha_cl_pw_control_sinr",
+             pucch_params.ema_alpha_cl_pw_control_sinr,
+             "Smoothing factor alpha for EMA filter of PUCCH closed-loop power control SINR")
       ->capture_default_str()
       ->check([](const std::string& value) -> std::string {
         const auto alpha = parse_float(value);
@@ -1765,24 +1773,11 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_rach_config& 
              "Number of RBs that are used as guardband on each side of the PRACH RBs interval for short PRACH formats.")
       ->capture_default_str()
       ->check(CLI::Range(1U, 10U));
-  add_option_cell(
+  add_option_cell<du_high_unit_rach_config::ra_prioritization_slice_info>(
       app,
       "--slice_based_ra_prioritization",
-      [&prach_params](const std::vector<std::string>& values) {
-        // Prepare the slices and its configuration.
-        prach_params.ra_prio_slice_info_list.resize(values.size());
-
-        // Format every sliced-based RA priority setting.
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("Slice-based RA priority section",
-                          "Slice-based RA priority section, item #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::capture);
-          configure_cli11_ra_prioritization_info(subapp, prach_params.ra_prio_slice_info_list[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
+      prach_params.ra_prio_slice_info_list,
+      configure_cli11_ra_prioritization_info,
       "List of configurations for slice-based RA prioritization");
   auto      two_step_rach_cfg = std::make_shared<du_high_unit_rach_config::two_step_info>();
   CLI::App* two_step_subcmd =
@@ -1871,44 +1866,19 @@ static void configure_cli11_pci_range_args(CLI::App& app, pci_range_config& rang
 static void configure_cli11_sib3_config_args(CLI::App& app, du_high_unit_sib_config::sib3_config& sib3_cfg)
 {
   // Intra frequency neighbor cell list.
-  auto intra_freq_neigh_cell_list_lambda = [&sib3_cfg](const std::vector<std::string>& values) {
-    // Prepare the list.
-    sib3_cfg.intra_freq_neigh_cell_list.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Intra frequency neighbor cell list",
-                      "Intra frequency neighbor cell list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_intra_freq_neigh_cell_info_args(subapp, sib3_cfg.intra_freq_neigh_cell_list[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(
-      app, "--intra_freq_neigh_cell_list", intra_freq_neigh_cell_list_lambda, "Intra frequency neighbor cell list");
+  add_option_cell<du_high_unit_sib_config::sib3_config::intra_freq_neigh_cell_config>(
+      app,
+      "--intra_freq_neigh_cell_list",
+      sib3_cfg.intra_freq_neigh_cell_list,
+      configure_cli11_intra_freq_neigh_cell_info_args,
+      "Intra frequency neighbor cell list");
 
   // Intra frequency excluded cell list.
-  auto intra_freq_excluded_cell_list_lambda = [&sib3_cfg](const std::vector<std::string>& values) {
-    // Prepare the list.
-    sib3_cfg.intra_freq_excluded_cell_list.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Intra frequency excluded cell list",
-                      "Intra frequency excluded cell list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_pci_range_args(subapp, sib3_cfg.intra_freq_excluded_cell_list[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app,
-                  "--intra_freq_excluded_cell_list",
-                  intra_freq_excluded_cell_list_lambda,
-                  "Intra frequency excluded cell list");
+  add_option_cell<pci_range_config>(app,
+                                    "--intra_freq_excluded_cell_list",
+                                    sib3_cfg.intra_freq_excluded_cell_list,
+                                    configure_cli11_pci_range_args,
+                                    "Intra frequency excluded cell list");
 }
 
 static void configure_cli11_inter_freq_carrier_freq_info_args(
@@ -1993,25 +1963,12 @@ static void configure_cli11_inter_freq_carrier_freq_info_args(
 static void configure_cli11_sib4_config_args(CLI::App& app, du_high_unit_sib_config::sib4_config& sib4_cfg)
 {
   // Inter frequency carrier frequency list.
-  auto inter_freq_carrier_freq_list_lambda = [&sib4_cfg](const std::vector<std::string>& values) {
-    // Prepare the list.
-    sib4_cfg.inter_freq_carrier_freq_list.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Inter frequency carrier frequency list",
-                      "Inter frequency carrier frequency list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_inter_freq_carrier_freq_info_args(subapp, sib4_cfg.inter_freq_carrier_freq_list[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app,
-                  "--inter_freq_carrier_freq_list",
-                  inter_freq_carrier_freq_list_lambda,
-                  "Inter frequency carrier frequency list");
+  add_option_cell<du_high_unit_sib_config::sib4_config::inter_freq_carrier_freq_config>(
+      app,
+      "--inter_freq_carrier_freq_list",
+      sib4_cfg.inter_freq_carrier_freq_list,
+      configure_cli11_inter_freq_carrier_freq_info_args,
+      "Inter frequency carrier frequency list");
 }
 
 static void
@@ -2097,23 +2054,13 @@ static void configure_cli11_sib5_config_args(CLI::App& app, du_high_unit_sib_con
       ->capture_default_str()
       ->check(CLI::Range(0, 7));
 
-  // Inter frequency carrier frequency list.
-  auto inter_freq_carrier_freq_list_lambda = [&sib5_cfg](const std::vector<std::string>& values) {
-    // Prepare the list.
-    sib5_cfg.carrier_freq_list_eutra.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("EUTRA carrier frequency list", "EUTRA carrier frequency list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_carrier_freq_eutra_args(subapp, sib5_cfg.carrier_freq_list_eutra[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(
-      app, "--carrier_freq_list_eutra", inter_freq_carrier_freq_list_lambda, "EUTRA carrier frequency list");
+  // EUTRA carrier frequency list.
+  add_option_cell<du_high_unit_sib_config::sib5_config::carrier_freq_eutra_config>(
+      app,
+      "--carrier_freq_list_eutra",
+      sib5_cfg.carrier_freq_list_eutra,
+      configure_cli11_carrier_freq_eutra_args,
+      "EUTRA carrier frequency list");
 }
 
 static void configure_cli11_sib16_slice_info_args(CLI::App&                                                 app,
@@ -2147,21 +2094,8 @@ static void configure_cli11_sib16_slice_info_args(CLI::App&                     
       });
 
   // Slice cell list entries.
-  auto parse_cells = [&slice](const std::vector<std::string>& values) {
-    // Prepare the list.
-    slice.cells.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Slice cell list", "Slice cell list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_pci_range_args(subapp, slice.cells[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--cells_allowed", parse_cells, "Slice cell list entries");
+  add_option_cell<pci_range_config>(
+      app, "--cells_allowed", slice.cells, configure_cli11_pci_range_args, "Slice cell list entries");
 }
 
 static void configure_cli11_sib16_freq_prio_slicing_args(
@@ -2176,41 +2110,21 @@ static void configure_cli11_sib16_freq_prio_slicing_args(
       ->check(CLI::Range(0, 8));
 
   // Slice info list.
-  auto slice_info_list_lambda = [&freq_cfg](const std::vector<std::string>& values) {
-    // Prepare the list.
-    freq_cfg.slice_info_list.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Slice info list", "Slice info list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_sib16_slice_info_args(subapp, freq_cfg.slice_info_list[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--slice_info_list", slice_info_list_lambda, "Slice info list entries");
+  add_option_cell<du_high_unit_sib_config::sib16_config::slice_info_config>(app,
+                                                                            "--slice_info_list",
+                                                                            freq_cfg.slice_info_list,
+                                                                            configure_cli11_sib16_slice_info_args,
+                                                                            "Slice info list entries");
 }
 
 static void configure_cli11_sib16_config_args(CLI::App& app, du_high_unit_sib_config::sib16_config& sib16_cfg)
 {
-  auto parse_freq_prio_list_slicing = [&sib16_cfg](const std::vector<std::string>& values) {
-    // Prepare the list.
-    sib16_cfg.freq_prio_list_slicing.resize(values.size());
-
-    // Parse each entry.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Frequency priority slicing list", "Frequency priority slicing list, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_sib16_freq_prio_slicing_args(subapp, sib16_cfg.freq_prio_list_slicing[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(
-      app, "--freq_prio_list_slicing", parse_freq_prio_list_slicing, "Frequency priority slicing list entries");
+  add_option_cell<du_high_unit_sib_config::sib16_config::freq_priority_slicing_config>(
+      app,
+      "--freq_prio_list_slicing",
+      sib16_cfg.freq_prio_list_slicing,
+      configure_cli11_sib16_freq_prio_slicing_args,
+      "Frequency priority slicing list entries");
 }
 
 static void configure_cli11_etws_args(CLI::App& app, du_high_unit_sib_config::etws_config& sib_params)
@@ -2270,22 +2184,11 @@ static void configure_cli11_sib_args(CLI::App& app, du_high_unit_sib_config& sib
       ->check(CLI::IsMember({5, 10, 20, 40, 80, 160, 320, 640, 1280}));
 
   // SI message scheduling parameters.
-  add_option_cell(
+  add_option_cell<du_high_unit_sib_config::si_sched_info_config>(
       app,
       "--si_sched_info",
-      [&sib_params](const std::vector<std::string>& values) {
-        sib_params.si_sched_info.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("SI-message scheduling information",
-                          "SI-message scheduling information config, item #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::capture);
-          configure_cli11_si_sched_info(subapp, sib_params.si_sched_info[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
+      sib_params.si_sched_info,
+      configure_cli11_si_sched_info,
       "Configures the scheduling for each of the SI-messages broadcast by the gNB");
 
   CLI::App*                                   sib2_subcmd = add_subcommand(app, "sib2", "SIB2 parameters");
@@ -2837,21 +2740,8 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
   configure_cli11_drx_args(*drx_subcmd, cell_params.drx_cfg);
 
   // Slicing configuration.
-  auto slicing_lambda = [&cell_params](const std::vector<std::string>& values) {
-    // Prepare the slices and its configuration.
-    cell_params.slice_cfg.resize(values.size());
-
-    // Format every slicing setting.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Slicing parameters", "Slicing config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_slicing_args(subapp, cell_params.slice_cfg[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--slicing", slicing_lambda, "Network slicing configuration");
+  add_option_cell<du_high_unit_cell_slice_config>(
+      app, "--slicing", cell_params.slice_cfg, configure_cli11_slicing_args, "Network slicing configuration");
 
   // NTN configuration.
   configure_cli11_cell_ntn_args(app, cell_params.ntn_cfg);
@@ -3032,15 +2922,16 @@ static void configure_cli11_metrics_args(CLI::App& app, du_high_unit_metrics_con
 
 static void configure_cli11_rlc_um_args(CLI::App& app, du_high_unit_rlc_um_config& rlc_um_params)
 {
-  CLI::App* rlc_tx_um_subcmd = app.add_subcommand("tx", "UM TX parameters");
-  rlc_tx_um_subcmd->add_option("--sn", rlc_um_params.tx.sn_field_length, "RLC UM TX SN")->capture_default_str();
-  rlc_tx_um_subcmd->add_option("--queue-size", rlc_um_params.tx.queue_size, "RLC UM TX SDU queue limit in PDUs")
+  CLI::App* rlc_tx_um_subcmd = add_subcommand(app, "tx", "UM TX parameters");
+  add_option(*rlc_tx_um_subcmd, "--sn", rlc_um_params.tx.sn_field_length, "RLC UM TX SN")->capture_default_str();
+  add_option(*rlc_tx_um_subcmd, "--queue-size", rlc_um_params.tx.queue_size, "RLC UM TX SDU queue limit in PDUs")
       ->capture_default_str();
-  rlc_tx_um_subcmd->add_option("--queue-bytes", rlc_um_params.tx.queue_size_bytes, "RLC UM TX SDU queue limit in bytes")
+  add_option(
+      *rlc_tx_um_subcmd, "--queue-bytes", rlc_um_params.tx.queue_size_bytes, "RLC UM TX SDU queue limit in bytes")
       ->capture_default_str();
-  CLI::App* rlc_rx_um_subcmd = app.add_subcommand("rx", "UM TX parameters");
-  rlc_rx_um_subcmd->add_option("--sn", rlc_um_params.rx.sn_field_length, "RLC UM RX SN")->capture_default_str();
-  rlc_rx_um_subcmd->add_option("--t-reassembly", rlc_um_params.rx.t_reassembly, "RLC UM t-Reassembly")
+  CLI::App* rlc_rx_um_subcmd = add_subcommand(app, "rx", "UM TX parameters");
+  add_option(*rlc_rx_um_subcmd, "--sn", rlc_um_params.rx.sn_field_length, "RLC UM RX SN")->capture_default_str();
+  add_option(*rlc_rx_um_subcmd, "--t-reassembly", rlc_um_params.rx.t_reassembly, "RLC UM t-Reassembly")
       ->capture_default_str();
 }
 
@@ -3049,11 +2940,11 @@ static void configure_cli11_rlc_args(CLI::App& app, du_high_unit_rlc_bearer_conf
   add_option(app, "--mode", rlc_params.mode, "RLC mode")->capture_default_str();
 
   // UM section.
-  CLI::App* rlc_um_subcmd = app.add_subcommand("um-bidir", "UM parameters");
+  CLI::App* rlc_um_subcmd = add_subcommand(app, "um-bidir", "UM parameters");
   configure_cli11_rlc_um_args(*rlc_um_subcmd, rlc_params.um);
 
   // AM section.
-  CLI::App* rlc_am_subcmd = app.add_subcommand("am", "AM parameters");
+  CLI::App* rlc_am_subcmd = add_subcommand(app, "am", "AM parameters");
   configure_cli11_rlc_am_args(*rlc_am_subcmd, rlc_params.am);
 }
 
@@ -3068,7 +2959,7 @@ static void configure_cli11_qos_args(CLI::App& app, du_high_unit_qos_config& qos
   add_option(app, "--five_qi", qos_params.five_qi, "5QI")->capture_default_str()->check(CLI::Range(0, 255));
 
   // RLC section.
-  CLI::App* rlc_subcmd = app.add_subcommand("rlc", "RLC parameters");
+  CLI::App* rlc_subcmd = add_subcommand(app, "rlc", "RLC parameters");
   configure_cli11_rlc_args(*rlc_subcmd, qos_params.rlc);
 
   // F1 section.
@@ -3101,16 +2992,18 @@ static void configure_cli11_custom_freq_band_args(CLI::App& app, du_high_unit_cu
   add_option(app, "--dl_freq_max", cfg.dl_freq_max, "DL frequency range end in MHz")->required();
   add_option(app, "--ul_freq_min", cfg.ul_freq_min, "UL frequency range start in MHz (omit for TDD)");
   add_option(app, "--ul_freq_max", cfg.ul_freq_max, "UL frequency range end in MHz (omit for TDD)");
-  app.add_option_function<unsigned>(
-         "--f_raster",
-         [&cfg](unsigned val) { cfg.f_raster = band_helper::to_delta_freq_raster(val); },
-         "ARFCN raster in kHz")
+  add_option_function<unsigned>(
+      app,
+      "--f_raster",
+      [&cfg](unsigned val) { cfg.f_raster = band_helper::to_delta_freq_raster(val); },
+      "ARFCN raster in kHz")
       ->required()
       ->check(CLI::IsMember({15u, 30u, 60u, 100u, 120u}));
-  app.add_option_function<unsigned>(
-         "--ssb_scs",
-         [&cfg](unsigned val) { cfg.ssb_scs = to_subcarrier_spacing(std::to_string(val)); },
-         "SSB subcarrier spacing in kHz")
+  add_option_function<unsigned>(
+      app,
+      "--ssb_scs",
+      [&cfg](unsigned val) { cfg.ssb_scs = to_subcarrier_spacing(std::to_string(val)); },
+      "SSB subcarrier spacing in kHz")
       ->required()
       ->check(CLI::IsMember({15u, 30u, 120u, 240u}));
   add_option(app, "--ssb_case_c", cfg.ssb_case_c, "SSB pattern case C (true for n77/n78/n79-like TDD)");
@@ -3164,7 +3057,7 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
   });
 
   // DU section.
-  CLI::App* du_subcmd = app.add_subcommand("du", "DU parameters")->configurable();
+  CLI::App* du_subcmd = add_subcommand(app, "du", "DU parameters");
   configure_cli11_du_args(*du_subcmd, parsed_cfg.config);
 
   // Expert execution section.
@@ -3176,45 +3069,20 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
   configure_cli11_ntn_satellites_args(*global_ntn_subcmd, parsed_cfg.config.ntn_satellites);
 
   // Cell section.
-  add_option_cell(
+  add_option_cell<du_high_unit_cell_config>(
       app,
       "--cells",
-      [&parsed_cfg](const std::vector<std::string>& values) {
-        // Prepare the cells from the common cell.
-        parsed_cfg.config.cells_cfg.resize(values.size());
-        for (auto& cell : parsed_cfg.config.cells_cfg) {
-          cell.cell = parsed_cfg.common_cell_cfg;
-        }
-
-        // Format every cell.
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("Cells section", "Cells section config, item #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::capture);
-          configure_cli11_cells_args(subapp, parsed_cfg.config.cells_cfg[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the cell configuration on a per cell basis, overwriting the default configuration defined by cell_cfg");
+      parsed_cfg.config.cells_cfg,
+      configure_cli11_cells_args,
+      "Sets the cell configuration on a per cell basis, overwriting the default configuration defined by cell_cfg",
+      [&parsed_cfg](du_high_unit_cell_config& cell) { cell.cell = parsed_cfg.common_cell_cfg; });
 
   // QoS section.
-  auto qos_lambda = [&parsed_cfg](const std::vector<std::string>& values) {
-    // Prepare the radio bearers
-    parsed_cfg.config.qos_cfg.resize(values.size());
-
-    // Format every QoS setting.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("QoS parameters", "QoS config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_qos_args(subapp, parsed_cfg.config.qos_cfg[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-
-  add_option_cell(app, "--qos", qos_lambda, "Configures RLC and PDCP radio bearers on a per 5QI basis.");
+  add_option_cell<du_high_unit_qos_config>(app,
+                                           "--qos",
+                                           parsed_cfg.config.qos_cfg,
+                                           configure_cli11_qos_args,
+                                           "Configures RLC and PDCP radio bearers on a per 5QI basis.");
 
   // SRB section.
   auto srb_lambda = [&parsed_cfg](const std::vector<std::string>& values) {
@@ -3231,20 +3099,15 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
     }
   };
   app.add_option_function<std::vector<std::string>>("--srbs", srb_lambda, "Configures signaling radio bearers.");
+  declare_cell_schema<du_high_unit_srb_config>(
+      app, "--srbs", configure_cli11_srb_args, "Configures signaling radio bearers.");
 
   // Custom frequency bands section.
-  auto custom_freq_bands_lambda = [&parsed_cfg](const std::vector<std::string>& values) {
-    parsed_cfg.config.custom_freq_bands.resize(values.size());
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("Custom frequency band parameters", "Custom frequency band config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_custom_freq_band_args(subapp, parsed_cfg.config.custom_freq_bands[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--custom_freq_bands", custom_freq_bands_lambda, "User-defined non-standard NR frequency bands");
+  add_option_cell<du_high_unit_custom_band_config>(app,
+                                                   "--custom_freq_bands",
+                                                   parsed_cfg.config.custom_freq_bands,
+                                                   configure_cli11_custom_freq_band_args,
+                                                   "User-defined non-standard NR frequency bands");
 
   // Test mode section.
   CLI::App* test_mode_subcmd = add_subcommand(app, "test_mode", "Test mode configuration")->configurable();

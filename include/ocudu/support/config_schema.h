@@ -378,9 +378,25 @@ void record_function_option(const CLI::App&    app,
   leaf->kind        = node_kind::leaf;
   leaf->name        = std::move(name);
   leaf->description = description;
-  leaf->type        = detail::scalar_leaf_type<T>();
-  leaf->option      = option;
+  if constexpr (detail::is_vector<std::decay_t<T>>::value) {
+    // A custom-parsed list of scalars (e.g. add_option_function<std::vector<std::string>>): a scalar array.
+    leaf->type            = detail::scalar_leaf_type<typename detail::is_vector<std::decay_t<T>>::value_type>();
+    leaf->is_scalar_array = true;
+  } else {
+    leaf->type = detail::scalar_leaf_type<T>();
+  }
+  leaf->option = option;
   parent->children.push_back(std::move(leaf));
+}
+
+/// Binds an option group to the schema node of its parent app. CLI11 option groups share the parent's
+/// configuration namespace, so options added to the group are top-level options of the parent; recording them
+/// against the parent's node makes them appear as its properties instead of being skipped.
+inline void record_option_group(const CLI::App& parent_app, const CLI::App& group_app)
+{
+  if (schema_node* parent = registry().lookup(&parent_app)) {
+    registry().attach(&group_app, parent);
+  }
 }
 
 /// Records (or finds) a subcommand group \c name under \c parent_app and binds \c child_app to it.

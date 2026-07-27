@@ -32,67 +32,56 @@ static void configure_cli11_ntn_neighbor_cell_args(CLI::App& app, du_high_unit_n
 
 static void configure_cli11_ncells(CLI::App& app, std::vector<du_high_unit_ntn_neighbor_cell_config>& ncells)
 {
-  add_option_cell(
-      app,
-      "--ncells",
-      [&ncells](const std::vector<std::string>& values) {
-        if (values.size() > MAX_NOF_NTN_NEIGHBORS) {
-          report_error(fmt::format("ncells: at most {} neighbor cells are supported", MAX_NOF_NTN_NEIGHBORS).c_str());
-        }
-        ncells.resize(values.size());
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("NTN neighbor cell", "NTN neighbor cell, item #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::capture);
-          configure_cli11_ntn_neighbor_cell_args(subapp, ncells[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "List of NTN neighbor cells");
+  // The maximum number of neighbour cells is enforced natively via expected() rather than a hand-written size check.
+  add_option_cell<du_high_unit_ntn_neighbor_cell_config>(
+      app, "--ncells", ncells, configure_cli11_ntn_neighbor_cell_args, "List of NTN neighbor cells")
+      ->expected(0, static_cast<int>(MAX_NOF_NTN_NEIGHBORS));
 }
 
 static void configure_cli11_ntn_neighbor_cell_args(CLI::App& app, du_high_unit_ntn_neighbor_cell_config& ncell)
 {
   configure_cli11_ntn_satellite_args(app, ncell.sat_ref);
 
-  app.add_option_function<unsigned>(
-         "--pci", [&ncell](unsigned val) { ncell.phys_cell_id = static_cast<pci_t>(val); }, "Physical Cell ID")
+  add_option_function<unsigned>(
+      app, "--pci", [&ncell](unsigned val) { ncell.phys_cell_id = static_cast<pci_t>(val); }, "Physical Cell ID")
       ->check(CLI::Range(0, static_cast<int>(MAX_PCI)));
 
-  app.add_option_function<unsigned>(
-         "--carrier_freq",
-         [&ncell](unsigned val) { ncell.carrier_freq = arfcn_t{val}; },
-         "Carrier frequency (NR-ARFCN)")
+  add_option_function<unsigned>(
+      app,
+      "--carrier_freq",
+      [&ncell](unsigned val) { ncell.carrier_freq = arfcn_t{val}; },
+      "Carrier frequency (NR-ARFCN)")
       ->check(CLI::Range(0U, 3279165U));
 
-  app.add_option_function<unsigned>(
-         "--cell_specific_koffset",
-         [&ncell](unsigned value) { ncell.cell_specific_koffset = std::chrono::milliseconds(value); },
-         "Cell-specific k-offset [ms]")
+  add_option_function<unsigned>(
+      app,
+      "--cell_specific_koffset",
+      [&ncell](unsigned value) { ncell.cell_specific_koffset = std::chrono::milliseconds(value); },
+      "Cell-specific k-offset [ms]")
       ->check(CLI::Range(1U, 1023U));
 
-  app.add_option("--ntn_ul_sync_validity_dur", ncell.ntn_ul_sync_validity_dur, "UL sync validity duration [s]")
+  add_option(app, "--ntn_ul_sync_validity_dur", ncell.ntn_ul_sync_validity_dur, "UL sync validity duration [s]")
       ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
 
-  app.add_option("--k_mac", ncell.k_mac, "K_mac offset")->check(CLI::Range(1U, 512U));
+  add_option(app, "--k_mac", ncell.k_mac, "K_mac offset")->check(CLI::Range(1U, 512U));
 
   static ntn_polarization_t polarization;
   CLI::App*                 pol_subcmd = add_subcommand(app, "polarization", "Polarization for this neighbor");
   configure_cli11_ntn_polarization(*pol_subcmd, polarization);
   pol_subcmd->parse_complete_callback([&ncell]() { ncell.polarization = polarization; });
 
-  app.add_option("--ta_report", ncell.ta_report, "Enable TA reporting");
+  add_option(app, "--ta_report", ncell.ta_report, "Enable TA reporting");
 
-  app.add_option("--has_feeder_link",
-                 ncell.has_feeder_link,
-                 "Whether this neighbour has a feeder link (transparent payload); if so, its ta-Info is broadcast in "
-                 "SIB19");
+  add_option(app,
+             "--has_feeder_link",
+             ncell.has_feeder_link,
+             "Whether this neighbour has a feeder link (transparent payload); if so, its ta-Info is broadcast in "
+             "SIB19");
 
-  app.add_option(
-      "--use_state_vector",
-      ncell.use_state_vector,
-      "Whether to broadcast EphemerisInfo as ECEF state vectors (if true) or ECI Orbital parameters (if false)");
+  add_option(app,
+             "--use_state_vector",
+             ncell.use_state_vector,
+             "Whether to broadcast EphemerisInfo as ECEF state vectors (if true) or ECI Orbital parameters (if false)");
 }
 
 static void configure_cli11_sat_switch_with_resync(CLI::App& app, du_high_unit_sat_switch_config& sat_switch_config)
@@ -105,24 +94,26 @@ static void configure_cli11_sat_switch_with_resync(CLI::App& app, du_high_unit_s
       sat_switch_config.t_service_start,
       "Time when target satellite starts serving (Unix time in ms or ISO 8601: YYYY-MM-DDTHH:MM:SS[.mmm])");
 
-  app.add_option("--ssb_time_offset_sf", sat_switch_config.ssb_time_offset_sf, "SSB time offset in subframes (0-159)")
+  add_option(app, "--ssb_time_offset_sf", sat_switch_config.ssb_time_offset_sf, "SSB time offset in subframes (0-159)")
       ->check(CLI::Range(0U, 159U));
 
-  app.add_option("--ntn_ul_sync_validity_dur",
-                 sat_switch_config.ntn_ul_sync_validity_dur,
-                 "UL sync validity duration after switch. If not set, the serving cell value is used")
+  add_option(app,
+             "--ntn_ul_sync_validity_dur",
+             sat_switch_config.ntn_ul_sync_validity_dur,
+             "UL sync validity duration after switch. If not set, the serving cell value is used")
       ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
 
-  app.add_option_function<unsigned>(
-         "--cell_specific_koffset",
-         [&sat_switch_config](unsigned value) {
-           sat_switch_config.cell_specific_koffset = std::chrono::milliseconds(value);
-         },
-         "Cell-specific k-offset after switch [ms]. If not set, the serving cell value is used")
+  add_option_function<unsigned>(
+      app,
+      "--cell_specific_koffset",
+      [&sat_switch_config](unsigned value) {
+        sat_switch_config.cell_specific_koffset = std::chrono::milliseconds(value);
+      },
+      "Cell-specific k-offset after switch [ms]. If not set, the serving cell value is used")
       ->check(CLI::Range(1U, 1023U));
 
-  app.add_option(
-         "--k_mac", sat_switch_config.k_mac, "K_mac offset after switch. If not set, the serving cell value is used")
+  add_option(
+      app, "--k_mac", sat_switch_config.k_mac, "K_mac offset after switch. If not set, the serving cell value is used")
       ->check(CLI::Range(1U, 512U));
 
   static ntn_polarization_t polarization;
@@ -135,23 +126,27 @@ static void configure_cli11_sat_switch_with_resync(CLI::App& app, du_high_unit_s
     }
   });
 
-  app.add_option("--ta_report",
-                 sat_switch_config.ta_report,
-                 "Enable TA reporting after switch. If not set, the serving cell setting is used");
+  add_option(app,
+             "--ta_report",
+             sat_switch_config.ta_report,
+             "Enable TA reporting after switch. If not set, the serving cell setting is used");
 
-  app.add_option("--use_state_vector",
-                 sat_switch_config.use_state_vector,
-                 "Whether to broadcast EphemerisInfo as ECEF state vectors (if true) or ECI Orbital parameters (if "
-                 "false) after switch");
+  add_option(app,
+             "--use_state_vector",
+             sat_switch_config.use_state_vector,
+             "Whether to broadcast EphemerisInfo as ECEF state vectors (if true) or ECI Orbital parameters (if "
+             "false) after switch");
 
-  app.add_option("--promote_to_serving",
-                 sat_switch_config.promote_to_serving,
-                 "Promote this sat-switch's target parameters to become the serving cell config at t_service")
+  add_option(app,
+             "--promote_to_serving",
+             sat_switch_config.promote_to_serving,
+             "Promote this sat-switch's target parameters to become the serving cell config at t_service")
       ->capture_default_str();
 
-  app.add_option("--promote_neighbors",
-                 sat_switch_config.promote_neighbors,
-                 "When promote_to_serving is enabled, keep the pre-switch neighbor cell list instead of clearing it")
+  add_option(app,
+             "--promote_neighbors",
+             sat_switch_config.promote_neighbors,
+             "When promote_to_serving is enabled, keep the pre-switch neighbor cell list instead of clearing it")
       ->capture_default_str();
 }
 
@@ -159,14 +154,15 @@ static void configure_cli11_ntn_args(CLI::App&                             app,
                                      du_high_unit_cell_ntn_config&         config,
                                      du_high_unit_ntn_serving_cell_config& serv_cell_ntn_config)
 {
-  app.add_option("--cell_specific_koffset",
-                 serv_cell_ntn_config.cell_specific_koffset,
-                 "Cell-specific k-offset to be used for NTN [ms].")
+  add_option(app,
+             "--cell_specific_koffset",
+             serv_cell_ntn_config.cell_specific_koffset,
+             "Cell-specific k-offset to be used for NTN [ms].")
       ->capture_default_str()
       ->check(CLI::Range(1, 1023));
 
-  app.add_option(
-         "--ntn_ul_sync_validity_dur", serv_cell_ntn_config.ntn_ul_sync_validity_dur, "An UL sync validity duration")
+  add_option(
+      app, "--ntn_ul_sync_validity_dur", serv_cell_ntn_config.ntn_ul_sync_validity_dur, "An UL sync validity duration")
       ->capture_default_str()
       ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
 
@@ -174,10 +170,11 @@ static void configure_cli11_ntn_args(CLI::App&                             app,
   configure_cli11_ntn_satellite_args(app, serv_cell_ntn_config.sat_ref);
 
   // Distance from the serving cell reference location.
-  app.add_option(
-         "--distance_threshold",
-         serv_cell_ntn_config.distance_threshold,
-         "Distance from the serving cell reference location and is used in location-based measurement. Unit is meters.")
+  add_option(
+      app,
+      "--distance_threshold",
+      serv_cell_ntn_config.distance_threshold,
+      "Distance from the serving cell reference location and is used in location-based measurement. Unit is meters.")
       ->capture_default_str()
       ->check(CLI::Range(0, 3276250));
 
@@ -191,16 +188,17 @@ static void configure_cli11_ntn_args(CLI::App&                             app,
       ->capture_default_str();
 
   // TA-report.
-  app.add_option("--ta_report",
-                 serv_cell_ntn_config.ta_report,
-                 " When this field is included in SIB19, it indicates reporting of timing advanced is enabled")
+  add_option(app,
+             "--ta_report",
+             serv_cell_ntn_config.ta_report,
+             " When this field is included in SIB19, it indicates reporting of timing advanced is enabled")
       ->capture_default_str();
 
   // Broadcast Ephemeris Info type in SIB19.
-  app.add_option(
-         "--use_state_vector",
-         serv_cell_ntn_config.use_state_vector,
-         "Whether to broadcast EphemerisInfo as ECEF state vectors (if true) or ECI Orbital parameters (if false)")
+  add_option(app,
+             "--use_state_vector",
+             serv_cell_ntn_config.use_state_vector,
+             "Whether to broadcast EphemerisInfo as ECEF state vectors (if true) or ECI Orbital parameters (if false)")
       ->capture_default_str();
 
   // Feeder link info.

@@ -41,7 +41,8 @@ static void configure_cli11_cell_affinity_args(CLI::App& app, ru_dummy_cpu_affin
       [&config](const std::string& value) { parse_affinity_mask(config.ru_cpu_cfg.mask, value, "ru_cpus"); },
       "Number of CPUs used for the Radio Unit tasks");
 
-  app.add_option_function<std::string>(
+  add_option_function<std::string>(
+      app,
       "--ru_pinning",
       [&config](const std::string& value) {
         config.ru_cpu_cfg.pinning_policy = to_affinity_mask_policy(value);
@@ -55,22 +56,11 @@ static void configure_cli11_cell_affinity_args(CLI::App& app, ru_dummy_cpu_affin
 static void configure_cli11_expert_execution_args(CLI::App& app, ru_dummy_unit_config& config)
 {
   // Cell affinity section.
-  add_option_cell(
+  add_option_cell<ru_dummy_cpu_affinities_cell_unit_config>(
       app,
       "--cell_affinities",
-      [&config](const std::vector<std::string>& values) {
-        config.cell_affinities.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("Dummy RU expert execution cell CPU affinities",
-                          "Dummy RUexpert execution cell CPU affinities config, item #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras();
-          configure_cli11_cell_affinity_args(subapp, config.cell_affinities[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
+      config.cell_affinities,
+      configure_cli11_cell_affinity_args,
       "Sets the cell CPU affinities configuration on a per cell basis");
 }
 

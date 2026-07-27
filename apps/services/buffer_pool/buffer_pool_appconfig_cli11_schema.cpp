@@ -12,9 +12,9 @@ using namespace app_services;
 
 static void configure_cli11_buffer_pool_args(CLI::App& app, buffer_pool_appconfig& config)
 {
-  app.add_option("--nof_segments", config.nof_segments, "Number of segments allocated by the buffer pool")
+  add_option(app, "--nof_segments", config.nof_segments, "Number of segments allocated by the buffer pool")
       ->capture_default_str();
-  app.add_option("--segment_size", config.segment_size, "Size of each buffer pool segment in bytes")
+  add_option(app, "--segment_size", config.segment_size, "Size of each buffer pool segment in bytes")
       ->capture_default_str();
 }
 
@@ -29,7 +29,7 @@ void ocudu::app_services::configure_cli11_with_buffer_pool_appconfig_schema(CLI:
                                                                             buffer_pool_appconfig& config)
 {
   // Buffer pool section.
-  CLI::App* buffer_pool_subcmd = app.add_subcommand("buffer_pool", "Buffer pool configuration")->configurable();
+  CLI::App* buffer_pool_subcmd = add_subcommand(app, "buffer_pool", "Buffer pool configuration");
   configure_cli11_buffer_pool_args(*buffer_pool_subcmd, config);
 
   // Metrics section.

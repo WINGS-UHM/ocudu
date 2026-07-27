@@ -10,9 +10,9 @@ using namespace ocudu;
 
 static void configure_cli11_remote_control_args(CLI::App& app, remote_control_appconfig& config)
 {
-  app.add_option("--enabled", config.enabled, "Enables the Remote Control Server")->always_capture_default();
-  app.add_option("--bind_addr", config.bind_addr, "Remote Control Server bind address")->capture_default_str();
-  app.add_option("--port", config.port, "Port where the remote control server listens for incoming connections")
+  add_option(app, "--enabled", config.enabled, "Enables the Remote Control Server")->always_capture_default();
+  add_option(app, "--bind_addr", config.bind_addr, "Remote Control Server bind address")->capture_default_str();
+  add_option(app, "--port", config.port, "Port where the remote control server listens for incoming connections")
       ->capture_default_str()
       ->check(CLI::Range(0, 65535));
 }
@@ -20,8 +20,7 @@ static void configure_cli11_remote_control_args(CLI::App& app, remote_control_ap
 void ocudu::configure_cli11_with_remote_control_appconfig_schema(CLI::App& app, remote_control_appconfig& config)
 {
   // Remote control section.
-  CLI::App* remote_control_subcmd =
-      app.add_subcommand("remote_control", "Remote control configuration")->configurable();
+  CLI::App* remote_control_subcmd = add_subcommand(app, "remote_control", "Remote control configuration");
   configure_cli11_remote_control_args(*remote_control_subcmd, config);
   // Metrics section.
   CLI::App* metrics_subcmd = add_subcommand(app, "metrics", "Metrics configuration")->configurable();

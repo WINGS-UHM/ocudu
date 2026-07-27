@@ -65,6 +65,6 @@ static void configure_cli11_expert_execution_args(CLI::App& app, expert_executio
 void ocudu::configure_cli11_with_worker_manager_appconfig_schema(CLI::App& app, expert_execution_appconfig& config)
 {
   // Expert section.
-  CLI::App* expert_subcmd = app.add_subcommand("expert_execution", "Expert execution configuration")->configurable();
+  CLI::App* expert_subcmd = add_subcommand(app, "expert_execution", "Expert execution configuration");
   configure_cli11_expert_execution_args(*expert_subcmd, config);
 }

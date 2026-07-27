@@ -65,20 +65,20 @@ CLI::Option* ocudu::add_ntn_timestamp_option(CLI::App&                          
                                              std::optional<std::chrono::system_clock::time_point>& dest,
                                              const std::string&                                    desc)
 {
-  return app
-      .add_option_function<std::string>(
-          name,
-          [&dest, name](const std::string& value) {
-            if (is_number(value)) {
-              const auto ms_since_epoch = parse_int<int64_t>(value);
-              report_fatal_error_if_not(ms_since_epoch.has_value(),
-                                        fmt::format("Invalid {} value '{}'", name, value).c_str());
-              dest = std::chrono::system_clock::time_point(std::chrono::milliseconds(*ms_since_epoch));
-            } else {
-              dest = parse_timestamp_ms(value).value();
-            }
-          },
-          desc)
+  return add_option_function<std::string>(
+             app,
+             name,
+             [&dest, name](const std::string& value) {
+               if (is_number(value)) {
+                 const auto ms_since_epoch = parse_int<int64_t>(value);
+                 report_fatal_error_if_not(ms_since_epoch.has_value(),
+                                           fmt::format("Invalid {} value '{}'", name, value).c_str());
+                 dest = std::chrono::system_clock::time_point(std::chrono::milliseconds(*ms_since_epoch));
+               } else {
+                 dest = parse_timestamp_ms(value).value();
+               }
+             },
+             desc)
       ->check([](const std::string& input) -> std::string {
         return (!is_number(input) && !is_valid_timestamp(input)) ? "Invalid timestamp format" : std::string{};
       });
@@ -174,24 +174,26 @@ static void add_ephemeris_subcommands(CLI::App& app, std::optional<ntn_ephemeris
 
 void ocudu::configure_cli11_ntn_satellite_args(CLI::App& app, ntn_satellite_config& sat)
 {
-  app.add_option("--satellite_idx",
-                 sat.satellite_idx,
-                 "Satellite index. Required when defining a satellite object; optional when referencing or "
-                 "inline-defining a satellite, in which case it is mutually exclusive with epoch_timestamp, "
-                 "ephemeris_info, gateway_location and ta_info.");
+  add_option(app,
+             "--satellite_idx",
+             sat.satellite_idx,
+             "Satellite index. Required when defining a satellite object; optional when referencing or "
+             "inline-defining a satellite, in which case it is mutually exclusive with epoch_timestamp, "
+             "ephemeris_info, gateway_location and ta_info.");
 
   add_ntn_timestamp_option(app,
                            "--epoch_timestamp",
                            sat.epoch_timestamp,
                            "Epoch timestamp (Unix ms or ISO 8601: YYYY-MM-DDTHH:MM:SS[.mmm])");
 
-  app.add_option_function<std::string>(
-         "--propagator_type",
-         [&sat](const std::string& value) {
-           sat.propagator_type = (value == "keplerian") ? ocudu_ntn::orbit_propagator_type::keplerian
-                                                        : ocudu_ntn::orbit_propagator_type::rk4;
-         },
-         "Orbit propagator: rk4 or keplerian")
+  add_option_function<std::string>(
+      app,
+      "--propagator_type",
+      [&sat](const std::string& value) {
+        sat.propagator_type = (value == "keplerian") ? ocudu_ntn::orbit_propagator_type::keplerian
+                                                     : ocudu_ntn::orbit_propagator_type::rk4;
+      },
+      "Orbit propagator: rk4 or keplerian")
       ->check(CLI::IsMember({"rk4", "keplerian"}));
 
   add_ephemeris_subcommands(app, sat.ephemeris_info);
@@ -209,20 +211,11 @@ void ocudu::configure_cli11_ntn_satellite_args(CLI::App& app, ntn_satellite_conf
 
 void ocudu::configure_cli11_ntn_satellites_args(CLI::App& app, std::vector<ntn_satellite_config>& ntn_satellites)
 {
-  add_option_cell(
+  add_option_cell<ntn_satellite_config>(
       app,
       "--satellites",
-      [&ntn_satellites](const std::vector<std::string>& values) {
-        ntn_satellites.resize(values.size());
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("NTN satellite", "satellite #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::capture);
-          configure_cli11_ntn_satellite_args(subapp, ntn_satellites[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
+      ntn_satellites,
+      configure_cli11_ntn_satellite_args,
       "Globally-defined NTN satellites referenced by satellite_idx in cell ntn configs");
 }
 

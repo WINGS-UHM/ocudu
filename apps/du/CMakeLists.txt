@@ -13,6 +13,7 @@ set(SOURCES
 add_library(odu_base STATIC ${SOURCES})
 target_link_libraries(odu_base PRIVATE
         ocudu_app_helpers
+        ocudu_config_app_helpers
         ocudu_app_services
         ocudu_f1u_du_split_connector
         ocudu_cu_cp

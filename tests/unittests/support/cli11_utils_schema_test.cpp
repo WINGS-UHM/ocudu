@@ -93,6 +93,23 @@ TEST_F(cli11_utils_schema_test, option_pointer_exposes_required_flag)
   EXPECT_TRUE(root.children[0]->option->get_required());
 }
 
+TEST_F(cli11_utils_schema_test, option_group_options_recorded_at_parent_level)
+{
+  CLI::App    app;
+  schema_node root;
+  register_schema_root(app, root);
+
+  // Options added to an option group share the parent's config namespace, so they must appear as the parent's
+  // properties, not be dropped.
+  CLI::App* group = add_option_group(app, "display_only");
+  int       x     = 7;
+  add_option(*group, "--grouped", x, "a grouped option")->capture_default_str();
+
+  ASSERT_EQ(root.children.size(), 1u);
+  EXPECT_EQ(root.children[0]->name, "grouped");
+  EXPECT_EQ(root.children[0]->type, leaf_type::integer);
+}
+
 TEST_F(cli11_utils_schema_test, add_option_function_records_typed_leaf)
 {
   CLI::App    app;
@@ -109,12 +126,20 @@ TEST_F(cli11_utils_schema_test, add_option_function_records_typed_leaf)
   std::string mode;
   add_option_function<std::string>(app, "--mode", [&mode](const std::string& v) { mode = v; }, "a mode");
 
-  ASSERT_EQ(root.children.size(), 2u);
+  // A custom-parsed list of strings records as a scalar array.
+  std::vector<std::string> masks;
+  add_option_function<std::vector<std::string>>(
+      app, "--masks", [&masks](const std::vector<std::string>& v) { masks = v; }, "a list of masks");
+
+  ASSERT_EQ(root.children.size(), 3u);
   EXPECT_EQ(root.children[0]->name, "freq");
   EXPECT_EQ(root.children[0]->type, leaf_type::integer);
   EXPECT_FALSE(root.children[0]->dflt.present);
   EXPECT_EQ(root.children[1]->name, "mode");
   EXPECT_EQ(root.children[1]->type, leaf_type::string);
+  EXPECT_EQ(root.children[2]->name, "masks");
+  EXPECT_EQ(root.children[2]->type, leaf_type::string);
+  EXPECT_TRUE(root.children[2]->is_scalar_array);
 }
 
 TEST_F(cli11_utils_schema_test, add_option_cell_captures_shape_and_parses)

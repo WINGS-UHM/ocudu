@@ -320,12 +320,12 @@ static void configure_cli11_ru_ofh_cells_args(CLI::App& app, ru_ofh_unit_cell_co
   add_option(app, "--ru_mac_addr", config.ru_mac_address, "Radio Unit MAC address")->capture_default_str();
   add_option(app, "--du_mac_addr", config.du_mac_address, "Distributed Unit MAC address")->capture_default_str();
 
-  auto* vlan_tag_cp_opt = add_option(app, "--vlan_tag_cp", config.vlan_tag_cp, "C-Plane VLAN identifier")
-                              ->capture_default_str()
-                              ->check(CLI::Range(1, 4094));
-  auto* vlan_tag_up_opt = add_option(app, "--vlan_tag_up", config.vlan_tag_up, "U-Plane VLAN identifier")
-                              ->capture_default_str()
-                              ->check(CLI::Range(1, 4094));
+  CLI::Option* vlan_tag_cp_opt = add_option(app, "--vlan_tag_cp", config.vlan_tag_cp, "C-Plane VLAN identifier")
+                                     ->capture_default_str()
+                                     ->check(CLI::Range(1, 4094));
+  CLI::Option* vlan_tag_up_opt = add_option(app, "--vlan_tag_up", config.vlan_tag_up, "U-Plane VLAN identifier")
+                                     ->capture_default_str()
+                                     ->check(CLI::Range(1, 4094));
 
   add_option(app, "--vlan_pcp_cp", config.vlan_pcp_cp, "C-Plane VLAN PCP")
       ->capture_default_str()
@@ -365,7 +365,7 @@ static void configure_cli11_ru_ofh_args(CLI::App& app, ru_ofh_unit_parsed_config
 
   // Cell parameters. Each cell defaults to the base-cell configuration (seeded per element); the sibling
   // cell_affinities list is sized to the cell count in the base_cell parse-complete callback above.
-  add_option_cell<ru_ofh_unit_cell_config>(
+  add_option_object_list<ru_ofh_unit_cell_config>(
       app,
       "--cells",
       ofh_cfg.cells,
@@ -428,7 +428,7 @@ static void configure_cli11_expert_execution_args(CLI::App& app, ru_ofh_unit_exp
       "number of RU cells");
 
   // Cell affinity section.
-  add_option_cell<ru_ofh_unit_cpu_affinities_cell_config>(
+  add_option_object_list<ru_ofh_unit_cpu_affinities_cell_config>(
       app,
       "--cell_affinities",
       config.cell_affinities,

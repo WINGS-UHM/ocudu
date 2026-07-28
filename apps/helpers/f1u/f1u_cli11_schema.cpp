@@ -33,9 +33,9 @@ void ocudu::configure_cli11_f1u_sockets_args(CLI::App& app, f1u_sockets_appconfi
   add_option(app, "--peer_port", f1u_params.peer_port, "F1-U peer port")->capture_default_str();
 
   // Add option for multiple sockets, for usage with different slices, 5QIs or parallization.
-  add_option_cell<f1u_socket_appconfig>(app,
-                                        "--socket",
-                                        f1u_params.f1u_socket_cfg,
-                                        configure_cli11_f1u_socket_args,
-                                        "Configures UDP/IP socket parameters of the F1-U interface");
+  add_option_object_list<f1u_socket_appconfig>(app,
+                                               "--socket",
+                                               f1u_params.f1u_socket_cfg,
+                                               configure_cli11_f1u_socket_args,
+                                               "Configures UDP/IP socket parameters of the F1-U interface");
 }

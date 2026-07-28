@@ -211,7 +211,7 @@ void ocudu::configure_cli11_ntn_satellite_args(CLI::App& app, ntn_satellite_conf
 
 void ocudu::configure_cli11_ntn_satellites_args(CLI::App& app, std::vector<ntn_satellite_config>& ntn_satellites)
 {
-  add_option_cell<ntn_satellite_config>(
+  add_option_object_list<ntn_satellite_config>(
       app,
       "--satellites",
       ntn_satellites,

@@ -1773,7 +1773,7 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_rach_config& 
              "Number of RBs that are used as guardband on each side of the PRACH RBs interval for short PRACH formats.")
       ->capture_default_str()
       ->check(CLI::Range(1U, 10U));
-  add_option_cell<du_high_unit_rach_config::ra_prioritization_slice_info>(
+  add_option_object_list<du_high_unit_rach_config::ra_prioritization_slice_info>(
       app,
       "--slice_based_ra_prioritization",
       prach_params.ra_prio_slice_info_list,
@@ -1866,7 +1866,7 @@ static void configure_cli11_pci_range_args(CLI::App& app, pci_range_config& rang
 static void configure_cli11_sib3_config_args(CLI::App& app, du_high_unit_sib_config::sib3_config& sib3_cfg)
 {
   // Intra frequency neighbor cell list.
-  add_option_cell<du_high_unit_sib_config::sib3_config::intra_freq_neigh_cell_config>(
+  add_option_object_list<du_high_unit_sib_config::sib3_config::intra_freq_neigh_cell_config>(
       app,
       "--intra_freq_neigh_cell_list",
       sib3_cfg.intra_freq_neigh_cell_list,
@@ -1874,11 +1874,11 @@ static void configure_cli11_sib3_config_args(CLI::App& app, du_high_unit_sib_con
       "Intra frequency neighbor cell list");
 
   // Intra frequency excluded cell list.
-  add_option_cell<pci_range_config>(app,
-                                    "--intra_freq_excluded_cell_list",
-                                    sib3_cfg.intra_freq_excluded_cell_list,
-                                    configure_cli11_pci_range_args,
-                                    "Intra frequency excluded cell list");
+  add_option_object_list<pci_range_config>(app,
+                                           "--intra_freq_excluded_cell_list",
+                                           sib3_cfg.intra_freq_excluded_cell_list,
+                                           configure_cli11_pci_range_args,
+                                           "Intra frequency excluded cell list");
 }
 
 static void configure_cli11_inter_freq_carrier_freq_info_args(
@@ -1963,7 +1963,7 @@ static void configure_cli11_inter_freq_carrier_freq_info_args(
 static void configure_cli11_sib4_config_args(CLI::App& app, du_high_unit_sib_config::sib4_config& sib4_cfg)
 {
   // Inter frequency carrier frequency list.
-  add_option_cell<du_high_unit_sib_config::sib4_config::inter_freq_carrier_freq_config>(
+  add_option_object_list<du_high_unit_sib_config::sib4_config::inter_freq_carrier_freq_config>(
       app,
       "--inter_freq_carrier_freq_list",
       sib4_cfg.inter_freq_carrier_freq_list,
@@ -2055,7 +2055,7 @@ static void configure_cli11_sib5_config_args(CLI::App& app, du_high_unit_sib_con
       ->check(CLI::Range(0, 7));
 
   // EUTRA carrier frequency list.
-  add_option_cell<du_high_unit_sib_config::sib5_config::carrier_freq_eutra_config>(
+  add_option_object_list<du_high_unit_sib_config::sib5_config::carrier_freq_eutra_config>(
       app,
       "--carrier_freq_list_eutra",
       sib5_cfg.carrier_freq_list_eutra,
@@ -2094,7 +2094,7 @@ static void configure_cli11_sib16_slice_info_args(CLI::App&                     
       });
 
   // Slice cell list entries.
-  add_option_cell<pci_range_config>(
+  add_option_object_list<pci_range_config>(
       app, "--cells_allowed", slice.cells, configure_cli11_pci_range_args, "Slice cell list entries");
 }
 
@@ -2110,16 +2110,17 @@ static void configure_cli11_sib16_freq_prio_slicing_args(
       ->check(CLI::Range(0, 8));
 
   // Slice info list.
-  add_option_cell<du_high_unit_sib_config::sib16_config::slice_info_config>(app,
-                                                                            "--slice_info_list",
-                                                                            freq_cfg.slice_info_list,
-                                                                            configure_cli11_sib16_slice_info_args,
-                                                                            "Slice info list entries");
+  add_option_object_list<du_high_unit_sib_config::sib16_config::slice_info_config>(
+      app,
+      "--slice_info_list",
+      freq_cfg.slice_info_list,
+      configure_cli11_sib16_slice_info_args,
+      "Slice info list entries");
 }
 
 static void configure_cli11_sib16_config_args(CLI::App& app, du_high_unit_sib_config::sib16_config& sib16_cfg)
 {
-  add_option_cell<du_high_unit_sib_config::sib16_config::freq_priority_slicing_config>(
+  add_option_object_list<du_high_unit_sib_config::sib16_config::freq_priority_slicing_config>(
       app,
       "--freq_prio_list_slicing",
       sib16_cfg.freq_prio_list_slicing,
@@ -2184,7 +2185,7 @@ static void configure_cli11_sib_args(CLI::App& app, du_high_unit_sib_config& sib
       ->check(CLI::IsMember({5, 10, 20, 40, 80, 160, 320, 640, 1280}));
 
   // SI message scheduling parameters.
-  add_option_cell<du_high_unit_sib_config::si_sched_info_config>(
+  add_option_object_list<du_high_unit_sib_config::si_sched_info_config>(
       app,
       "--si_sched_info",
       sib_params.si_sched_info,
@@ -2740,7 +2741,7 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
   configure_cli11_drx_args(*drx_subcmd, cell_params.drx_cfg);
 
   // Slicing configuration.
-  add_option_cell<du_high_unit_cell_slice_config>(
+  add_option_object_list<du_high_unit_cell_slice_config>(
       app, "--slicing", cell_params.slice_cfg, configure_cli11_slicing_args, "Network slicing configuration");
 
   // NTN configuration.
@@ -3069,7 +3070,7 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
   configure_cli11_ntn_satellites_args(*global_ntn_subcmd, parsed_cfg.config.ntn_satellites);
 
   // Cell section.
-  add_option_cell<du_high_unit_cell_config>(
+  add_option_object_list<du_high_unit_cell_config>(
       app,
       "--cells",
       parsed_cfg.config.cells_cfg,
@@ -3078,22 +3079,22 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
       [&parsed_cfg](du_high_unit_cell_config& cell) { cell.cell = parsed_cfg.common_cell_cfg; });
 
   // QoS section.
-  add_option_cell<du_high_unit_qos_config>(app,
-                                           "--qos",
-                                           parsed_cfg.config.qos_cfg,
-                                           configure_cli11_qos_args,
-                                           "Configures RLC and PDCP radio bearers on a per 5QI basis.");
+  add_option_object_list<du_high_unit_qos_config>(app,
+                                                  "--qos",
+                                                  parsed_cfg.config.qos_cfg,
+                                                  configure_cli11_qos_args,
+                                                  "Configures RLC and PDCP radio bearers on a per 5QI basis.");
 
   // SRB section. Parsed as a plain list; the srb_id-keyed map is built during translation.
-  add_option_cell<du_high_unit_srb_config>(
+  add_option_object_list<du_high_unit_srb_config>(
       app, "--srbs", parsed_cfg.config.srb_cfg, configure_cli11_srb_args, "Configures signaling radio bearers.");
 
   // Custom frequency bands section.
-  add_option_cell<du_high_unit_custom_band_config>(app,
-                                                   "--custom_freq_bands",
-                                                   parsed_cfg.config.custom_freq_bands,
-                                                   configure_cli11_custom_freq_band_args,
-                                                   "User-defined non-standard NR frequency bands");
+  add_option_object_list<du_high_unit_custom_band_config>(app,
+                                                          "--custom_freq_bands",
+                                                          parsed_cfg.config.custom_freq_bands,
+                                                          configure_cli11_custom_freq_band_args,
+                                                          "User-defined non-standard NR frequency bands");
 
   // Test mode section.
   CLI::App* test_mode_subcmd = add_subcommand(app, "test_mode", "Test mode configuration")->configurable();

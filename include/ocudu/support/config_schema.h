@@ -55,6 +55,18 @@ struct schema_default {
   std::vector<schema_scalar> values;
 };
 
+/// Value constraints of a leaf option (JSON Schema keywords). For a scalar-array leaf these apply to the array
+/// items. Populated either from a first-class handle method (.range/.enum_values/...) or by parsing a CLI11
+/// validator description at registration.
+struct schema_constraints {
+  std::optional<schema_scalar> minimum;
+  std::optional<schema_scalar> maximum;
+  std::optional<schema_scalar> exclusive_minimum;
+  std::vector<schema_scalar>   enums;
+
+  bool empty() const { return !minimum && !maximum && !exclusive_minimum && enums.empty(); }
+};
+
 /// Kind of a schema tree node.
 enum class node_kind { root, group, leaf, array };
 
@@ -84,6 +96,7 @@ struct schema_node {
   leaf_type          type            = leaf_type::string;
   bool               is_scalar_array = false;
   schema_default     dflt;
+  schema_constraints constraints;
   const CLI::Option* option = nullptr;
 
   // Group / root / array.
@@ -305,78 +318,188 @@ inline std::string schema_option_name(const std::string& option_name)
   return first.substr(begin, end - begin + 1);
 }
 
-/// Records a scalar (or scalar-array) leaf option under \c app's node. First declaration of a given name wins
-/// (the add_option helpers chain callbacks so a repeated name populates several targets from one option).
+/// Converts a raw string (from a CLI11 validator description) to a typed scalar following the leaf type.
+inline schema_scalar to_scalar(leaf_type type, const std::string& raw)
+{
+  std::string s     = raw;
+  std::size_t begin = s.find_first_not_of(" \t");
+  std::size_t end   = s.find_last_not_of(" \t");
+  s                 = (begin == std::string::npos) ? std::string{} : s.substr(begin, end - begin + 1);
+  if (type == leaf_type::integer) {
+    try {
+      std::size_t consumed = 0;
+      long long   v        = std::stoll(s, &consumed);
+      if (consumed == s.size()) {
+        return schema_scalar{static_cast<std::int64_t>(v)};
+      }
+    } catch (...) {
+    }
+    // Fall back to unsigned for bounds above INT64_MAX (e.g. a uint64 option's maximum).
+    try {
+      std::size_t        consumed = 0;
+      unsigned long long v        = std::stoull(s, &consumed);
+      if (consumed == s.size()) {
+        return schema_scalar{static_cast<std::uint64_t>(v)};
+      }
+    } catch (...) {
+    }
+  } else if (type == leaf_type::number) {
+    try {
+      std::size_t consumed = 0;
+      double      v        = std::stod(s, &consumed);
+      if (consumed == s.size()) {
+        return schema_scalar{v};
+      }
+    } catch (...) {
+    }
+  } else if (type == leaf_type::boolean) {
+    return schema_scalar{s == "true" || s == "1"};
+  }
+  return schema_scalar{s};
+}
+
+/// Converts a numeric value (from a first-class constraint method) to a typed scalar following the leaf type.
+inline schema_scalar to_scalar(leaf_type type, double v)
+{
+  return (type == leaf_type::integer) ? schema_scalar{static_cast<std::int64_t>(v)} : schema_scalar{v};
+}
+
+/// Records value constraints on \c leaf from a CLI11 validator's resolved description string (its get_description(),
+/// or get_name() when the description is empty). Recognises Range ("<TYPE> in [<min> - <max>]"), IsMember
+/// ("{a,b,c}"), NONNEGATIVE and POSITIVE; anything else is left as type-only. No-op when \c leaf is null.
+inline void record_validator_constraint(schema_node* leaf, const std::string& desc)
+{
+  if (leaf == nullptr || desc.empty()) {
+    return;
+  }
+  // Range: "<TYPE> in [<min> - <max>]".
+  const std::string marker = " in [";
+  std::size_t       mpos   = desc.find(marker);
+  if (mpos != std::string::npos && desc.back() == ']') {
+    std::string inner = desc.substr(mpos + marker.size(), desc.size() - (mpos + marker.size()) - 1);
+    std::size_t sep   = inner.find(" - ");
+    if (sep != std::string::npos) {
+      leaf->constraints.minimum = to_scalar(leaf->type, inner.substr(0, sep));
+      leaf->constraints.maximum = to_scalar(leaf->type, inner.substr(sep + 3));
+      return;
+    }
+  }
+  // IsMember: "{a,b,c}".
+  if (desc.size() >= 2 && desc.front() == '{' && desc.back() == '}') {
+    std::string inner = desc.substr(1, desc.size() - 2);
+    std::size_t start = 0;
+    while (!inner.empty()) {
+      std::size_t comma = inner.find(',', start);
+      std::string item  = inner.substr(start, comma == std::string::npos ? std::string::npos : comma - start);
+      leaf->constraints.enums.push_back(to_scalar(leaf->type, item));
+      if (comma == std::string::npos) {
+        break;
+      }
+      start = comma + 1;
+    }
+    return;
+  }
+  if (desc == "NONNEGATIVE") {
+    leaf->constraints.minimum = to_scalar(leaf->type, std::string("0"));
+    return;
+  }
+  if (desc == "POSITIVE") {
+    leaf->constraints.exclusive_minimum = to_scalar(leaf->type, std::string("0"));
+    return;
+  }
+  // Unknown validator (e.g. a custom check): leave the leaf type-only.
+}
+
+/// Returns the leaf node to (re)populate when recording an option \c name under \c parent, or nullptr if \c name is
+/// already an array (list-of-struct) node that must be preserved. A repeated declaration of the same leaf name - a
+/// shared node populated by several units, as in the gNB - resets the node so the LAST declaration wins, matching
+/// CLI11's merge-aware add_option (which removes the earlier option, keeping the last one's default and validators).
+/// Array options are unioned instead (see \ref record_array), so an existing array node is never overwritten.
+inline schema_node* leaf_slot(schema_node* parent, const std::string& name)
+{
+  if (schema_node* existing = parent->find_child(name)) {
+    if (existing->kind == node_kind::array) {
+      return nullptr;
+    }
+    existing->kind            = node_kind::leaf;
+    existing->is_scalar_array = false;
+    existing->dflt            = {};
+    existing->constraints     = {};
+    existing->option          = nullptr;
+    return existing;
+  }
+  auto node        = std::make_unique<schema_node>();
+  node->name       = name;
+  node->kind       = node_kind::leaf;
+  schema_node* raw = node.get();
+  parent->children.push_back(std::move(node));
+  return raw;
+}
+
+/// Records a scalar (or scalar-array) leaf option under \c app's node and returns it. A repeated declaration of the
+/// same name updates the node in place (last declaration wins, see \ref leaf_slot); nullptr when the app is not
+/// registered against a root.
 template <typename T>
-void record_option(const CLI::App&    app,
-                   const std::string& option_name,
-                   const T&           target,
-                   const std::string& description,
-                   const CLI::Option* option)
+schema_node* record_option(const CLI::App&    app,
+                           const std::string& option_name,
+                           const T&           target,
+                           const std::string& description,
+                           const CLI::Option* option)
 {
   schema_node* parent = registry().lookup(&app);
   if (parent == nullptr) {
-    return;
+    return nullptr;
   }
-  std::string name = schema_option_name(option_name);
-  if (parent->find_child(name) != nullptr) {
-    return;
+  schema_node* leaf = leaf_slot(parent, schema_option_name(option_name));
+  if (leaf == nullptr) {
+    return parent->find_child(schema_option_name(option_name));
   }
-  auto      leaf        = std::make_unique<schema_node>();
   leaf_info info        = capture_leaf(target);
-  leaf->kind            = node_kind::leaf;
-  leaf->name            = std::move(name);
   leaf->description     = description;
   leaf->type            = info.type;
   leaf->is_scalar_array = info.is_scalar_array;
   leaf->dflt            = std::move(info.dflt);
   leaf->option          = option;
-  parent->children.push_back(std::move(leaf));
+  return leaf;
 }
 
-/// Records a boolean flag leaf under \c app's node.
-inline void record_flag(const CLI::App&    app,
-                        const std::string& option_name,
-                        const std::string& description,
-                        const CLI::Option* option)
+/// Records a boolean flag leaf under \c app's node and returns it (see \ref record_option for the return contract).
+inline schema_node* record_flag(const CLI::App&    app,
+                                const std::string& option_name,
+                                const std::string& description,
+                                const CLI::Option* option)
 {
   schema_node* parent = registry().lookup(&app);
   if (parent == nullptr) {
-    return;
+    return nullptr;
   }
-  std::string name = schema_option_name(option_name);
-  if (parent->find_child(name) != nullptr) {
-    return;
+  schema_node* leaf = leaf_slot(parent, schema_option_name(option_name));
+  if (leaf == nullptr) {
+    return parent->find_child(schema_option_name(option_name));
   }
-  auto leaf         = std::make_unique<schema_node>();
-  leaf->kind        = node_kind::leaf;
-  leaf->name        = std::move(name);
   leaf->description = description;
   leaf->type        = leaf_type::boolean;
   leaf->option      = option;
-  parent->children.push_back(std::move(leaf));
+  return leaf;
 }
 
 /// Records a leaf option whose value is parsed by a custom function (add_option_function). The JSON-Schema type is
 /// taken from the function's value type \c T (e.g. integer for add_option_function<unsigned>, string for an enum
 /// name parser); there is no readable target variable, so no default is captured.
 template <typename T>
-void record_function_option(const CLI::App&    app,
-                            const std::string& option_name,
-                            const std::string& description,
-                            const CLI::Option* option)
+schema_node* record_function_option(const CLI::App&    app,
+                                    const std::string& option_name,
+                                    const std::string& description,
+                                    const CLI::Option* option)
 {
   schema_node* parent = registry().lookup(&app);
   if (parent == nullptr) {
-    return;
+    return nullptr;
   }
-  std::string name = schema_option_name(option_name);
-  if (parent->find_child(name) != nullptr) {
-    return;
+  schema_node* leaf = leaf_slot(parent, schema_option_name(option_name));
+  if (leaf == nullptr) {
+    return parent->find_child(schema_option_name(option_name));
   }
-  auto leaf         = std::make_unique<schema_node>();
-  leaf->kind        = node_kind::leaf;
-  leaf->name        = std::move(name);
   leaf->description = description;
   if constexpr (detail::is_vector<std::decay_t<T>>::value) {
     // A custom-parsed list of scalars (e.g. add_option_function<std::vector<std::string>>): a scalar array.
@@ -386,7 +509,7 @@ void record_function_option(const CLI::App&    app,
     leaf->type = detail::scalar_leaf_type<T>();
   }
   leaf->option = option;
-  parent->children.push_back(std::move(leaf));
+  return leaf;
 }
 
 /// Binds an option group to the schema node of its parent app. CLI11 option groups share the parent's
@@ -424,7 +547,9 @@ inline void record_subcommand(const CLI::App&    parent_app,
 
 /// Records (or finds) a list-of-struct array option \c option_name under \c app's node and binds \c exemplar_app to
 /// the array node so the element configurator populates the item shape (the array node's children). Repeated
-/// declarations of the same option (shared node used by several units) union their fields, first declaration wins.
+/// declarations of the same option (shared node used by several units) union their element fields; the array node's
+/// description comes from the first declaration, while duplicate element fields follow the last-wins rule of \ref
+/// leaf_slot.
 inline void record_array(const CLI::App&           app,
                          const std::string&        option_name,
                          const std::string&        description,

@@ -33,7 +33,7 @@ static void configure_cli11_ntn_neighbor_cell_args(CLI::App& app, du_high_unit_n
 static void configure_cli11_ncells(CLI::App& app, std::vector<du_high_unit_ntn_neighbor_cell_config>& ncells)
 {
   // The maximum number of neighbour cells is enforced natively via expected() rather than a hand-written size check.
-  add_option_cell<du_high_unit_ntn_neighbor_cell_config>(
+  add_option_object_list<du_high_unit_ntn_neighbor_cell_config>(
       app, "--ncells", ncells, configure_cli11_ntn_neighbor_cell_args, "List of NTN neighbor cells")
       ->expected(0, static_cast<int>(MAX_NOF_NTN_NEIGHBORS));
 }

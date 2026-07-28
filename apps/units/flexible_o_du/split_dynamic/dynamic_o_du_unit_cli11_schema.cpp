@@ -56,7 +56,7 @@ static void configure_cli11_cell_affinity_args(CLI::App& app, ru_dummy_cpu_affin
 static void configure_cli11_expert_execution_args(CLI::App& app, ru_dummy_unit_config& config)
 {
   // Cell affinity section.
-  add_option_cell<ru_dummy_cpu_affinities_cell_unit_config>(
+  add_option_object_list<ru_dummy_cpu_affinities_cell_unit_config>(
       app,
       "--cell_affinities",
       config.cell_affinities,

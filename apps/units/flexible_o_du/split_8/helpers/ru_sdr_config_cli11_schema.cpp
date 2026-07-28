@@ -242,7 +242,7 @@ static void configure_cli11_expert_execution_args(CLI::App& app, ru_sdr_unit_exp
   configure_cli11_lower_phy_threads_args(*lower_phy_threads_subcmd, config.threads.execution_profile);
 
   // Cell affinity section.
-  add_option_cell<ru_sdr_unit_cpu_affinities_cell_config>(
+  add_option_object_list<ru_sdr_unit_cpu_affinities_cell_config>(
       app,
       "--cell_affinities",
       config.cell_affinities,

@@ -79,6 +79,57 @@ TEST_F(cli11_utils_schema_test, passthrough_leaves_parsing_unchanged_without_roo
   EXPECT_EQ(registry().lookup(&app), nullptr);
 }
 
+TEST_F(cli11_utils_schema_test, check_validators_are_recorded_as_constraints)
+{
+  CLI::App    app;
+  schema_node root;
+  register_schema_root(app, root);
+
+  int r = 5;
+  add_option(app, "--r", r, "ranged")->check(CLI::Range(-1, 1024));
+  int e = 1;
+  add_option(app, "--e", e, "enum int")->check(CLI::IsMember({1, 2, 4, 8}));
+  std::string s = "a";
+  add_option(app, "--s", s, "enum str")->check(CLI::IsMember({"a", "b", "c"}));
+  double nn = 0;
+  add_option(app, "--nn", nn, "nonneg")->check(CLI::NonNegativeNumber);
+  double p = 1;
+  add_option(app, "--p", p, "positive")->check(CLI::PositiveNumber);
+
+  ASSERT_EQ(root.children.size(), 5u);
+  EXPECT_EQ(std::get<std::int64_t>(*root.children[0]->constraints.minimum), -1);
+  EXPECT_EQ(std::get<std::int64_t>(*root.children[0]->constraints.maximum), 1024);
+  ASSERT_EQ(root.children[1]->constraints.enums.size(), 4u);
+  EXPECT_EQ(std::get<std::int64_t>(root.children[1]->constraints.enums[2]), 4);
+  ASSERT_EQ(root.children[2]->constraints.enums.size(), 3u);
+  EXPECT_EQ(std::get<std::string>(root.children[2]->constraints.enums[0]), "a");
+  EXPECT_TRUE(root.children[3]->constraints.minimum.has_value()); // NonNegativeNumber -> minimum 0
+  EXPECT_TRUE(root.children[4]->constraints.exclusive_minimum.has_value());
+}
+
+TEST_F(cli11_utils_schema_test, first_class_constraint_methods_record_and_enforce)
+{
+  CLI::App    app;
+  schema_node root;
+  register_schema_root(app, root);
+
+  int pci = 1;
+  add_option(app, "--pci", pci, "pci")->range(0, 1007);
+  int band = 1;
+  add_option(app, "--band", band, "band")->enum_values({1, 3, 7, 78});
+
+  ASSERT_EQ(root.children.size(), 2u);
+  EXPECT_EQ(std::get<std::int64_t>(*root.children[0]->constraints.minimum), 0);
+  EXPECT_EQ(std::get<std::int64_t>(*root.children[0]->constraints.maximum), 1007);
+  ASSERT_EQ(root.children[1]->constraints.enums.size(), 4u);
+  EXPECT_EQ(std::get<std::int64_t>(root.children[1]->constraints.enums[3]), 78);
+
+  // The .range() constraint is also enforced by CLI11: an out-of-range value is rejected.
+  setup_yaml(app);
+  std::istringstream ss("pci: 5000\n");
+  EXPECT_THROW(app.parse_from_stream(ss), CLI::ParseError);
+}
+
 TEST_F(cli11_utils_schema_test, option_pointer_exposes_required_flag)
 {
   CLI::App    app;
@@ -142,7 +193,7 @@ TEST_F(cli11_utils_schema_test, add_option_function_records_typed_leaf)
   EXPECT_TRUE(root.children[2]->is_scalar_array);
 }
 
-TEST_F(cli11_utils_schema_test, add_option_cell_captures_shape_and_parses)
+TEST_F(cli11_utils_schema_test, add_option_object_list_captures_shape_and_parses)
 {
   CLI::App root_app;
   setup_yaml(root_app);
@@ -150,7 +201,7 @@ TEST_F(cli11_utils_schema_test, add_option_cell_captures_shape_and_parses)
   register_schema_root(root_app, root);
 
   std::vector<cell_item> cells;
-  add_option_cell<cell_item>(root_app, "--cells", cells, configure_cell, "per-cell config");
+  add_option_object_list<cell_item>(root_app, "--cells", cells, configure_cell, "per-cell config");
 
   // Schema: array node with the element's fields, including the uint8_t captured as a number.
   ASSERT_EQ(root.children.size(), 1u);
@@ -179,7 +230,7 @@ cells:
   EXPECT_EQ(cells[1].sector_id, 3);
 }
 
-TEST_F(cli11_utils_schema_test, add_option_cell_prepare_element_seeds_defaults)
+TEST_F(cli11_utils_schema_test, add_option_object_list_prepare_element_seeds_defaults)
 {
   CLI::App root_app;
   setup_yaml(root_app);
@@ -187,7 +238,8 @@ TEST_F(cli11_utils_schema_test, add_option_cell_prepare_element_seeds_defaults)
   register_schema_root(root_app, root);
 
   std::vector<cell_item> cells;
-  add_option_cell<cell_item>(root_app, "--cells", cells, configure_cell, "per-cell", [](cell_item& c) { c.pci = 99; });
+  add_option_object_list<cell_item>(
+      root_app, "--cells", cells, configure_cell, "per-cell", [](cell_item& c) { c.pci = 99; });
 
   std::istringstream ss(R"(
 cells:

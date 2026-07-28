@@ -68,6 +68,27 @@ bool is_required(const schema_node& leaf)
   return leaf.option != nullptr && leaf.option->get_required();
 }
 
+/// Writes the value constraints (minimum/maximum/exclusiveMinimum/enum) onto \c target.
+void add_constraints(const schema_constraints& constraints, YAML::Node& target)
+{
+  if (constraints.minimum) {
+    target["minimum"] = scalar_node(*constraints.minimum);
+  }
+  if (constraints.maximum) {
+    target["maximum"] = scalar_node(*constraints.maximum);
+  }
+  if (constraints.exclusive_minimum) {
+    target["exclusiveMinimum"] = scalar_node(*constraints.exclusive_minimum);
+  }
+  if (!constraints.enums.empty()) {
+    YAML::Node values(YAML::NodeType::Sequence);
+    for (const schema_scalar& v : constraints.enums) {
+      values.push_back(scalar_node(v));
+    }
+    target["enum"] = values;
+  }
+}
+
 // Forward declaration for recursion.
 void fill_object(const schema_node& node, YAML::Node& out);
 
@@ -80,12 +101,31 @@ YAML::Node leaf_schema(const schema_node& leaf)
   }
 
   if (leaf.is_scalar_array) {
-    node["type"] = "array";
-    YAML::Node items(YAML::NodeType::Map);
-    items["type"] = type_keyword(leaf.type);
-    node["items"] = items;
+    // A std::vector<T> option accepts, in CLI11, EITHER a single value OR a list: a lone scalar in the config is
+    // parsed as a one-element vector. Configs rely on this - e.g. an SCTP multi-homing "addrs" list is almost always
+    // written as a single address. Describe the option as "scalar OR array of scalars" (oneOf) so the schema accepts
+    // both forms exactly as CLI11 does; an array-only type would wrongly reject the common single-value case. The
+    // item constraints apply to the scalar and to each array element alike, so both branches carry them.
+    const char* item_type = type_keyword(leaf.type);
+
+    YAML::Node scalar_form(YAML::NodeType::Map);
+    scalar_form["type"] = item_type;
+    add_constraints(leaf.constraints, scalar_form);
+
+    YAML::Node array_items(YAML::NodeType::Map);
+    array_items["type"] = item_type;
+    add_constraints(leaf.constraints, array_items);
+    YAML::Node array_form(YAML::NodeType::Map);
+    array_form["type"]  = "array";
+    array_form["items"] = array_items;
+
+    YAML::Node one_of(YAML::NodeType::Sequence);
+    one_of.push_back(scalar_form);
+    one_of.push_back(array_form);
+    node["oneOf"] = one_of;
   } else {
     node["type"] = type_keyword(leaf.type);
+    add_constraints(leaf.constraints, node);
   }
 
   // A required option has no meaningful default (omission is an error, not a fall-back).

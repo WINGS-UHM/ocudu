@@ -43,18 +43,23 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   double      gain  = 0.5;
   std::string name  = "abc";
   int         start = 0;
-  add_option(app, "--count", count, "a count")->capture_default_str();
+  add_option(app, "--count", count, "a count")->capture_default_str()->check(CLI::Range(-1, 1024));
   add_option(app, "--flag", flag, "a flag")->capture_default_str();
   add_option(app, "--gain", gain, "a gain")->capture_default_str();
-  add_option(app, "--name", name, "a name")->capture_default_str();
+  add_option(app, "--name", name, "a name")->capture_default_str()->check(CLI::IsMember({"abc", "def"}));
   add_option(app, "--start", start, "mandatory start")->required();
+  int band = 1;
+  add_option(app, "--band", band, "a band")->capture_default_str()->range(1, 78);
 
   CLI::App* sub  = add_subcommand(app, "section", "a section");
   unsigned  port = 38472;
   add_option(*sub, "--port", port, "a port")->capture_default_str();
 
   std::vector<cell_item> cells;
-  add_option_cell<cell_item>(app, "--cells", cells, configure_cell, "per-cell config");
+  add_option_object_list<cell_item>(app, "--cells", cells, configure_cell, "per-cell config");
+
+  std::vector<int> ids;
+  add_option(app, "--ids", ids, "id list")->range(0, 9);
 
   std::string yaml = app_helpers::generate_yaml_config_schema(root, "Test");
 
@@ -75,6 +80,13 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   EXPECT_EQ(props["count"]["type"].as<std::string>(), "integer");
   EXPECT_EQ(props["count"]["default"].as<int>(), 3);
   EXPECT_EQ(props["count"]["description"].as<std::string>(), "a count");
+  // Constraints from check(CLI::Range) (bridge) and from the first-class .range()/enum.
+  EXPECT_EQ(props["count"]["minimum"].as<int>(), -1);
+  EXPECT_EQ(props["count"]["maximum"].as<int>(), 1024);
+  EXPECT_EQ(props["band"]["minimum"].as<int>(), 1);
+  EXPECT_EQ(props["band"]["maximum"].as<int>(), 78);
+  ASSERT_TRUE(props["name"]["enum"].IsSequence());
+  EXPECT_EQ(props["name"]["enum"][0].as<std::string>(), "abc");
   EXPECT_EQ(props["flag"]["type"].as<std::string>(), "boolean");
   EXPECT_EQ(props["flag"]["default"].as<bool>(), true);
   EXPECT_EQ(props["gain"]["type"].as<std::string>(), "number");
@@ -104,6 +116,19 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   EXPECT_EQ(items["properties"]["pci"]["type"].as<std::string>(), "integer");
   EXPECT_EQ(items["properties"]["sector_id"]["type"].as<std::string>(), "integer");
   EXPECT_EQ(items["properties"]["sector_id"]["default"].as<int>(), 127);
+
+  // Scalar-array (std::vector<T>) option: CLI11 accepts either a single value or a list, so the option is described
+  // as oneOf(scalar, array-of-scalar) - not array-only - and the item constraints appear in both branches.
+  YAML::Node ids_node = props["ids"];
+  EXPECT_FALSE(ids_node["type"]); // described purely via oneOf, no bare type
+  ASSERT_TRUE(ids_node["oneOf"].IsSequence());
+  ASSERT_EQ(ids_node["oneOf"].size(), 2u);
+  EXPECT_EQ(ids_node["oneOf"][0]["type"].as<std::string>(), "integer"); // single value
+  EXPECT_EQ(ids_node["oneOf"][0]["minimum"].as<int>(), 0);
+  EXPECT_EQ(ids_node["oneOf"][0]["maximum"].as<int>(), 9);
+  EXPECT_EQ(ids_node["oneOf"][1]["type"].as<std::string>(), "array"); // list
+  EXPECT_EQ(ids_node["oneOf"][1]["items"]["type"].as<std::string>(), "integer");
+  EXPECT_EQ(ids_node["oneOf"][1]["items"]["maximum"].as<int>(), 9);
 
   // No control characters leaked into the document (the 0x7f bug).
   EXPECT_EQ(yaml.find('\x7f'), std::string::npos);

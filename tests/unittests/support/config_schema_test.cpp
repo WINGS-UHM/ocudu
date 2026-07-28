@@ -160,15 +160,59 @@ TEST_F(config_schema_test, record_options_under_root)
   std::string s = "abc";
   record_option(app, "--count,--n", i, "an integer", nullptr);
   record_option(app, "--name", s, "a name", nullptr);
-  // Repeated name: first wins, no duplicate child.
+  // Repeated name: no duplicate child (last declaration wins, see the merge test below).
   int other = 99;
   record_option(app, "--count", other, "dup", nullptr);
 
   ASSERT_EQ(root.children.size(), 2u);
   EXPECT_EQ(root.children[0]->name, "count"); // first alias, dashes stripped
   EXPECT_EQ(root.children[0]->type, leaf_type::integer);
-  EXPECT_EQ(root.children[0]->description, "an integer");
   EXPECT_EQ(root.children[1]->name, "name");
+}
+
+// Mirrors the gNB/standalone-CU shared-tree merge: several units register options against one CLI::App, so the same
+// schema node is populated more than once. A repeated leaf must be updated in place (last declaration wins, matching
+// CLI11's merge-aware add_option), while an array node must survive a later leaf recording of the same name.
+TEST_F(config_schema_test, shared_node_repeated_leaf_is_last_wins)
+{
+  CLI::App    app;
+  schema_node root;
+  register_schema_root(app, root);
+
+  std::string first = "abc";
+  record_option(app, "--val", first, "first description", nullptr);
+  // Second unit re-declares the same option with a different C++ type and default.
+  int second = 7;
+  record_option(app, "--val", second, "second description", nullptr);
+
+  ASSERT_EQ(root.children.size(), 1u); // no duplicate child
+  EXPECT_EQ(root.children[0]->name, "val");
+  EXPECT_EQ(root.children[0]->type, leaf_type::integer);          // last declaration's type
+  EXPECT_EQ(root.children[0]->description, "second description"); // last declaration's description
+}
+
+TEST_F(config_schema_test, shared_node_array_survives_later_leaf_recording)
+{
+  CLI::App    root_app;
+  schema_node root;
+  register_schema_root(root_app, root);
+
+  // First unit declares a list-of-struct option (as declare_object_list_schema does).
+  auto exemplar = std::make_shared<CLI::App>();
+  record_array(root_app, "--areas", "tracking areas", exemplar);
+  int tac = 1;
+  record_option(*exemplar, "--tac", tac, "tracking area code", nullptr);
+
+  // A later scalar recording of the same option name (e.g. the string-array parser behind the same option) must not
+  // demote the array node to a leaf.
+  std::vector<std::string> raw;
+  record_option(root_app, "--areas", raw, "raw blobs", nullptr);
+
+  ASSERT_EQ(root.children.size(), 1u);
+  schema_node* arr = root.children[0].get();
+  EXPECT_EQ(arr->kind, node_kind::array); // still an array, element shape preserved
+  ASSERT_EQ(arr->children.size(), 1u);
+  EXPECT_EQ(arr->children[0]->name, "tac");
 }
 
 TEST_F(config_schema_test, option_name_strips_whitespace_and_dashes)

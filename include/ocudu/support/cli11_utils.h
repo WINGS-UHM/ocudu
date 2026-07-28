@@ -16,6 +16,164 @@ namespace ocudu {
 
 using cli11_cell = std::vector<std::string>;
 
+/// \brief Chainable handle returned by the option-adding helpers.
+///
+/// Behaves like a \c CLI::Option* for chaining (via \c operator-> and an implicit conversion) while also recording
+/// value constraints into the configuration schema. The first-class constraint methods (\c range / \c enum_values /
+/// \c non_negative / \c positive) both enforce the constraint through CLI11 and record it in the schema. The
+/// CLI11-style \c check(Validator) overload additionally recovers the constraint from the validator, so existing
+/// \c check(CLI::Range(...)) / \c check(CLI::IsMember(...)) call sites populate the schema without being changed.
+/// When the owning option is not part of a registered schema (\c node_ is null) every method is a pure pass-through.
+class option_handle
+{
+public:
+  option_handle(CLI::Option* opt, config::schema_node* node) : opt_(opt), node_(node) {}
+
+  option_handle* operator->() { return this; }
+                 operator CLI::Option*() const { return opt_; }
+  CLI::Option*   cli_option() const { return opt_; }
+
+  // -- CLI11 pass-through: forward to the option and keep chaining. --
+  option_handle& capture_default_str()
+  {
+    opt_->capture_default_str();
+    return *this;
+  }
+  option_handle& always_capture_default()
+  {
+    opt_->always_capture_default();
+    return *this;
+  }
+  option_handle& required(bool value = true)
+  {
+    opt_->required(value);
+    return *this;
+  }
+  option_handle& configurable(bool value = true)
+  {
+    opt_->configurable(value);
+    return *this;
+  }
+  option_handle& expected(int value)
+  {
+    opt_->expected(value);
+    return *this;
+  }
+  option_handle& expected(int min_count, int max_count)
+  {
+    opt_->expected(min_count, max_count);
+    return *this;
+  }
+  option_handle& default_str(std::string value)
+  {
+    opt_->default_str(std::move(value));
+    return *this;
+  }
+  option_handle& default_function(std::function<std::string()> fn)
+  {
+    opt_->default_function(std::move(fn));
+    return *this;
+  }
+  option_handle& run_callback_for_default(bool value = true)
+  {
+    opt_->run_callback_for_default(value);
+    return *this;
+  }
+  option_handle& needs(CLI::Option* other)
+  {
+    opt_->needs(other);
+    return *this;
+  }
+  option_handle& group(std::string name)
+  {
+    opt_->group(std::move(name));
+    return *this;
+  }
+  template <typename U>
+  option_handle& default_val(const U& value)
+  {
+    opt_->default_val(value);
+    return *this;
+  }
+  option_handle& transform(const CLI::Validator& validator)
+  {
+    opt_->transform(validator);
+    return *this;
+  }
+  template <typename F, std::enable_if_t<!std::is_base_of<CLI::Validator, std::decay_t<F>>::value, int> = 0>
+  option_handle& transform(F&& func)
+  {
+    opt_->transform(std::forward<F>(func));
+    return *this;
+  }
+
+  /// Enforces \c validator and records the constraint it represents (Range/IsMember/NonNegative/Positive).
+  option_handle& check(const CLI::Validator& validator)
+  {
+    opt_->check(validator);
+    std::string desc = validator.get_description();
+    if (desc.empty()) {
+      desc = validator.get_name();
+    }
+    config::record_validator_constraint(node_, desc);
+    return *this;
+  }
+
+  /// Enforces a custom string validator (a callable); nothing structured is recorded.
+  template <typename F, std::enable_if_t<!std::is_base_of<CLI::Validator, std::decay_t<F>>::value, int> = 0>
+  option_handle& check(F&& func)
+  {
+    opt_->check(std::forward<F>(func));
+    return *this;
+  }
+
+  // -- First-class constraints: enforce through CLI11 and record in the schema. --
+  template <typename V>
+  option_handle& range(V min_value, V max_value)
+  {
+    opt_->check(CLI::Range(min_value, max_value));
+    if (node_ != nullptr) {
+      node_->constraints.minimum = config::to_scalar(node_->type, static_cast<double>(min_value));
+      node_->constraints.maximum = config::to_scalar(node_->type, static_cast<double>(max_value));
+    }
+    return *this;
+  }
+
+  option_handle& non_negative()
+  {
+    opt_->check(CLI::NonNegativeNumber);
+    if (node_ != nullptr) {
+      node_->constraints.minimum = config::to_scalar(node_->type, 0.0);
+    }
+    return *this;
+  }
+
+  option_handle& positive()
+  {
+    opt_->check(CLI::PositiveNumber);
+    if (node_ != nullptr) {
+      node_->constraints.exclusive_minimum = config::to_scalar(node_->type, 0.0);
+    }
+    return *this;
+  }
+
+  template <typename U>
+  option_handle& enum_values(std::initializer_list<U> values)
+  {
+    opt_->check(CLI::IsMember(values));
+    if (node_ != nullptr) {
+      for (const U& value : values) {
+        node_->constraints.enums.push_back(config::detail::scalar_default<U>(value));
+      }
+    }
+    return *this;
+  }
+
+private:
+  CLI::Option*         opt_  = nullptr;
+  config::schema_node* node_ = nullptr;
+};
+
 /// \brief Extracts the first option name from a comma-separated list of option names.
 ///
 /// CLI11 allows specifying multiple names for an option using commas (e.g., "--addrs,--addr").
@@ -64,7 +222,7 @@ inline CLI::App* add_subcommand(CLI::App& app, const std::string& name, const st
 /// \param desc Human readable description of the option.
 /// \return A pointer to the option added to the application.
 template <typename T>
-CLI::Option* add_option(CLI::App& app, const std::string& option_name, T& param, const std::string& desc)
+option_handle add_option(CLI::App& app, const std::string& option_name, T& param, const std::string& desc)
 {
   auto*        existing = app.get_option_no_throw(get_first_option_name(option_name));
   CLI::Option* opt      = nullptr;
@@ -86,13 +244,12 @@ CLI::Option* add_option(CLI::App& app, const std::string& option_name, T& param,
                  [&param]() -> std::string { return CLI::detail::checked_to_string<T, T>(param); })
               ->run_callback_for_default();
   }
-  config::record_option(app, option_name, param, desc, opt);
-  return opt;
+  return option_handle{opt, config::record_option(app, option_name, param, desc, opt)};
 }
 
 /// Specialization for bools than changes the default function for capture the default string.
 template <>
-inline CLI::Option* add_option(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
+inline option_handle add_option(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
 {
   auto*        existing = app.get_option_no_throw(get_first_option_name(option_name));
   CLI::Option* opt      = nullptr;
@@ -116,8 +273,7 @@ inline CLI::Option* add_option(CLI::App& app, const std::string& option_name, bo
                  [&param]() -> std::string { return param ? "true" : "false"; })
               ->run_callback_for_default();
   }
-  config::record_option(app, option_name, param, desc, opt);
-  return opt;
+  return option_handle{opt, config::record_option(app, option_name, param, desc, opt)};
 }
 
 /// \brief Adds an option group to the application and records it in the configuration schema.
@@ -147,11 +303,10 @@ inline CLI::App* add_option_group(CLI::App& app, const std::string& name, const 
 /// \param param Boolean parameter where the flag value will be stored after parsing.
 /// \param desc Human readable description of the flag.
 /// \return A pointer to the flag option added to the application.
-inline CLI::Option* add_flag(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
+inline option_handle add_flag(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
 {
   CLI::Option* opt = app.add_flag(option_name, param, desc);
-  config::record_flag(app, option_name, desc, opt);
-  return opt;
+  return option_handle{opt, config::record_flag(app, option_name, desc, opt)};
 }
 
 /// \brief Adds an option function to the given application.
@@ -167,10 +322,10 @@ inline CLI::Option* add_flag(CLI::App& app, const std::string& option_name, bool
 /// \param desc Human readable description of the option.
 /// \return A pointer to the option added to the application.
 template <typename T>
-CLI::Option* add_option_function(CLI::App&                            app,
-                                 const std::string&                   option_name,
-                                 const std::function<void(const T&)>& func,
-                                 const std::string&                   desc)
+option_handle add_option_function(CLI::App&                            app,
+                                  const std::string&                   option_name,
+                                  const std::function<void(const T&)>& func,
+                                  const std::string&                   desc)
 {
   auto*        existing = app.get_option_no_throw(get_first_option_name(option_name));
   CLI::Option* opt      = nullptr;
@@ -196,8 +351,7 @@ CLI::Option* add_option_function(CLI::App&                            app,
                  desc)
               ->run_callback_for_default();
   }
-  config::record_function_option<T>(app, option_name, desc, opt);
-  return opt;
+  return option_handle{opt, config::record_function_option<T>(app, option_name, desc, opt)};
 }
 
 /// \brief Adds an option of type cell to the given application.
@@ -251,13 +405,19 @@ inline CLI::Option* add_option_cell(CLI::App&                                   
 ///
 /// Runs \c configure once against a default-constructed exemplar element, on a throwaway CLI::App bound to the
 /// array's item shape, so the schema records the element structure. Use this alongside a hand-written parse lambda
-/// for options that cannot use the \ref add_option_cell overload (e.g. a map target, or a configurator that does
-/// more than resize+configure+parse). A no-op when the app is not registered against a schema root.
+/// for options that cannot use the \ref add_option_object_list overload (e.g. a map target, or a configurator that
+/// does more than resize+configure+parse). A no-op when the app is not registered against a schema root.
+///
+/// \warning \c configure is invoked an extra time here, against a *default-constructed* element, in addition to the
+/// per-element calls at parse time. It must therefore be free of observable side effects and must not fail (e.g.
+/// report_error / terminate) on the element's default values - it should only register options. Cross-field
+/// validation belongs in the validator files, not the configurator. The same applies to the configurator passed to
+/// \ref add_option_object_list.
 template <typename T>
-void declare_cell_schema(CLI::App&                                 app,
-                         const std::string&                        option_name,
-                         const std::function<void(CLI::App&, T&)>& configure,
-                         const std::string&                        desc)
+void declare_object_list_schema(CLI::App&                                 app,
+                                const std::string&                        option_name,
+                                const std::function<void(CLI::App&, T&)>& configure,
+                                const std::string&                        desc)
 {
   auto exemplar_app  = std::make_shared<CLI::App>();
   auto exemplar_elem = std::make_shared<T>();
@@ -269,15 +429,15 @@ void declare_cell_schema(CLI::App&                                 app,
 }
 
 template <typename T>
-CLI::Option* add_option_cell(CLI::App&                                 app,
-                             const std::string&                        option_name,
-                             std::vector<T>&                           target,
-                             const std::function<void(CLI::App&, T&)>& configure,
-                             const std::string&                        desc,
-                             const std::function<void(T&)>&            prepare_element = nullptr)
+CLI::Option* add_option_object_list(CLI::App&                                 app,
+                                    const std::string&                        option_name,
+                                    std::vector<T>&                           target,
+                                    const std::function<void(CLI::App&, T&)>& configure,
+                                    const std::string&                        desc,
+                                    const std::function<void(T&)>&            prepare_element = nullptr)
 {
   // Capture the element shape once, on a throwaway exemplar app bound to the array's item shape.
-  declare_cell_schema<T>(app, option_name, configure, desc);
+  declare_object_list_schema<T>(app, option_name, configure, desc);
 
   return add_option_cell(
       app,

@@ -3084,23 +3084,9 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
                                            configure_cli11_qos_args,
                                            "Configures RLC and PDCP radio bearers on a per 5QI basis.");
 
-  // SRB section.
-  auto srb_lambda = [&parsed_cfg](const std::vector<std::string>& values) {
-    // Format every SRB setting.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("SRB parameters", "SRB config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      du_high_unit_srb_config srb_cfg;
-      configure_cli11_srb_args(subapp, srb_cfg);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-      parsed_cfg.config.srb_cfg[static_cast<srb_id_t>(srb_cfg.srb_id)] = srb_cfg;
-    }
-  };
-  app.add_option_function<std::vector<std::string>>("--srbs", srb_lambda, "Configures signaling radio bearers.");
-  declare_cell_schema<du_high_unit_srb_config>(
-      app, "--srbs", configure_cli11_srb_args, "Configures signaling radio bearers.");
+  // SRB section. Parsed as a plain list; the srb_id-keyed map is built during translation.
+  add_option_cell<du_high_unit_srb_config>(
+      app, "--srbs", parsed_cfg.config.srb_cfg, configure_cli11_srb_args, "Configures signaling radio bearers.");
 
   // Custom frequency bands section.
   add_option_cell<du_high_unit_custom_band_config>(app,

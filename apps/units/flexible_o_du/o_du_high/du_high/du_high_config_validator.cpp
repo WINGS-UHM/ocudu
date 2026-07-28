@@ -148,26 +148,26 @@ static bool validate_rlc_am_unit_config(id_type id, const du_high_unit_rlc_am_co
 }
 
 /// Validates the given SRB configuration. Returns true on success, otherwise false.
-static bool validate_srb_unit_config(const std::map<srb_id_t, du_high_unit_srb_config>& config)
+static bool validate_srb_unit_config(const std::vector<du_high_unit_srb_config>& config)
 {
   for (const auto& srb : config) {
-    if (srb.first != srb_id_t::srb1 && srb.first != srb_id_t::srb2 && srb.first != srb_id_t::srb3) {
-      fmt::print("Cannot configure {}. Only SRB1, SRB2 and SRB3 can be configured", srb.first);
+    const srb_id_t srb_id = static_cast<srb_id_t>(srb.srb_id);
+    if (srb_id != srb_id_t::srb1 && srb_id != srb_id_t::srb2 && srb_id != srb_id_t::srb3) {
+      fmt::print("Cannot configure {}. Only SRB1, SRB2 and SRB3 can be configured", srb_id);
       return false;
     }
-    if (!validate_rlc_am_unit_config(srb.first, srb.second.rlc)) {
+    if (!validate_rlc_am_unit_config(srb_id, srb.rlc)) {
       return false;
     }
-    if (srb.first != srb_id_t::srb1 && srb.second.mac.triggered_ul_grant.has_value()) {
-      fmt::print("{} can't be configured with triggered UL grant. It's supported only for SBR1\n", srb.first);
+    if (srb_id != srb_id_t::srb1 && srb.mac.triggered_ul_grant.has_value()) {
+      fmt::print("{} can't be configured with triggered UL grant. It's supported only for SBR1\n", srb_id);
       return false;
     }
     // Delay is in ms and capped to bound the pending-grant vector size in the scheduler.
-    if (srb.second.mac.triggered_ul_grant.has_value() &&
-        srb.second.mac.triggered_ul_grant->delay > SCHEDULER_MAX_TRIG_UL_DELAY) {
+    if (srb.mac.triggered_ul_grant.has_value() && srb.mac.triggered_ul_grant->delay > SCHEDULER_MAX_TRIG_UL_DELAY) {
       fmt::print("{} triggered_ul_grant delay={} exceeds maximum of {} ms\n",
-                 srb.first,
-                 srb.second.mac.triggered_ul_grant->delay,
+                 srb_id,
+                 srb.mac.triggered_ul_grant->delay,
                  SCHEDULER_MAX_TRIG_UL_DELAY);
       return false;
     }

@@ -1575,8 +1575,9 @@ struct du_high_unit_config {
   std::vector<du_high_unit_qos_config> qos_cfg;
   /// DU high expert execution settings.
   du_high_unit_expert_execution_config expert_execution_cfg;
-  /// SRB configuration.
-  std::map<srb_id_t, du_high_unit_srb_config> srb_cfg;
+  /// SRB configuration. A list of per-SRB entries keyed internally by their srb_id field; converted to the
+  /// srb_id-keyed form during translation.
+  std::vector<du_high_unit_srb_config> srb_cfg;
   /// Globally-defined satellites, referenced by satellite_idx in per-cell NTN configs.
   std::vector<ntn_satellite_config> ntn_satellites;
   /// RLC configuration.

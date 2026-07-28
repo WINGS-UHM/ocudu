@@ -889,14 +889,14 @@ static void fill_custom_freq_bands_section(YAML::Node& node, const std::vector<d
   }
 }
 
-static void build_du_high_sbr_section(YAML::Node& node, const std::map<srb_id_t, du_high_unit_srb_config>& sbrs)
+static void build_du_high_srb_section(YAML::Node& node, const std::vector<du_high_unit_srb_config>& srbs)
 {
-  for (const auto& cell : sbrs) {
+  for (const auto& srb : srbs) {
     YAML::Node entry;
-    entry["srb_id"] = cell.second.srb_id;
-    fill_du_high_am_section(entry["rlc"], cell.second.rlc);
-    if (cell.second.mac.triggered_ul_grant.has_value()) {
-      entry["mac"]["triggered_ul_grant"]["delay"] = cell.second.mac.triggered_ul_grant->delay.count();
+    entry["srb_id"] = srb.srb_id;
+    fill_du_high_am_section(entry["rlc"], srb.rlc);
+    if (srb.mac.triggered_ul_grant.has_value()) {
+      entry["mac"]["triggered_ul_grant"]["delay"] = srb.mac.triggered_ul_grant->delay.count();
     }
     node["srbs"].push_back(entry);
   }
@@ -959,6 +959,6 @@ void ocudu::fill_du_high_config_in_yaml_schema(YAML::Node& node, const du_high_p
     node["cell_cfg"] = build_cell_entry(parsed_cfg.common_cell_cfg);
   }
   build_du_high_cells_section(node, config.cells_cfg);
-  build_du_high_sbr_section(node, config.srb_cfg);
+  build_du_high_srb_section(node, config.srb_cfg);
   fill_ntn_satellites_in_yaml_schema(node, config.ntn_satellites);
 }

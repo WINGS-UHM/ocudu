@@ -1217,14 +1217,25 @@ static std::map<five_qi_t, odu::du_qos_config> generate_du_qos_config(const du_h
   return out_cfg;
 }
 
+/// Finds the SRB entry with the given id in the (unordered) SRB list, or nullptr if absent.
+static const du_high_unit_srb_config* find_srb(const std::vector<du_high_unit_srb_config>& srbs, srb_id_t id)
+{
+  for (const auto& srb : srbs) {
+    if (static_cast<srb_id_t>(srb.srb_id) == id) {
+      return &srb;
+    }
+  }
+  return nullptr;
+}
+
 static std::map<srb_id_t, odu::du_srb_config> generate_du_srb_config(const du_high_unit_config& config)
 {
   std::map<srb_id_t, odu::du_srb_config> srb_cfg;
 
   // SRB1
   srb_cfg.insert(std::make_pair(srb_id_t::srb1, odu::du_srb_config{}));
-  if (config.srb_cfg.find(srb_id_t::srb1) != config.srb_cfg.end()) {
-    const auto& in_srb1       = config.srb_cfg.at(srb_id_t::srb1);
+  if (const du_high_unit_srb_config* in_srb1_ptr = find_srb(config.srb_cfg, srb_id_t::srb1)) {
+    const auto& in_srb1       = *in_srb1_ptr;
     auto&       out_srb1      = srb_cfg[srb_id_t::srb1];
     auto&       out_rlc       = out_srb1.rlc;
     out_rlc.mode              = rlc_mode::am;
@@ -1244,10 +1255,10 @@ static std::map<srb_id_t, odu::du_srb_config> generate_du_srb_config(const du_hi
 
   // SRB2
   srb_cfg.insert(std::make_pair(srb_id_t::srb2, odu::du_srb_config{}));
-  if (config.srb_cfg.find(srb_id_t::srb2) != config.srb_cfg.end()) {
+  if (const du_high_unit_srb_config* in_srb2 = find_srb(config.srb_cfg, srb_id_t::srb2)) {
     auto& out_rlc             = srb_cfg[srb_id_t::srb2].rlc;
     out_rlc.mode              = rlc_mode::am;
-    out_rlc.am                = generate_du_rlc_am_config(config.srb_cfg.at(srb_id_t::srb2).rlc);
+    out_rlc.am                = generate_du_rlc_am_config(in_srb2->rlc);
     out_rlc.am.tx.pdcp_sn_len = pdcp_sn_size::size12bits;
   } else {
     srb_cfg.at(srb_id_t::srb2).rlc = make_default_srb_rlc_config();
@@ -1255,10 +1266,10 @@ static std::map<srb_id_t, odu::du_srb_config> generate_du_srb_config(const du_hi
 
   // SRB3
   srb_cfg.insert(std::make_pair(srb_id_t::srb3, odu::du_srb_config{}));
-  if (config.srb_cfg.find(srb_id_t::srb3) != config.srb_cfg.end()) {
+  if (const du_high_unit_srb_config* in_srb3 = find_srb(config.srb_cfg, srb_id_t::srb3)) {
     auto& out_rlc             = srb_cfg[srb_id_t::srb3].rlc;
     out_rlc.mode              = rlc_mode::am;
-    out_rlc.am                = generate_du_rlc_am_config(config.srb_cfg.at(srb_id_t::srb3).rlc);
+    out_rlc.am                = generate_du_rlc_am_config(in_srb3->rlc);
     out_rlc.am.tx.pdcp_sn_len = pdcp_sn_size::size12bits;
   } else {
     srb_cfg.at(srb_id_t::srb3).rlc = make_default_srb_rlc_config();

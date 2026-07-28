@@ -14,8 +14,6 @@
 
 namespace ocudu {
 
-using cli11_cell = std::vector<std::string>;
-
 /// \brief Chainable handle returned by the option-adding helpers.
 ///
 /// Behaves like a \c CLI::Option* for chaining (via \c operator-> and an implicit conversion) while also recording
@@ -354,42 +352,10 @@ option_handle add_option_function(CLI::App&                            app,
   return option_handle{opt, config::record_function_option<T>(app, option_name, desc, opt)};
 }
 
-/// \brief Adds an option of type cell to the given application.
-///
-/// \param app Application where the option will be added.
-/// \param option_name Option name.
-/// \param func Function to execute during parsing.
-/// \param desc Human readable description of the option.
-/// \return A pointer to the option added to the application.
-inline CLI::Option* add_option_cell(CLI::App&                                     app,
-                                    const std::string&                            option_name,
-                                    const std::function<void(const cli11_cell&)>& func,
-                                    const std::string&                            desc)
-{
-  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
-  if (!opt) {
-    return app.add_option_function<std::vector<std::string>>(option_name, func, desc);
-  }
-
-  // Option was found. Get the callback and create new option.
-  auto callbck = opt->get_callback();
-  app.remove_option(opt);
-
-  return app
-      .add_option_function<cli11_cell>(
-          option_name,
-          [func, callback = std::move(callbck)](const cli11_cell& value) {
-            func(value);
-            callback(value);
-          },
-          desc)
-      ->run_callback_for_default();
-}
-
 /// \brief Adds a list-of-struct option to the given application.
 ///
-/// Parses each element blob into \c target[i] using \c configure, resizing \c target beforehand, reproducing the
-/// semantics of the hand-written cell lambdas exactly. Additionally captures the element schema: \c configure is run
+/// Parses each element blob into \c target[i] using \c configure, resizing \c target beforehand. Additionally captures
+/// the element schema: \c configure is run
 /// once against a default-constructed exemplar element, on a throwaway CLI::App bound to the array's item shape, so
 /// the schema records the element structure through the same recording path as ordinary options.
 ///
@@ -405,6 +371,18 @@ inline CLI::Option* add_option_cell(CLI::App&                                   
 ///
 /// Runs \c configure once against a default-constructed exemplar element, on a throwaway CLI::App bound to the
 /// array's item shape, so the schema records the element structure. Use this alongside a hand-written parse lambda
+/// \brief Controls how an object-list element treats configuration keys it does not recognise.
+enum class object_list_extras {
+  /// An unrecognised key in an element is a configuration error. This is the default: it catches typos.
+  reject,
+  /// Unrecognised keys in an element are ignored. Needed only for a list that several application units populate
+  /// from the same configuration (e.g. \c --qos in the gNB, declared by the DU, CU-CP and CU-UP): every unit parses
+  /// each element with its own sub-app that knows only that unit's keys, so it has to tolerate the sibling units'
+  /// keys. Typos are still caught by validating the configuration against the generated schema, which describes the
+  /// union of all units' keys with \c additionalProperties:false.
+  tolerate_unknown
+};
+
 /// for options that cannot use the \ref add_option_object_list overload (e.g. a map target, or a configurator that
 /// does more than resize+configure+parse). A no-op when the app is not registered against a schema root.
 ///
@@ -434,31 +412,54 @@ CLI::Option* add_option_object_list(CLI::App&                                 ap
                                     std::vector<T>&                           target,
                                     const std::function<void(CLI::App&, T&)>& configure,
                                     const std::string&                        desc,
-                                    const std::function<void(T&)>&            prepare_element = nullptr)
+                                    const std::function<void(T&)>&            prepare_element = nullptr,
+                                    object_list_extras                        extras = object_list_extras::reject)
 {
   // Capture the element shape once, on a throwaway exemplar app bound to the array's item shape.
   declare_object_list_schema<T>(app, option_name, configure, desc);
 
-  return add_option_cell(
-      app,
-      option_name,
-      [&target, configure, prepare_element, desc](const cli11_cell& values) {
-        target.resize(values.size());
-        if (prepare_element) {
-          for (auto& element : target) {
-            prepare_element(element);
-          }
-        }
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp(desc, "item #" + std::to_string(i));
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::capture);
-          configure(subapp, target[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      desc);
+  // Parses the received per-element blobs into \c target: resizes the vector, optionally seeds each element, then
+  // parses every blob through a throwaway sub-app configured by \c configure.
+  auto parse = [&target, configure, prepare_element, desc, extras](const std::vector<std::string>& values) {
+    target.resize(values.size());
+    if (prepare_element) {
+      for (auto& element : target) {
+        prepare_element(element);
+      }
+    }
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp(desc, "item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      // Note the bool overload is the only one that truly ignores unknown keys: allow_config_extras(capture) just
+      // defers them to the extras check, which still raises an error because it leaves allow_extras_ false.
+      if (extras == object_list_extras::tolerate_unknown) {
+        subapp.allow_config_extras(true);
+      } else {
+        subapp.allow_config_extras(CLI::config_extras_mode::error);
+      }
+      configure(subapp, target[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+
+  auto* existing = app.get_option_no_throw(get_first_option_name(option_name));
+  if (!existing) {
+    return app.add_option_function<std::vector<std::string>>(option_name, parse, desc);
+  }
+  // Option already present (e.g. a shared section populated by several units): chain the previous callback with the
+  // new parser so both run, mirroring the merge behaviour of \ref add_option.
+  auto callbck = existing->get_callback();
+  app.remove_option(existing);
+  return app
+      .add_option_function<std::vector<std::string>>(
+          option_name,
+          [parse, callback = std::move(callbck)](const std::vector<std::string>& values) {
+            parse(values);
+            callback(values);
+          },
+          desc)
+      ->run_callback_for_default();
 }
 
 /// Parse string into optional type.

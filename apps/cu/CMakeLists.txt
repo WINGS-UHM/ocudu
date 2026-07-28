@@ -15,6 +15,7 @@ install(TARGETS ocu
 
 target_link_libraries(ocu PRIVATE
         ocudu_app_helpers
+        ocudu_config_app_helpers
         ocudu_app_services
         ocudu_e1_gateway
         ocudu_e2

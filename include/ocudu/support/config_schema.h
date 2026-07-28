@@ -20,9 +20,9 @@
 ///
 /// This header holds a lightweight, CLI11-independent description of an application's configuration: a tree of
 /// named nodes (groups, leaves and arrays) carrying the type, default and description of every option. The tree is
-/// populated as a side effect of the existing \c ocudu::add_option / \c add_subcommand / \c add_option_cell helpers
-/// (see \c cli11_utils.h) whenever the owning \c CLI::App has been registered against a schema root. Applications
-/// that never register a root are unaffected: the helpers behave exactly as before.
+/// populated as a side effect of the existing \c ocudu::add_option / \c add_subcommand / \c add_option_object_list
+/// helpers (see \c cli11_utils.h) whenever the owning \c CLI::App has been registered against a schema root.
+/// Applications that never register a root are unaffected: the helpers behave exactly as before.
 ///
 /// Everything here is header-only and free of any dependency beyond CLI11 and the standard library. The value of a
 /// default is captured from the typed C++ target variable, never from CLI11's string rendering, so it is always

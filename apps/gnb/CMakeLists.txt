@@ -13,6 +13,7 @@ add_library(gnb_base STATIC ${SOURCES})
 target_include_directories(gnb_base PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(gnb_base PRIVATE
         ocudu_app_services
+        ocudu_config_app_helpers
         ocudu_f1u_connector
         ocudu_ngap
         ngap_asn1

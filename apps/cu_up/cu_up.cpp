@@ -4,6 +4,7 @@
 
 #include "apps/cu_up/cu_up_appconfig_cli11_schema.h"
 #include "apps/cu_up/cu_up_appconfig_validator.h"
+#include "apps/helpers/config/config_yaml_schema.h"
 #include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/f1/f1_gateway_helpers.h"
 #include "apps/helpers/f1u/f1u_appconfig.h"
@@ -197,6 +198,10 @@ int main(int argc, char** argv)
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
   populate_cli11_generic_args(app);
+
+  // Register the configuration-schema root so the add_* helpers capture the schema as options are declared.
+  config::schema_node config_schema_root{"OCUDU 5G CU-UP configuration"};
+  app_helpers::register_config_schema(app, config_schema_root, "cu-up");
 
   // Configure CLI11 with the CU application configuration schema.
   cu_up_appconfig cu_up_cfg;

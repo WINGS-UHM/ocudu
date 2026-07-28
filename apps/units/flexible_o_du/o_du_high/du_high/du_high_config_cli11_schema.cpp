@@ -3056,11 +3056,16 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
       [&parsed_cfg](du_high_unit_cell_config& cell) { cell.cell = parsed_cfg.common_cell_cfg; });
 
   // QoS section.
-  add_option_object_list<du_high_unit_qos_config>(app,
-                                                  "--qos",
-                                                  parsed_cfg.config.qos_cfg,
-                                                  configure_cli11_qos_args,
-                                                  "Configures RLC and PDCP radio bearers on a per 5QI basis.");
+  add_option_object_list<du_high_unit_qos_config>(
+      app,
+      "--qos",
+      parsed_cfg.config.qos_cfg,
+      configure_cli11_qos_args,
+      "Configures RLC and PDCP radio bearers on a per 5QI basis.",
+      // The gNB declares --qos in the DU, CU-CP and CU-UP alike, so every unit parses each element and must
+      // tolerate the keys owned by the sibling units.
+      nullptr,
+      object_list_extras::tolerate_unknown);
 
   // SRB section. Parsed as a plain list; the srb_id-keyed map is built during translation.
   add_option_object_list<du_high_unit_srb_config>(

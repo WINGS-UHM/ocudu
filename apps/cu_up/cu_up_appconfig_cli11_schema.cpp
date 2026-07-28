@@ -21,16 +21,17 @@ using namespace ocudu;
 
 static void configure_cli11_e1ap_args(CLI::App& app, ocuup::e1ap_appconfig& e1ap_params)
 {
-  app.add_option(
-         "--addrs,--cu_cp_addr", // TODO: old name kept for backward compatibility, should be removed in the future
-         e1ap_params.cu_cp_addresses,
-         "CU-CP addresses to be used for E1 interface. Multiple addresses can be specified for SCTP multi-homing")
+  add_option(app,
+             "--addrs,--cu_cp_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+             e1ap_params.cu_cp_addresses,
+             "CU-CP addresses to be used for E1 interface. Multiple addresses can be specified for SCTP multi-homing")
       ->capture_default_str();
-  app.add_option(
-         "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
-         e1ap_params.bind_addresses,
-         "CU-UP bind addresses to be used for E1 interface. Multiple addresses can be specified for SCTP "
-         "multi-homing. If left empty, implicit bind is performed")
+  add_option(
+      app,
+      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      e1ap_params.bind_addresses,
+      "CU-UP bind addresses to be used for E1 interface. Multiple addresses can be specified for SCTP "
+      "multi-homing. If left empty, implicit bind is performed")
       ->capture_default_str();
   configure_cli11_sctp_socket_args(app, e1ap_params.sctp);
 }
@@ -38,22 +39,11 @@ static void configure_cli11_e1ap_args(CLI::App& app, ocuup::e1ap_appconfig& e1ap
 static void configure_cli11_e1ap_list_args(CLI::App& app, ocuup::e1ap_list_appconfig& e1ap_params)
 {
   // Add option for multiple sockets, for usage with different slices, 5QIs or parallization.
-  auto sock_lambda = [&e1ap_params](const std::vector<std::string>& values) {
-    // Prepare the radio bearers
-    e1ap_params.e1ap_cfgs.resize(values.size());
-
-    // Format every F1-U socket configuration.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("E1AP parameters", "E1AP socket config, item #" + std::to_string(i));
-
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_e1ap_args(subapp, e1ap_params.e1ap_cfgs[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "gateways", sock_lambda, "Configures UDP/IP socket parameters of the F1-U interface");
+  add_option_object_list<ocuup::e1ap_appconfig>(app,
+                                                "gateways",
+                                                e1ap_params.e1ap_cfgs,
+                                                configure_cli11_e1ap_args,
+                                                "Configures UDP/IP socket parameters of the F1-U interface");
 }
 
 void ocudu::configure_cli11_with_cu_appconfig_schema(CLI::App& app, cu_up_appconfig& cu_up_cfg)

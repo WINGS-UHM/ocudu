@@ -20,8 +20,8 @@ using namespace ocudu;
 /// Registers CLI11 lat/lon options on \p app bound to \p loc.
 static void configure_cli11_reference_location(CLI::App& app, reference_location& loc)
 {
-  add_option(app, "--latitude", loc.latitude, "Latitude [degrees, -90..90]")->check(CLI::Range(-90.0, 90.0));
-  add_option(app, "--longitude", loc.longitude, "Longitude [degrees, -180..180]")->check(CLI::Range(-180.0, 180.0));
+  add_option(app, "--latitude", loc.latitude, "Latitude [degrees, -90..90]")->range(-90.0, 90.0);
+  add_option(app, "--longitude", loc.longitude, "Longitude [degrees, -180..180]")->range(-180.0, 180.0);
 }
 
 /// Configures the CLI11 logging arguments.
@@ -42,7 +42,7 @@ static void configure_cli11_log_args(CLI::App& app, cu_cp_unit_logger_config& lo
              log_params.hex_max_size,
              "Maximum number of bytes to print in hex (zero for no hex dumps, -1 for unlimited bytes)")
       ->capture_default_str()
-      ->check(CLI::Range(-1, 1024));
+      ->range(-1, 1024);
 
   add_option(app, "--e1ap_json_enabled", log_params.e1ap_json_enabled, "Enable JSON logging of E1AP PDUs")
       ->always_capture_default();
@@ -68,8 +68,8 @@ static void configure_cli11_pcap_args(CLI::App& app, cu_cp_unit_pcap_config& pca
 /// Configures the TAI slice support arguments.
 static void configure_cli11_tai_slice_support_args(CLI::App& app, cu_cp_unit_plmn_item::tai_slice_t& config)
 {
-  add_option(app, "--sst", config.sst, "Slice Service Type")->capture_default_str()->check(CLI::Range(0, 255));
-  add_option(app, "--sd", config.sd, "Service Differentiator")->capture_default_str()->check(CLI::Range(0, 0xffffff));
+  add_option(app, "--sst", config.sst, "Slice Service Type")->capture_default_str()->range(0, 255);
+  add_option(app, "--sd", config.sd, "Service Differentiator")->capture_default_str()->range(0, 0xffffff);
 }
 
 /// Configures the CLI11 PLMD item arguments.
@@ -78,21 +78,11 @@ static void configure_cli11_plmn_item_args(CLI::App& app, cu_cp_unit_plmn_item& 
   add_option(app, "--plmn", config.plmn_id, "PLMN to be configured");
 
   // TAI slice support list.
-  app.add_option_function<std::vector<std::string>>(
-      "--tai_slice_support_list",
-      [&config](const std::vector<std::string>& values) {
-        config.tai_slice_support_list.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("TAI slice support list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_tai_slice_support_args(subapp, config.tai_slice_support_list[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of TAI slices for this PLMN");
+  add_option_object_list<cu_cp_unit_plmn_item::tai_slice_t>(app,
+                                                            "--tai_slice_support_list",
+                                                            config.tai_slice_support_list,
+                                                            configure_cli11_tai_slice_support_args,
+                                                            "Sets the list of TAI slices for this PLMN");
 }
 
 /// Configures the CLI11 supported tracking areas arguments.
@@ -112,21 +102,11 @@ static void configure_cli11_supported_ta_args(CLI::App& app, cu_cp_unit_supporte
   });
 
   // PLMN item list.
-  app.add_option_function<std::vector<std::string>>(
-      "--plmn_list",
-      [&config](const std::vector<std::string>& values) {
-        config.plmn_list.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("PLMN item list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_plmn_item_args(subapp, config.plmn_list[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of PLMN items for this tracking area");
+  add_option_object_list<cu_cp_unit_plmn_item>(app,
+                                               "--plmn_list",
+                                               config.plmn_list,
+                                               configure_cli11_plmn_item_args,
+                                               "Sets the list of PLMN items for this tracking area");
 }
 
 /// Configures the CLI11 AMF item arguments.
@@ -136,7 +116,7 @@ static void configure_cli11_amf_item_args(CLI::App& app, cu_cp_unit_amf_config_i
              "--addrs,--addr", // TODO: old name kept for backward compatibility, should be removed in the future
              config.ip_addrs,
              "AMF addresses to be used for N2 interface. Multiple addresses can be specified for SCTP multi-homing");
-  add_option(app, "--port", config.port, "AMF port")->capture_default_str()->check(CLI::Range(20000, 40000));
+  add_option(app, "--port", config.port, "AMF port")->capture_default_str()->range(20000, 40000);
   add_option(
       app,
       "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
@@ -148,7 +128,12 @@ static void configure_cli11_amf_item_args(CLI::App& app, cu_cp_unit_amf_config_i
   configure_cli11_sctp_socket_args(app, config.sctp);
 
   // Supported tracking areas configuration parameters.
-  app.add_option_function<std::vector<std::string>>(
+  declare_object_list_schema<cu_cp_unit_supported_ta_item>(app,
+                                                           "--supported_tracking_areas",
+                                                           configure_cli11_supported_ta_args,
+                                                           "Sets the list of tracking areas supported by this AMF");
+  add_option_function<std::vector<std::string>>(
+      app,
       "--supported_tracking_areas",
       [&config](const std::vector<std::string>& values) {
         // If supported tracking areas are configured clear default values.
@@ -210,19 +195,11 @@ static void configure_cli11_xnap_gateway_args(CLI::App& app, cu_cp_unit_xnap_gat
   CLI::App* sctp_subcmd = add_subcommand(app, "sctp", "SCTP socket options");
   configure_cli11_sctp_socket_args(*sctp_subcmd, config.sctp);
 
-  app.add_option_function<std::vector<std::string>>(
+  add_option_object_list<cu_cp_unit_xnap_peer_config>(
+      app,
       "--connections",
-      [&config](const std::vector<std::string>& values) {
-        config.connections.resize(values.size());
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("XNAP peer connection parameters");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_xnap_peer_args(subapp, config.connections[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
+      config.connections,
+      configure_cli11_xnap_peer_args,
       "Sets the list of Xn-C peer connections reachable via this gateway");
 }
 
@@ -244,19 +221,11 @@ static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& con
       ->capture_default_str()
       ->group(""); // hide this parameter from --help
 
-  app.add_option_function<std::vector<std::string>>(
+  add_option_object_list<cu_cp_unit_xnap_gateway_config>(
+      app,
       "--gateways",
-      [&config](const std::vector<std::string>& values) {
-        config.gateways.resize(values.size());
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("XnAP gateway parameters");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_xnap_gateway_args(subapp, config.gateways[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
+      config.gateways,
+      configure_cli11_xnap_gateway_args,
       "Sets the list of XnAP gateways, each with its own bind addresses, SCTP options, and Xn-C peer connections");
 }
 
@@ -264,9 +233,9 @@ static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& con
 static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config& report_params)
 {
   add_option(app, "--report_cfg_id", report_params.report_cfg_id, "Report configuration id to be configured")
-      ->check(CLI::Range(1, 64));
+      ->range(1, 64);
   add_option(app, "--report_type", report_params.report_type, "Type of the report configuration")
-      ->check(CLI::IsMember({"periodical", "event_triggered", "cond_trigger"}));
+      ->enum_values({"periodical", "event_triggered", "cond_trigger"});
   add_option_function<std::string>(
       app,
       "--event_triggered_report_type",
@@ -276,77 +245,75 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
         report_params.event_triggered_report_type = *id;
       },
       "Type of the event triggered report")
-      ->check(CLI::IsMember({"a1", "a2", "a3", "a4", "a5", "a6", "d1", "t1", "d2"}));
+      ->enum_values({"a1", "a2", "a3", "a4", "a5", "a6", "d1", "t1", "d2"});
   add_option(app, "--report_interval_ms", report_params.report_interval_ms, "Report interval in ms")
-      ->check(
-          CLI::IsMember({120, 240, 480, 640, 1024, 2048, 5120, 10240, 20480, 40960, 60000, 360000, 720000, 1800000}));
+      ->enum_values({120, 240, 480, 640, 1024, 2048, 5120, 10240, 20480, 40960, 60000, 360000, 720000, 1800000});
   add_option(app,
              "--periodic_ho_rsrp_offset_db",
              report_params.periodic_ho_rsrp_offset,
              "Measurement trigger quantity offset in dB used to trigger handovers by periodic measurement reports. "
              "When set to -1 no handover will be triggered from periodical measurements. Note the "
              "actual value is field value * 0.5 dB")
-      ->check(CLI::Range(-1, 30))
+      ->range(-1, 30)
       ->capture_default_str();
   add_option(app,
              "--meas_trigger_quantity",
              report_params.meas_trigger_quantity,
              "Measurement trigger quantity (RSRP/RSRQ/SINR)")
-      ->check(CLI::IsMember({"rsrp", "rsrq", "sinr"}));
+      ->enum_values({"rsrp", "rsrq", "sinr"});
   add_option(app,
              "--meas_trigger_quantity_threshold_db",
              report_params.meas_trigger_quantity_threshold_db,
              "Measurement trigger quantity threshold in dB used for measurement report trigger of event A1/A2/A4/A5"
              "Valid ranges: RSRP [-156..-31] dBm, RSRQ [-43..20] dB, SINR [-23..40] dB")
-      ->check(CLI::Range(-156, 40));
+      ->range(-156, 40);
   add_option(app,
              "--meas_trigger_quantity_threshold_2_db",
              report_params.meas_trigger_quantity_threshold_2_db,
              "Measurement trigger quantity threshold 2 in dB used for measurement report trigger of event A5"
              "Valid ranges: RSRP [-156..-31] dBm, RSRQ [-43..20] dB, SINR [-23..40] dB")
-      ->check(CLI::Range(-156, 40));
+      ->range(-156, 40);
   add_option(app,
              "--meas_trigger_quantity_offset_db",
              report_params.meas_trigger_quantity_offset_db,
              "Measurement trigger quantity offset in dB used for measurement report trigger of event A3/A6.")
-      ->check(CLI::Range(-15, 15));
+      ->range(-15, 15);
   add_option(
       app, "--hysteresis_db", report_params.hysteresis_db, "Hysteresis in dB used for measurement report trigger.")
-      ->check(CLI::Range(0, 15));
+      ->range(0, 15);
   add_option(app,
              "--time_to_trigger_ms",
              report_params.time_to_trigger_ms,
              "Time in ms during which a condition must be met before measurement report trigger")
-      ->check(CLI::IsMember({0, 40, 64, 80, 100, 128, 160, 256, 320, 480, 512, 640, 1024, 1280, 2560, 5120}));
+      ->enum_values({0, 40, 64, 80, 100, 128, 160, 256, 320, 480, 512, 640, 1024, 1280, 2560, 5120});
   add_option(app,
              "--t312",
              report_params.t312_ms,
              "T312 timer in ms. This timer is started by the UE on event triggered measurement report, when T310 "
              "(out-of-sync) timer is already running and on its expiration triggers the RLF to speed up "
              "reestablishment to different cell.")
-      ->check(CLI::IsMember({0, 50, 100, 200, 300, 400, 500, 1000}));
+      ->enum_values({0, 50, 100, 200, 300, 400, 500, 1000});
 
   // D1/D2 distance-based conditional event options.
   add_option(app,
              "--distance_thresh_from_ref1_km",
              report_params.distance_thresh_from_ref1_km,
              "D1/D2: distance threshold 1 in km [0..3276.75] (50m steps, D1 max is 3276.25)")
-      ->check(CLI::Range(0.0, 3276.75));
+      ->range(0.0, 3276.75);
   add_option(app,
              "--distance_thresh_from_ref2_km",
              report_params.distance_thresh_from_ref2_km,
              "D1/D2: distance threshold 2 in km [0..3276.75] (50m steps, D1 max is 3276.25)")
-      ->check(CLI::Range(0.0, 3276.75));
+      ->range(0.0, 3276.75);
   add_option(app,
              "--hysteresis_location_km",
              report_params.hysteresis_location_km,
              "D1/D2: location hysteresis in km [0..327.68] (10m steps)")
-      ->check(CLI::Range(0.0, 327.68));
+      ->range(0.0, 327.68);
 
   // D1 reference locations (nested subcommands for lat/lon).
   static reference_location ref_location1;
-  CLI::App*                 ref_loc1_sub =
-      app.add_subcommand("ref_location1", "D1: reference location 1 (serving cell)")->configurable();
+  CLI::App* ref_loc1_sub = add_subcommand(app, "ref_location1", "D1: reference location 1 (serving cell)");
   configure_cli11_reference_location(*ref_loc1_sub, ref_location1);
   ref_loc1_sub->parse_complete_callback([&]() {
     if (app.get_subcommand("ref_location1")->count() != 0) {
@@ -355,8 +322,7 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
   });
 
   static reference_location ref_location2;
-  CLI::App*                 ref_loc2_sub =
-      app.add_subcommand("ref_location2", "D1: reference location 2 (target cell)")->configurable();
+  CLI::App* ref_loc2_sub = add_subcommand(app, "ref_location2", "D1: reference location 2 (target cell)");
   configure_cli11_reference_location(*ref_loc2_sub, ref_location2);
   ref_loc2_sub->parse_complete_callback([&]() {
     if (app.get_subcommand("ref_location2")->count() != 0) {
@@ -365,32 +331,34 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
   });
 
   // T1 time-based conditional event options.
-  app.add_option_function<std::string>(
-         "--t1_thres",
-         [&report_params](const std::string& v) {
-           auto result = parse_timestamp_ms(v);
-           report_fatal_error_if_not(result, result.error().c_str());
-           report_params.t1_thres = result.value();
-         },
-         "T1: time threshold (Unix ms integer or YYYY-MM-DDTHH:MM:SS[.mmm])")
+  add_option_function<std::string>(
+      app,
+      "--t1_thres",
+      [&report_params](const std::string& v) {
+        auto result = parse_timestamp_ms(v);
+        report_fatal_error_if_not(result, result.error().c_str());
+        report_params.t1_thres = result.value();
+      },
+      "T1: time threshold (Unix ms integer or YYYY-MM-DDTHH:MM:SS[.mmm])")
       ->check([](const std::string& input) -> std::string {
         if (!is_number(input) && !is_valid_timestamp(input)) {
           return "Invalid timestamp format. Expected Unix time (ms) or YYYY-MM-DDTHH:MM:SS[.mmm]";
         }
         return {};
       });
-  app.add_option_function<double>(
-         "--duration_s",
-         [&report_params](double v) { report_params.duration = std::chrono::duration<double>{v}; },
-         "T1: duration in seconds (each step=100ms, range [0.1..600])")
-      ->check(CLI::Range(0.1, 600.0));
+  add_option_function<double>(
+      app,
+      "--duration_s",
+      [&report_params](double v) { report_params.duration = std::chrono::duration<double>{v}; },
+      "T1: duration in seconds (each step=100ms, range [0.1..600])")
+      ->range(0.1, 600.0);
 }
 
 /// Configures the CLI11 neighbor cell arguments.
 static void configure_cli11_ncell_args(CLI::App& app, cu_cp_unit_neighbor_cell_config_item& config)
 {
   add_option(app, "--nr_cell_id", config.nr_cell_id, "Neighbor cell id")
-      ->check(CLI::Range(static_cast<uint64_t>(0U), nr_cell_identity::max().value()));
+      ->range(static_cast<uint64_t>(0U), nr_cell_identity::max().value());
   add_option(
       app, "--report_configs", config.report_cfg_ids, "Report configurations to configure for this neighbor cell");
 }
@@ -399,12 +367,12 @@ static void configure_cli11_ncell_args(CLI::App& app, cu_cp_unit_neighbor_cell_c
 static void configure_cli11_cells_args(CLI::App& app, cu_cp_unit_cell_config_item& config)
 {
   add_option(app, "--nr_cell_id", config.nr_cell_id, "Cell id to be configured")
-      ->check(CLI::Range(static_cast<uint64_t>(0U), nr_cell_identity::max().value()));
+      ->range(static_cast<uint64_t>(0U), nr_cell_identity::max().value());
   add_option(app,
              "--periodic_report_cfg_id",
              config.periodic_report_cfg_id,
              "Periodical report configuration for the serving cell")
-      ->check(CLI::Range(1, 64));
+      ->range(1, 64);
 
   add_auto_enum_option(app, "--band", config.band, "NR frequency band");
 
@@ -413,16 +381,15 @@ static void configure_cli11_cells_args(CLI::App& app, cu_cp_unit_cell_config_ite
              config.gnb_id_bit_length,
              "gNodeB identifier bit length. If not set, it will be automatically set to be equal to the gNodeB Id of "
              "the CU-CP")
-      ->check(CLI::Range(22, 32));
-  add_option(app, "--pci", config.pci, "Physical Cell Id")->check(CLI::Range(0, 1007));
+      ->range(22, 32);
+  add_option(app, "--pci", config.pci, "Physical Cell Id")->range(0, 1007);
   add_option(app, "--plmn", config.plmn_id, "PLMN of the cell");
-  add_option(app, "--tac", config.tac, "Tracking Area Code")->check(CLI::Range(0, 0xffffff));
+  add_option(app, "--tac", config.tac, "Tracking Area Code")->range(0, 0xffffff);
   add_option(app, "--ssb_arfcn", config.ssb_arfcn, "SSB ARFCN");
-  add_option(app, "--ssb_scs", config.ssb_scs, "SSB subcarrier spacing")->check(CLI::IsMember({15, 30, 60, 120, 240}));
-  add_option(app, "--ssb_period", config.ssb_period, "SSB period in ms")
-      ->check(CLI::IsMember({5, 10, 20, 40, 80, 160}));
+  add_option(app, "--ssb_scs", config.ssb_scs, "SSB subcarrier spacing")->enum_values({15, 30, 60, 120, 240});
+  add_option(app, "--ssb_period", config.ssb_period, "SSB period in ms")->enum_values({5, 10, 20, 40, 80, 160});
   add_option(app, "--ssb_offset", config.ssb_offset, "SSB offset");
-  add_option(app, "--ssb_duration", config.ssb_duration, "SSB duration")->check(CLI::IsMember({1, 2, 3, 4, 5}));
+  add_option(app, "--ssb_duration", config.ssb_duration, "SSB duration")->enum_values({1, 2, 3, 4, 5});
 
   // NTN configuration (ntn-NeighbourCellInfo-r18): satellite reference (globally-defined satellite_idx or inline
   // definition, same options as in the DU NTN cell config) plus an optional 2-D reference location. Each cell is
@@ -451,21 +418,8 @@ static void configure_cli11_cells_args(CLI::App& app, cu_cp_unit_cell_config_ite
   });
 
   // report configuration parameters.
-  app.add_option_function<std::vector<std::string>>(
-      "--ncells",
-      [&config](const std::vector<std::string>& values) {
-        config.ncells.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("CU-CP neighbor cell list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_ncell_args(subapp, config.ncells[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of neighbor cells known to the CU-CP");
+  add_option_object_list<cu_cp_unit_neighbor_cell_config_item>(
+      app, "--ncells", config.ncells, configure_cli11_ncell_args, "Sets the list of neighbor cells known to the CU-CP");
 }
 
 /// Configures the CLI11 mobility arguments.
@@ -486,47 +440,21 @@ static void configure_cli11_mobility_args(CLI::App& app, cu_cp_unit_mobility_con
              config.cho_timeout_ms,
              "Timeout in milliseconds used for auto-triggered CHO and as default timeout for manual CHO command")
       ->capture_default_str()
-      ->check(CLI::Range(1, 600000));
+      ->range(1, 600000);
   add_option(app,
              "--ntn_update_period_ms",
              config.ntn_update_period_ms,
              "Period in milliseconds of the NTN neighbour cell info updates in the measurement configuration")
       ->capture_default_str()
-      ->check(CLI::Range(100, 2000));
+      ->range(100, 2000);
 
   // Cell map parameters.
-  app.add_option_function<std::vector<std::string>>(
-      "--cells",
-      [&config](const std::vector<std::string>& values) {
-        config.cells.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("CU-CP cell list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_cells_args(subapp, config.cells[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of cells known to the CU-CP");
+  add_option_object_list<cu_cp_unit_cell_config_item>(
+      app, "--cells", config.cells, configure_cli11_cells_args, "Sets the list of cells known to the CU-CP");
 
   // report configuration parameters.
-  app.add_option_function<std::vector<std::string>>(
-      "--report_configs",
-      [&config](const std::vector<std::string>& values) {
-        config.report_configs.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("CU-CP measurement report config list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_report_args(subapp, config.report_configs[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets report configurations");
+  add_option_object_list<cu_cp_unit_report_config>(
+      app, "--report_configs", config.report_configs, configure_cli11_report_args, "Sets report configurations");
 }
 
 /// Configures the CLI11 RRC arguments.
@@ -551,7 +479,7 @@ static void configure_cli11_rrc_args(CLI::App& app, cu_cp_unit_rrc_config& confi
              config.rrc_reject_wait_time_s,
              "Optional: WaitTime [s] (1..16) signalled in the RRC Reject waitTime IE. "
              "If not provided, no waitTime will be sent with RRC Reject.")
-      ->check(CLI::Range(1, 16));
+      ->range(1, 16);
 }
 
 /// Strips whitespace and lower-cases an algorithm preference list, e.g. "NEA0, NEA2" -> "nea0,nea2".
@@ -693,13 +621,13 @@ static void configure_cli11_ref_time_reporting_args(CLI::App& app, cu_cp_unit_f1
              f1ap_params.ref_time_reporting_event_type,
              "Reporting mode: \"on_demand\" (single report) or \"periodic\" (recurring reports)")
       ->capture_default_str()
-      ->check(CLI::IsMember({"on_demand", "periodic"}));
+      ->enum_values({"on_demand", "periodic"});
   add_option(app,
              "--periodicity_rf",
              f1ap_params.ref_time_reporting_periodicity_rf,
              "Reporting period in radio frames (1 RF = 10 ms). Used only when event_type is \"periodic\"")
       ->capture_default_str()
-      ->check(CLI::Range(1, 512));
+      ->range(1, 512);
 }
 
 /// Configures the CLI11 F1AP arguments.
@@ -724,7 +652,7 @@ static void configure_cli11_pws_args(CLI::App& app, cu_cp_unit_pws_config& pws_p
              "Maximum bytes per SIB7/SIB8 warning message segment. The warning message contents (up to 9600 bytes) is "
              "split into chunks of this size, each encoded as a separate SIB.")
       ->capture_default_str()
-      ->check(CLI::PositiveNumber);
+      ->positive();
 }
 
 static void configure_cli11_e1ap_args(CLI::App& app, cu_cp_unit_e1ap_config& e1ap_params)
@@ -751,11 +679,11 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
 
   add_option(app, "--max_nof_drbs_per_ue", cu_cp_params.max_nof_drbs_per_ue, "Maximum number of DRBs per UE")
       ->capture_default_str()
-      ->check(CLI::Range(1, 29));
+      ->range(1, 29);
 
   add_option(app, "--inactivity_timer", cu_cp_params.inactivity_timer, "UE/PDU Session/DRB inactivity timer in seconds")
       ->capture_default_str()
-      ->check(CLI::Range(1, 7200));
+      ->range(1, 7200);
 
   add_option(
       app,
@@ -769,7 +697,7 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
              cu_cp_params.ran_paging_cycle,
              "RAN Paging cycle for RRC inactive UEs in nof. Radio Frames")
       ->capture_default_str()
-      ->check(CLI::IsMember({32, 64, 128, 256}));
+      ->enum_values({32, 64, 128, 256});
 
   add_option(app,
              "--t380",
@@ -777,21 +705,21 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
              "RRC inactivity timer T380 in minutes. The timer is started when the UE receives a RRC Release message "
              "including a suspend config and is stopped on the reception of RRCResume.")
       ->capture_default_str()
-      ->check(CLI::IsMember({5, 10, 20, 30, 60, 120, 360, 720}));
+      ->enum_values({5, 10, 20, 30, 60, 120, 360, 720});
 
   add_option(app,
              "--full_i_rnti_profile",
              cu_cp_params.full_i_rnti_profile,
              "I-RNTI profile of the Full-I-RNTI, which sets the width of the Local NG-RAN Node Identifier it carries")
       ->capture_default_str()
-      ->check(CLI::IsMember({"profile0", "profile1", "profile2", "profile3"}));
+      ->enum_values({"profile0", "profile1", "profile2", "profile3"});
 
   add_option(app,
              "--short_i_rnti_profile",
              cu_cp_params.short_i_rnti_profile,
              "I-RNTI profile of the Short-I-RNTI, which sets the width of the Local NG-RAN Node Identifier it carries")
       ->capture_default_str()
-      ->check(CLI::IsMember({"profile0", "profile1"}));
+      ->enum_values({"profile0", "profile1"});
 
   add_option(app,
              "--request_pdu_session_timeout",
@@ -800,37 +728,27 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
              "seconds. The timeout must be larger than T310. If the value is reached, the UE will be released.")
       ->capture_default_str();
 
-  CLI::App* amf_subcmd = app.add_subcommand("amf", "AMF configuration");
+  CLI::App* amf_subcmd = add_subcommand(app, "amf", "AMF configuration");
   configure_cli11_amf_args(*amf_subcmd, cu_cp_params.amf_config);
 
   // AMF parameters.
-  app.add_option_function<std::vector<std::string>>(
-      "--extra_amfs",
-      [&cu_cp_params](const std::vector<std::string>& values) {
-        cu_cp_params.extra_amfs.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("CU-CP AMF list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_amf_item_args(subapp, cu_cp_params.extra_amfs[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of extra AMFs for the CU-CP to connect to");
+  add_option_object_list<cu_cp_unit_amf_config_item>(app,
+                                                     "--extra_amfs",
+                                                     cu_cp_params.extra_amfs,
+                                                     configure_cli11_amf_item_args,
+                                                     "Sets the list of extra AMFs for the CU-CP to connect to");
 
   // XN-C parameters.
-  CLI::App* xnap_subcmd = app.add_subcommand("xnap", "XNAP configuration");
+  CLI::App* xnap_subcmd = add_subcommand(app, "xnap", "XNAP configuration");
   configure_cli11_xnap_args(*xnap_subcmd, cu_cp_params.xnap_config);
 
-  CLI::App* mobility_subcmd = app.add_subcommand("mobility", "Mobility configuration");
+  CLI::App* mobility_subcmd = add_subcommand(app, "mobility", "Mobility configuration");
   configure_cli11_mobility_args(*mobility_subcmd, cu_cp_params.mobility_config);
 
-  CLI::App* rrc_subcmd = app.add_subcommand("rrc", "RRC specific configuration");
+  CLI::App* rrc_subcmd = add_subcommand(app, "rrc", "RRC specific configuration");
   configure_cli11_rrc_args(*rrc_subcmd, cu_cp_params.rrc_config);
 
-  CLI::App* security_subcmd = app.add_subcommand("security", "Security configuration");
+  CLI::App* security_subcmd = add_subcommand(app, "security", "Security configuration");
   configure_cli11_security_args(*security_subcmd, cu_cp_params.security_config);
 
   CLI::App* f1ap_subcmd = add_subcommand(app, "f1ap", "F1AP configuration parameters");
@@ -846,20 +764,20 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
 /// Configures the CLI11 RLC-UM arguments.
 static void configure_cli11_rlc_um_args(CLI::App& app, cu_cp_unit_rlc_um_config& rlc_um_params)
 {
-  CLI::App* rlc_tx_um_subcmd = app.add_subcommand("tx", "UM TX parameters");
-  rlc_tx_um_subcmd->add_option("--sn", rlc_um_params.tx.sn_field_length, "RLC UM TX SN")->capture_default_str();
-  rlc_tx_um_subcmd->add_option("--queue-size", rlc_um_params.tx.queue_size, "RLC UM TX SDU queue size")
+  CLI::App* rlc_tx_um_subcmd = add_subcommand(app, "tx", "UM TX parameters");
+  add_option(*rlc_tx_um_subcmd, "--sn", rlc_um_params.tx.sn_field_length, "RLC UM TX SN")->capture_default_str();
+  add_option(*rlc_tx_um_subcmd, "--queue-size", rlc_um_params.tx.queue_size, "RLC UM TX SDU queue size")
       ->capture_default_str();
-  CLI::App* rlc_rx_um_subcmd = app.add_subcommand("rx", "UM TX parameters");
-  rlc_rx_um_subcmd->add_option("--sn", rlc_um_params.rx.sn_field_length, "RLC UM RX SN")->capture_default_str();
-  rlc_rx_um_subcmd->add_option("--t-reassembly", rlc_um_params.rx.t_reassembly, "RLC UM t-Reassembly")
+  CLI::App* rlc_rx_um_subcmd = add_subcommand(app, "rx", "UM TX parameters");
+  add_option(*rlc_rx_um_subcmd, "--sn", rlc_um_params.rx.sn_field_length, "RLC UM RX SN")->capture_default_str();
+  add_option(*rlc_rx_um_subcmd, "--t-reassembly", rlc_um_params.rx.t_reassembly, "RLC UM t-Reassembly")
       ->capture_default_str();
 }
 
 /// Configures the CLI11 RLC-AM arguments.
 static void configure_cli11_rlc_am_args(CLI::App& app, cu_cp_unit_rlc_am_config& rlc_am_params)
 {
-  CLI::App* tx_subcmd = app.add_subcommand("tx", "AM TX parameters");
+  CLI::App* tx_subcmd = add_subcommand(app, "tx", "AM TX parameters");
   add_option(*tx_subcmd, "--sn", rlc_am_params.tx.sn_field_length, "RLC AM TX SN size")->capture_default_str();
   add_option(*tx_subcmd, "--t-poll-retransmit", rlc_am_params.tx.t_poll_retx, "RLC AM TX t-PollRetransmit (ms)")
       ->capture_default_str();
@@ -875,7 +793,7 @@ static void configure_cli11_rlc_am_args(CLI::App& app, cu_cp_unit_rlc_am_config&
   add_option(*tx_subcmd, "--queue-size", rlc_am_params.tx.queue_size, "RLC AM TX SDU queue size")
       ->capture_default_str();
 
-  CLI::App* rx_subcmd = app.add_subcommand("rx", "AM RX parameters");
+  CLI::App* rx_subcmd = add_subcommand(app, "rx", "AM RX parameters");
   add_option(*rx_subcmd, "--sn", rlc_am_params.rx.sn_field_length, "RLC AM RX SN")->capture_default_str();
   add_option(*rx_subcmd, "--t-reassembly", rlc_am_params.rx.t_reassembly, "RLC AM RX t-Reassembly")
       ->capture_default_str();
@@ -899,11 +817,11 @@ static void configure_cli11_rlc_args(CLI::App& app, cu_cp_unit_rlc_config& rlc_p
       ->check(CLI::IsMember({"tm", "um-bidir", "um-unidir-ul", "um-unidir-dl", "am"}));
 
   // UM section.
-  CLI::App* rlc_um_subcmd = app.add_subcommand("um-bidir", "UM parameters");
+  CLI::App* rlc_um_subcmd = add_subcommand(app, "um-bidir", "UM parameters");
   configure_cli11_rlc_um_args(*rlc_um_subcmd, rlc_params.um);
 
   // AM section.
-  CLI::App* rlc_am_subcmd = app.add_subcommand("am", "AM parameters");
+  CLI::App* rlc_am_subcmd = add_subcommand(app, "am", "AM parameters");
   configure_cli11_rlc_am_args(*rlc_am_subcmd, rlc_params.am);
 }
 
@@ -924,7 +842,7 @@ static void configure_cli11_pdcp_rohc_args(CLI::App& app, cu_cp_unit_pdcp_rohc_c
       },
       "ROHC type (none/rohc/ul_only_rohc). Values: {none, rohc, ul_only_rohc}. Default: none")
       ->default_str("none")
-      ->check(CLI::IsMember({"none", "rohc", "uplink_only_rohc"}));
+      ->enum_values({"none", "rohc", "uplink_only_rohc"});
   add_option(app, "--max_cid", pdcp_rohc_params.max_cid, "Maximum CID")->capture_default_str();
   add_option(app, "--profile0x0001", pdcp_rohc_params.profile0x0001, "Configure profile0x0001 (ROHCv1 RTP/UDP/IP)")
       ->always_capture_default();
@@ -1001,29 +919,29 @@ static void configure_cli11_pdcp_rx_args(CLI::App& app, cu_cp_unit_pdcp_rx_confi
 static void configure_cli11_pdcp_args(CLI::App& app, cu_cp_unit_pdcp_config& pdcp_params)
 {
   // Header compression section.
-  CLI::App* pdcp_rohc_subcmd = app.add_subcommand("rohc", "Header compression parameters");
+  CLI::App* pdcp_rohc_subcmd = add_subcommand(app, "rohc", "Header compression parameters");
   configure_cli11_pdcp_rohc_args(*pdcp_rohc_subcmd, pdcp_params.rohc);
 
   // Transmission section.
-  CLI::App* pdcp_tx_subcmd = app.add_subcommand("tx", "PDCP TX parameters");
+  CLI::App* pdcp_tx_subcmd = add_subcommand(app, "tx", "PDCP TX parameters");
   configure_cli11_pdcp_tx_args(*pdcp_tx_subcmd, pdcp_params.tx);
 
   // Reception section.
-  CLI::App* pdcp_rx_subcmd = app.add_subcommand("rx", "PDCP RX parameters");
+  CLI::App* pdcp_rx_subcmd = add_subcommand(app, "rx", "PDCP RX parameters");
   configure_cli11_pdcp_rx_args(*pdcp_rx_subcmd, pdcp_params.rx);
 }
 
 /// Configures the CLI11 Quality of Service arguments.
 static void configure_cli11_qos_args(CLI::App& app, cu_cp_unit_qos_config& qos_params)
 {
-  add_option(app, "--five_qi", qos_params.five_qi, "5QI")->capture_default_str()->check(CLI::Range(0, 255));
+  add_option(app, "--five_qi", qos_params.five_qi, "5QI")->capture_default_str()->range(0, 255);
 
   // RLC section.
-  CLI::App* rlc_subcmd = app.add_subcommand("rlc", "RLC parameters");
+  CLI::App* rlc_subcmd = add_subcommand(app, "rlc", "RLC parameters");
   configure_cli11_rlc_args(*rlc_subcmd, qos_params.rlc);
 
   // PDCP section.
-  CLI::App* pdcp_subcmd = app.add_subcommand("pdcp", "PDCP parameters");
+  CLI::App* pdcp_subcmd = add_subcommand(app, "pdcp", "PDCP parameters");
   configure_cli11_pdcp_args(*pdcp_subcmd, qos_params.pdcp);
 
   // Mark the application that these subcommands need to be present.
@@ -1058,7 +976,7 @@ void ocudu::configure_cli11_with_cu_cp_unit_config_schema(CLI::App& app, cu_cp_u
   add_option(app, "--gnb_id", unit_cfg.gnb_id.id, "gNodeB identifier")->capture_default_str();
   add_option(app, "--gnb_id_bit_length", unit_cfg.gnb_id.bit_length, "gNodeB identifier length in bits")
       ->capture_default_str()
-      ->check(CLI::Range(22, 32));
+      ->range(22, 32);
   add_option(app, "--ran_node_name", unit_cfg.ran_node_name, "RAN node name")->capture_default_str();
 
   // CU-CP section
@@ -1079,21 +997,16 @@ void ocudu::configure_cli11_with_cu_cp_unit_config_schema(CLI::App& app, cu_cp_u
   app_helpers::configure_cli11_with_metrics_appconfig_schema(app, unit_cfg.metrics.common_metrics_cfg);
 
   // QoS section.
-  auto qos_lambda = [&unit_cfg](const std::vector<std::string>& values) {
-    // Prepare the radio bearers
-    unit_cfg.qos_cfg.resize(values.size());
-
-    // Format every QoS setting.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("QoS parameters", "QoS config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_qos_args(subapp, unit_cfg.qos_cfg[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--qos", qos_lambda, "Configures RLC and PDCP radio bearers on a per 5QI basis.");
+  add_option_object_list<cu_cp_unit_qos_config>(
+      app,
+      "--qos",
+      unit_cfg.qos_cfg,
+      configure_cli11_qos_args,
+      "Configures RLC and PDCP radio bearers on a per 5QI basis.",
+      // The gNB declares --qos in the DU, CU-CP and CU-UP alike, so every unit parses each element and must
+      // tolerate the keys owned by the sibling units.
+      nullptr,
+      object_list_extras::tolerate_unknown);
 
   // Global NTN section (shared satellite definitions referenced by satellite_idx in neighbor cell NTN configs).
   // In the gnb application this reuses the same section as the DU, so the satellites are defined once.

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "apps/helpers/config/config_yaml_schema.h"
 #include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
 #include "apps/helpers/network/sctp_config_translators.h"
@@ -227,6 +228,12 @@ int main(int argc, char** argv)
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
   populate_cli11_generic_args(app);
+
+  // Register the configuration-schema root so the add_* helpers capture the schema as options are declared. In the
+  // gNB the CU-CP, CU-UP and DU units all register into this one app; shared top-level sections (log, metrics, qos,
+  // ntn, ...) are merged into a single schema node, mirroring CLI11's merge-aware option handling.
+  config::schema_node config_schema_root{"OCUDU 5G gNB configuration"};
+  app_helpers::register_config_schema(app, config_schema_root, "gnb");
 
   gnb_appconfig gnb_cfg;
   // Configure CLI11 with the gNB application configuration schema.

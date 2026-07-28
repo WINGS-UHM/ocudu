@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "apps/cu_cp/cu_cp_appconfig_cli11_schema.h"
+#include "apps/helpers/config/config_yaml_schema.h"
 #include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/f1/f1_gateway_helpers.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
@@ -169,6 +170,10 @@ int main(int argc, char** argv)
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
   populate_cli11_generic_args(app);
+
+  // Register the configuration-schema root so the add_* helpers capture the schema as options are declared.
+  config::schema_node config_schema_root{"OCUDU 5G CU-CP configuration"};
+  app_helpers::register_config_schema(app, config_schema_root, "cu-cp");
 
   // Configure CLI11 with the CU application configuration schema.
   cu_cp_appconfig cu_cp_cfg;

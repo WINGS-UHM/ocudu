@@ -81,21 +81,11 @@ static void configure_cli11_ngu_args(CLI::App& app, cu_up_unit_ngu_config& ngu_p
   configure_cli11_ngu_gtpu_args(*gtpu_subcmd, ngu_params.gtpu_cfg);
 
   // Add option for multiple sockets, for usage with different slices, 5QIs or parallization.
-  auto sock_lambda = [&ngu_params](const std::vector<std::string>& values) {
-    // Prepare the radio bearers
-    ngu_params.ngu_socket_cfg.resize(values.size());
-
-    // Format every QoS setting.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("NG-U socket parameters", "NG-U socket config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_ngu_socket_args(subapp, ngu_params.ngu_socket_cfg[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--socket", sock_lambda, "Configures UDP/IP socket parameters of the N3 interface");
+  add_option_object_list<cu_up_unit_ngu_socket_config>(app,
+                                                       "--socket",
+                                                       ngu_params.ngu_socket_cfg,
+                                                       configure_cli11_ngu_socket_args,
+                                                       "Configures UDP/IP socket parameters of the N3 interface");
 }
 
 static void configure_cli11_test_mode_args(CLI::App& app, cu_up_unit_test_mode_config& test_mode_params)
@@ -105,10 +95,10 @@ static void configure_cli11_test_mode_args(CLI::App& app, cu_up_unit_test_mode_c
   add_option(app, "--ciphering_enable", test_mode_params.ciphering_enabled, "Enable or disable PDCP ciphering testing");
   add_option(app, "--nea_algo", test_mode_params.nea_algo, "NEA algo to use for testing. Valid values {0, 1, 2, 3}.")
       ->capture_default_str()
-      ->check(CLI::Range(0, 3));
+      ->range(0, 3);
   add_option(app, "--nia_algo", test_mode_params.nea_algo, "NIA algo to use for testing. Valid values {1, 2, 3}.")
       ->capture_default_str()
-      ->check(CLI::Range(1, 3));
+      ->range(1, 3);
   add_option(app, "--ue_ambr", test_mode_params.ue_ambr, "DL UE-AMBR used for testing in bps");
   add_option(app,
              "--attach_detach_period",
@@ -143,7 +133,7 @@ static void configure_cli11_cu_up_args(CLI::App& app, cu_up_unit_config& cu_up_p
 
   add_option(app, "--max_nof_ues", cu_up_params.max_nof_ues, "Maximum number of Bearer Contexts allowed by the CU-UP")
       ->capture_default_str()
-      ->check(CLI::Range(static_cast<uint32_t>(1), MAX_NOF_CU_UP_UES));
+      ->range(static_cast<uint32_t>(1), MAX_NOF_CU_UP_UES);
 
   auto plmn_is_valid = [](const std::string& value) -> std::string {
     return plmn_identity::parse(value).has_value() ? "" : "Invalid PLMN format";
@@ -169,7 +159,7 @@ static void configure_cli11_log_args(CLI::App& app, cu_up_unit_logger_config& lo
              log_params.hex_max_size,
              "Maximum number of bytes to print in hex (zero for no hex dumps, -1 for unlimited bytes)")
       ->capture_default_str()
-      ->check(CLI::Range(-1, 1024));
+      ->range(-1, 1024);
   add_option(app, "--e1ap_json_enabled", log_params.e1ap_json_enabled, "Enable JSON logging of E1AP PDUs")
       ->always_capture_default();
 }
@@ -220,16 +210,16 @@ static void configure_cli11_trace(CLI::App& app, cu_up_unit_trace_config& trace_
 
 static void configure_cli11_f1u_cu_up_args(CLI::App& app, cu_cp_unit_f1u_config& f1u_cu_up_params)
 {
-  app.add_option("--backoff_timer", f1u_cu_up_params.t_notify, "F1-U backoff timer (ms)")->capture_default_str();
-  app.add_option("--queue_size", f1u_cu_up_params.queue_size, "F1-U backoff timer (ms)")->capture_default_str();
-  app.add_option("--batch_size", f1u_cu_up_params.batch_size, "F1-U backoff timer (ms)")->capture_default_str();
+  add_option(app, "--backoff_timer", f1u_cu_up_params.t_notify, "F1-U backoff timer (ms)")->capture_default_str();
+  add_option(app, "--queue_size", f1u_cu_up_params.queue_size, "F1-U backoff timer (ms)")->capture_default_str();
+  add_option(app, "--batch_size", f1u_cu_up_params.batch_size, "F1-U backoff timer (ms)")->capture_default_str();
 }
 
 static void configure_cli11_qos_args(CLI::App& app, cu_up_unit_qos_config& qos_params)
 {
-  add_option(app, "--five_qi", qos_params.five_qi, "5QI")->capture_default_str()->check(CLI::Range(0, 255));
+  add_option(app, "--five_qi", qos_params.five_qi, "5QI")->capture_default_str()->range(0, 255);
 
-  CLI::App* f1u_cu_up_subcmd = app.add_subcommand("f1u_cu_up", "F1-U parameters at CU_UP side");
+  CLI::App* f1u_cu_up_subcmd = add_subcommand(app, "f1u_cu_up", "F1-U parameters at CU_UP side");
   configure_cli11_f1u_cu_up_args(*f1u_cu_up_subcmd, qos_params.f1u_cu_up);
 }
 
@@ -240,10 +230,10 @@ void ocudu::configure_cli11_with_cu_up_unit_config_schema(CLI::App& app, cu_up_u
   add_option(app, "--gnb_id_bit_length", unit_cfg.gnb_id.bit_length, "gNodeB identifier length in bits")
       ->default_function([&value = unit_cfg.gnb_id.bit_length]() { return std::to_string(value); })
       ->capture_default_str()
-      ->check(CLI::Range(22, 32));
+      ->range(22, 32);
   add_option(app, "--gnb_cu_up_id", unit_cfg.gnb_cu_up_id, "gNB-CU-UP Id")
       ->capture_default_str()
-      ->check(CLI::Range(static_cast<uint64_t>(0U), static_cast<uint64_t>((uint64_t(1) << 36) - 1)));
+      ->range(static_cast<uint64_t>(0U), static_cast<uint64_t>((uint64_t(1) << 36) - 1));
 
   // CU-UP section.
   CLI::App* cu_up_subcmd = add_subcommand(app, "cu_up", "CU-UP parameters")->configurable();
@@ -271,19 +261,14 @@ void ocudu::configure_cli11_with_cu_up_unit_config_schema(CLI::App& app, cu_up_u
   configure_cli11_trace(*tracing_subcmd, unit_cfg.trace_cfg);
 
   // QoS section.
-  auto qos_lambda = [&unit_cfg](const std::vector<std::string>& values) {
-    // Prepare the radio bearers
-    unit_cfg.qos_cfg.resize(values.size());
-
-    // Format every QoS setting.
-    for (unsigned i = 0, e = values.size(); i != e; ++i) {
-      CLI::App subapp("QoS parameters", "QoS config, item #" + std::to_string(i));
-      subapp.config_formatter(create_yaml_config_parser());
-      subapp.allow_config_extras(CLI::config_extras_mode::capture);
-      configure_cli11_qos_args(subapp, unit_cfg.qos_cfg[i]);
-      std::istringstream ss(values[i]);
-      subapp.parse_from_stream(ss);
-    }
-  };
-  add_option_cell(app, "--qos", qos_lambda, "Configures RLC and PDCP radio bearers on a per 5QI basis.");
+  add_option_object_list<cu_up_unit_qos_config>(
+      app,
+      "--qos",
+      unit_cfg.qos_cfg,
+      configure_cli11_qos_args,
+      "Configures RLC and PDCP radio bearers on a per 5QI basis.",
+      // The gNB declares --qos in the DU, CU-CP and CU-UP alike, so every unit parses each element and must
+      // tolerate the keys owned by the sibling units.
+      nullptr,
+      object_list_extras::tolerate_unknown);
 }

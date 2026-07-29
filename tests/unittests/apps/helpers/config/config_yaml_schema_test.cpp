@@ -61,7 +61,7 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   std::vector<int> ids;
   add_option(app, "--ids", ids, "id list")->range(0, 9);
 
-  std::string yaml = app_helpers::generate_yaml_config_schema(root, "Test");
+  std::string yaml = app_helpers::generate_yaml_config_schema(root, "Test", "test-app");
 
   // Round-trips as valid YAML and ends with a newline.
   ASSERT_FALSE(yaml.empty());
@@ -69,7 +69,8 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   YAML::Node doc = YAML::Load(yaml);
   ASSERT_TRUE(doc.IsMap());
 
-  EXPECT_EQ(doc["$schema"].as<std::string>(), "http://stsci.edu/schemas/yaml-schema/draft-01");
+  EXPECT_EQ(doc["$schema"].as<std::string>(), "http://json-schema.org/draft-07/schema#");
+  EXPECT_EQ(doc["$id"].as<std::string>(), "https://ocudu.org/schemas/test-app.schema.json");
   EXPECT_EQ(doc["title"].as<std::string>(), "Test");
   EXPECT_EQ(doc["type"].as<std::string>(), "object");
 
@@ -132,4 +133,87 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
 
   // No control characters leaked into the document (the 0x7f bug).
   EXPECT_EQ(yaml.find('\x7f'), std::string::npos);
+}
+
+// Golden-file regression: pins the exact emitted bytes for a small, fully-deterministic schema so that any change to
+// the emitter's formatting (indentation, key ordering, float rendering, keyword names) is caught. Kept minimal on
+// purpose - the full app schemas are exercised by the roundtrip tests; this locks the serialization contract.
+TEST_F(config_yaml_schema_test, golden_schema_is_byte_stable)
+{
+  CLI::App    app("A test application");
+  schema_node root;
+  register_schema_root(app, root);
+  root.description = "A test application";
+
+  int         count = 3;
+  bool        flag  = false;
+  std::string mode  = "auto";
+  int         start = 0;
+  add_option(app, "--count", count, "a count")->capture_default_str()->range(0, 10);
+  add_option(app, "--flag", flag, "a flag")->capture_default_str();
+  add_option(app, "--mode", mode, "a mode")->capture_default_str()->enum_values({"auto", "manual"});
+  add_option(app, "--start", start, "mandatory start")->required();
+
+  CLI::App* sub  = add_subcommand(app, "section", "a section");
+  unsigned  port = 38472;
+  add_option(*sub, "--port", port, "a port")->capture_default_str();
+
+  std::vector<cell_item> cells;
+  add_option_object_list<cell_item>(app, "--cells", cells, configure_cell, "per-cell config");
+
+  const std::string expected = R"($schema: http://json-schema.org/draft-07/schema#
+title: Test
+description: A test application
+type: object
+properties:
+  count:
+    description: a count
+    type: integer
+    minimum: 0
+    maximum: 10
+    default: 3
+  flag:
+    description: a flag
+    type: boolean
+    default: false
+  mode:
+    description: a mode
+    type: string
+    enum:
+      - auto
+      - manual
+    default: auto
+  start:
+    description: mandatory start
+    type: integer
+  section:
+    description: a section
+    type: object
+    properties:
+      port:
+        description: a port
+        type: integer
+        default: 38472
+    additionalProperties: false
+  cells:
+    description: per-cell config
+    type: array
+    items:
+      type: object
+      properties:
+        pci:
+          description: physical cell id
+          type: integer
+          default: 1
+        sector_id:
+          description: sector id
+          type: integer
+          default: 127
+      additionalProperties: false
+additionalProperties: false
+required:
+  - start
+)";
+
+  EXPECT_EQ(app_helpers::generate_yaml_config_schema(root, "Test"), expected);
 }

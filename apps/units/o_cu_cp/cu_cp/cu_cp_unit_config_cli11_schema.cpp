@@ -113,16 +113,18 @@ static void configure_cli11_supported_ta_args(CLI::App& app, cu_cp_unit_supporte
 static void configure_cli11_amf_item_args(CLI::App& app, cu_cp_unit_amf_config_item& config)
 {
   add_option(app,
-             "--addrs,--addr", // TODO: old name kept for backward compatibility, should be removed in the future
+             "--addrs,--addr",
              config.ip_addrs,
-             "AMF addresses to be used for N2 interface. Multiple addresses can be specified for SCTP multi-homing");
+             "AMF addresses to be used for N2 interface. Multiple addresses can be specified for SCTP multi-homing. "
+             "The '--addr' name is a deprecated alias and should not be used.");
   add_option(app, "--port", config.port, "AMF port")->capture_default_str()->range(20000, 40000);
   add_option(
       app,
-      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      "--bind_addrs,--bind_addr",
       config.bind_addrs,
       "CU-CP bind addresses to be used for N2 interface. Multiple addresses can be specified for SCTP "
-      "multi-homing. If left empty, implicit bind is performed");
+      "multi-homing. If left empty, implicit bind is performed. The '--bind_addr' name is a deprecated alias and "
+      "should not be used.");
   add_option(app, "--bind_interface", config.bind_interface, "Network device to bind for N2 interface")
       ->capture_default_str();
   configure_cli11_sctp_socket_args(app, config.sctp);

@@ -22,9 +22,10 @@ static void configure_cli11_f1ap_args(CLI::App& app, ocu::cu_f1ap_appconfig& f1a
 {
   add_option(
       app,
-      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      "--bind_addrs,--bind_addr",
       f1ap_params.bind_addrs,
-      "CU F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
+      "CU F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing. The '--bind_addr' name is "
+      "a deprecated alias and should not be used.")
       ->capture_default_str();
   configure_cli11_sctp_socket_args(app, f1ap_params.sctp);
 }

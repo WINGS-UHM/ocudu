@@ -22,16 +22,18 @@ using namespace ocudu;
 static void configure_cli11_e1ap_args(CLI::App& app, ocuup::e1ap_appconfig& e1ap_params)
 {
   add_option(app,
-             "--addrs,--cu_cp_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+             "--addrs,--cu_cp_addr",
              e1ap_params.cu_cp_addresses,
-             "CU-CP addresses to be used for E1 interface. Multiple addresses can be specified for SCTP multi-homing")
+             "CU-CP addresses to be used for E1 interface. Multiple addresses can be specified for SCTP multi-homing. "
+             "The '--cu_cp_addr' name is a deprecated alias and should not be used.")
       ->capture_default_str();
   add_option(
       app,
-      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      "--bind_addrs,--bind_addr",
       e1ap_params.bind_addresses,
       "CU-UP bind addresses to be used for E1 interface. Multiple addresses can be specified for SCTP "
-      "multi-homing. If left empty, implicit bind is performed")
+      "multi-homing. If left empty, implicit bind is performed. The '--bind_addr' name is a deprecated alias and "
+      "should not be used.")
       ->capture_default_str();
   configure_cli11_sctp_socket_args(app, e1ap_params.sctp);
 }

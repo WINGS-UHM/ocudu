@@ -28,8 +28,18 @@
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
+#include <net/ethernet.h>
+#include <netpacket/packet.h>
+#include <net/if.h>
+#include <net/if_arp.h>
+#include <nlohmann/json.hpp>
+#include <poll.h>
+#include <netinet/ip.h>
+#include <atomic>
+#include <fcntl.h>
 #include <netinet/sctp.h>
 #include <optional>
+#include <regex>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -37,6 +47,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 using namespace ocudu;
@@ -68,6 +79,10 @@ struct probe_config {
   int                      init_max_attempts     = 2;
   int                      max_init_timeo_ms     = 1000;
   bool                     dump_pdu_hex          = true;
+  bool                     inspect_ngap          = false;
+  bool                     dump_capture_hex      = false;
+  std::string              capture_interface;
+
 };
 
 struct ue_ngap_ids {
@@ -118,7 +133,14 @@ enum class ue_message_type {
   ue_radio_capability_id_mapping_response,
   trace_failure_indication,
   cell_traffic_trace,
-  secondary_rat_data_usage_report
+  secondary_rat_data_usage_report,
+  connection_establishment_indication, ue_context_suspend_response, ue_context_resume_response, reroute_nas_request, ue_information_transfer,
+  broadcast_session_modification_response, broadcast_session_release_response, broadcast_session_setup_response, broadcast_session_transport_response,
+  distribution_setup_response, distribution_release_response, multicast_session_activation_response, multicast_session_deactivation_response,
+  multicast_session_update_response, timing_synchronisation_status_response, handover_success, uplink_ran_configuration_transfer,
+  uplink_rim_information_transfer, uplink_non_ue_associated_nrppa_transport, uplink_ue_associated_nrppa_transport,
+  ue_tnla_binding_release_request, ran_paging_request, timing_synchronisation_status_report, write_replace_warning_response,
+  pws_failure_indication, pws_restart_indication
 };
 
 struct injectable_ngap_pdu {
@@ -387,7 +409,11 @@ static byte_buffer build_ran_configuration_update(uint32_t    gnb_id,
                                                   std::string plmn,
                                                   std::string tac,
                                                   uint8_t     sst,
-                                                  std::string sd)
+                                                  std::string sd,
+                                                  bool        include_tnl_removal,
+                                                  std::string ngran_tnl_address,
+                                                  bool        include_amf_tnl_address,
+                                                  std::string amf_tnl_address)
 {
   ngap_message ngap_msg = {};
   ngap_msg.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_RAN_CFG_UPD);
@@ -410,6 +436,22 @@ static byte_buffer build_ran_configuration_update(uint32_t    gnb_id,
   plmn_item.tai_slice_support_list.push_back(slice);
   ta_item.broadcast_plmn_list.push_back(plmn_item);
   msg->supported_ta_list.push_back(ta_item);
+
+  if (include_tnl_removal) {
+    msg->ngran_tnl_assoc_to_rem_list_present = true;
+
+    ngran_tnl_assoc_to_rem_item_s tnl_item = {};
+    tnl_item.tnl_assoc_transport_layer_address.set_endpoint_ip_address().from_string(
+        ipv4_to_bit_string(ngran_tnl_address));
+
+    if (include_amf_tnl_address) {
+      tnl_item.tnl_assoc_transport_layer_address_amf_present = true;
+      tnl_item.tnl_assoc_transport_layer_address_amf.set_endpoint_ip_address().from_string(
+          ipv4_to_bit_string(amf_tnl_address));
+    }
+
+    msg->ngran_tnl_assoc_to_rem_list.push_back(std::move(tnl_item));
+  }
 
   return pack_ngap_message(ngap_msg, "RANConfigurationUpdate");
 }
@@ -1261,6 +1303,313 @@ static std::string join_strings(const std::vector<std::string>& values, const ch
   return result;
 }
 
+static mbs_session_id_s build_default_mbs_session_id(const std::string& tmgi_hex)
+{
+  mbs_session_id_s id = {};
+  id.tmgi.from_string(tmgi_hex);
+  return id;
+}
+
+static byte_buffer build_connection_establishment_indication(uint64_t amf_id, uint64_t ran_id)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_CONN_ESTABLISHMENT_IND);
+  auto& msg = m.pdu.init_msg().value.conn_establishment_ind();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  return pack_ngap_message(m, "ConnectionEstablishmentIndication");
+}
+
+static byte_buffer build_ue_context_suspend_response(uint64_t amf_id, uint64_t ran_id)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_SUSPEND);
+  auto& msg = m.pdu.successful_outcome().value.ue_context_suspend_resp();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  return pack_ngap_message(m, "UEContextSuspendResponse");
+}
+
+static byte_buffer build_ue_context_resume_response(uint64_t amf_id, uint64_t ran_id)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_RESUME);
+  auto& msg = m.pdu.successful_outcome().value.ue_context_resume_resp();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  return pack_ngap_message(m, "UEContextResumeResponse");
+}
+
+static byte_buffer build_reroute_nas_request(uint64_t ran_id, uint64_t amf_id, byte_buffer ngap_msg)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_REROUTE_NAS_REQUEST);
+  auto& msg = m.pdu.init_msg().value.reroute_nas_request();
+  msg->ran_ue_ngap_id = ran_id;
+  msg->amf_ue_ngap_id_present = true;
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ngap_msg = std::move(ngap_msg);
+  msg->amf_set_id.from_number(0);
+  return pack_ngap_message(m, "RerouteNASRequest");
+}
+
+static byte_buffer build_ue_information_transfer(const std::string& amf_set_id_hex,
+                                                  const std::string& amf_pointer_hex,
+                                                  const std::string& five_g_tmsi_hex)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_UE_INFO_TRANSFER);
+  auto& msg = m.pdu.init_msg().value.ue_info_transfer();
+  msg->five_g_s_tmsi.amf_set_id.from_string(amf_set_id_hex);
+  msg->five_g_s_tmsi.amf_pointer.from_string(amf_pointer_hex);
+  msg->five_g_s_tmsi.five_g_tmsi.from_string(five_g_tmsi_hex);
+  return pack_ngap_message(m, "UEInformationTransfer");
+}
+
+template<typename Response>
+static byte_buffer pack_mbs_response(Response& msg, const char* name, const mbs_session_id_s& session_id)
+{
+  msg->mbs_session_id = session_id;
+  return pack_ngap_message(*reinterpret_cast<ngap_message*>(nullptr), name);
+}
+
+static byte_buffer build_broadcast_session_modification_response(const std::string& tmgi_hex, byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_BROADCAST_SESSION_MOD);
+  auto& msg = m.pdu.successful_outcome().value.broadcast_session_mod_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->mbs_session_mod_resp_transfer_present = true;
+  msg->mbs_session_mod_resp_transfer = std::move(transfer);
+  return pack_ngap_message(m, "BroadcastSessionModificationResponse");
+}
+
+static byte_buffer build_broadcast_session_release_response(const std::string& tmgi_hex, byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_BROADCAST_SESSION_RELEASE);
+  auto& msg = m.pdu.successful_outcome().value.broadcast_session_release_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->mbs_session_release_resp_transfer_present = true;
+  msg->mbs_session_release_resp_transfer = std::move(transfer);
+  return pack_ngap_message(m, "BroadcastSessionReleaseResponse");
+}
+
+static byte_buffer build_broadcast_session_setup_response(const std::string& tmgi_hex, byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_BROADCAST_SESSION_SETUP);
+  auto& msg = m.pdu.successful_outcome().value.broadcast_session_setup_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->mbs_session_setup_resp_transfer_present = true;
+  msg->mbs_session_setup_resp_transfer = std::move(transfer);
+  return pack_ngap_message(m, "BroadcastSessionSetupResponse");
+}
+
+static byte_buffer build_broadcast_session_transport_response(const std::string& tmgi_hex, byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_BROADCAST_SESSION_TRANSPORT);
+  auto& msg = m.pdu.successful_outcome().value.broadcast_session_transport_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->broadcast_transport_resp_transfer = std::move(transfer);
+  return pack_ngap_message(m, "BroadcastSessionTransportResponse");
+}
+
+static byte_buffer build_distribution_setup_response(const std::string& tmgi_hex, uint32_t area_id, byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_DISTRIBUTION_SETUP);
+  auto& msg = m.pdu.successful_outcome().value.distribution_setup_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->mbs_area_session_id_present = true;
+  msg->mbs_area_session_id = area_id;
+  msg->mbs_distribution_setup_resp_transfer = std::move(transfer);
+  return pack_ngap_message(m, "DistributionSetupResponse");
+}
+
+static byte_buffer build_distribution_release_response(const std::string& tmgi_hex, uint32_t area_id)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_DISTRIBUTION_RELEASE);
+  auto& msg = m.pdu.successful_outcome().value.distribution_release_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->mbs_area_session_id_present = true;
+  msg->mbs_area_session_id = area_id;
+  return pack_ngap_message(m, "DistributionReleaseResponse");
+}
+
+static byte_buffer build_multicast_session_activation_response(const std::string& tmgi_hex)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_MULTICAST_SESSION_ACTIVATION);
+  auto& msg = m.pdu.successful_outcome().value.multicast_session_activation_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  return pack_ngap_message(m, "MulticastSessionActivationResponse");
+}
+
+static byte_buffer build_multicast_session_deactivation_response(const std::string& tmgi_hex)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_MULTICAST_SESSION_DEACTIVATION);
+  auto& msg = m.pdu.successful_outcome().value.multicast_session_deactivation_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  return pack_ngap_message(m, "MulticastSessionDeactivationResponse");
+}
+
+static byte_buffer build_multicast_session_update_response(const std::string& tmgi_hex, uint32_t area_id)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_MULTICAST_SESSION_UPD);
+  auto& msg = m.pdu.successful_outcome().value.multicast_session_upd_resp();
+  msg->mbs_session_id = build_default_mbs_session_id(tmgi_hex);
+  msg->mbs_area_session_id_present = true;
+  msg->mbs_area_session_id = area_id;
+  return pack_ngap_message(m, "MulticastSessionUpdateResponse");
+}
+
+static byte_buffer build_timing_synchronisation_status_response(byte_buffer routing_id)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_TIMING_SYNCHRONISATION_STATUS);
+  auto& msg = m.pdu.successful_outcome().value.timing_synchronisation_status_resp();
+  msg->routing_id = std::move(routing_id);
+  return pack_ngap_message(m, "TimingSynchronisationStatusResponse");
+}
+
+static byte_buffer build_handover_success(uint64_t amf_id, uint64_t ran_id)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_HO_SUCCESS);
+  auto& msg = m.pdu.init_msg().value.ho_success();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  return pack_ngap_message(m, "HandoverSuccess");
+}
+
+static byte_buffer build_uplink_ran_configuration_transfer(byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_UL_RAN_CFG_TRANSFER);
+  auto& msg = m.pdu.init_msg().value.ul_ran_cfg_transfer();
+  msg->endc_son_cfg_transfer_ul_present = true;
+  msg->endc_son_cfg_transfer_ul = std::move(transfer);
+  return pack_ngap_message(m, "UplinkRANConfigurationTransfer");
+}
+
+static byte_buffer build_uplink_rim_information_transfer(byte_buffer transfer)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_UL_RIM_INFO_TRANSFER);
+  auto& msg = m.pdu.init_msg().value.ul_rim_info_transfer();
+  asn1::protocol_ie_field_s<ul_rim_info_transfer_ies_o> ie;
+  asn1::cbit_ref bref({transfer.begin(), transfer.end()});
+  if (ie.value().rim_info_transfer().unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+    throw std::runtime_error("Failed to decode RIMInformationTransfer hex");
+  }
+  msg->push_back(ie);
+  return pack_ngap_message(m, "UplinkRIMInformationTransfer");
+}
+
+static byte_buffer build_uplink_non_ue_associated_nrppa_transport(byte_buffer routing_id, byte_buffer nrppa_pdu)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_UL_NON_UE_ASSOCIATED_NRPPA_TRANSPORT);
+  auto& msg = m.pdu.init_msg().value.ul_non_ue_associated_nrppa_transport();
+  msg->routing_id = std::move(routing_id);
+  msg->nrppa_pdu = std::move(nrppa_pdu);
+  return pack_ngap_message(m, "UplinkNonUEAssociatedNRPPaTransport");
+}
+
+static byte_buffer build_uplink_ue_associated_nrppa_transport(uint64_t amf_id,
+                                                               uint64_t ran_id,
+                                                               byte_buffer routing_id,
+                                                               byte_buffer nrppa_pdu)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_UL_UE_ASSOCIATED_NRPPA_TRANSPORT);
+  auto& msg = m.pdu.init_msg().value.ul_ue_associated_nrppa_transport();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  msg->routing_id = std::move(routing_id);
+  msg->nrppa_pdu = std::move(nrppa_pdu);
+  return pack_ngap_message(m, "UplinkUEAssociatedNRPPaTransport");
+}
+
+static byte_buffer build_ue_tnla_binding_release_request(uint64_t amf_id, uint64_t ran_id)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_UE_TNLA_BINDING_RELEASE);
+  auto& msg = m.pdu.init_msg().value.ue_tnla_binding_release_request();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  return pack_ngap_message(m, "UETNLABindingReleaseRequest");
+}
+
+static byte_buffer build_ran_paging_request(uint64_t amf_id, uint64_t ran_id)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_RAN_PAGING_REQUEST);
+  auto& msg = m.pdu.init_msg().value.ran_paging_request();
+  msg->amf_ue_ngap_id = amf_id;
+  msg->ran_ue_ngap_id = ran_id;
+  return pack_ngap_message(m, "RANPagingRequest");
+}
+
+static byte_buffer build_timing_synchronisation_status_report(byte_buffer routing_id)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_TIMING_SYNCHRONISATION_STATUS_REPORT);
+  auto& msg = m.pdu.init_msg().value.timing_synchronisation_status_report();
+  msg->routing_id = std::move(routing_id);
+  msg->ran_timing_synchronisation_status_info.synchronisation_state_present = true;
+  msg->ran_timing_synchronisation_status_info.synchronisation_state.value =
+      ran_timing_synchronisation_status_info_s::synchronisation_state_opts::locked;
+  msg->ran_tss_scope.set_ran_node_level() = build_global_gnb_id("00f110", current_gnb_id);
+  return pack_ngap_message(m, "TimingSynchronisationStatusReport");
+}
+
+static byte_buffer build_write_replace_warning_response(const std::string& msg_id_hex, const std::string& serial_hex)
+{
+  ngap_message m = {};
+  m.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_WRITE_REPLACE_WARNING);
+  auto& msg = m.pdu.successful_outcome().value.write_replace_warning_resp();
+  msg->msg_id.from_string(msg_id_hex);
+  msg->serial_num.from_string(serial_hex);
+  return pack_ngap_message(m, "WriteReplaceWarningResponse");
+}
+
+static byte_buffer build_pws_failure_indication(const std::string& plmn)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_PWS_FAIL_IND);
+  auto& msg = m.pdu.init_msg().value.pws_fail_ind();
+  auto& cgi = msg->pws_failed_cell_id_list.set_nr_cgi_pws_failed_list();
+  nr_cgi_s cell = {};
+  cell.plmn_id.from_string(plmn);
+  cell.nr_cell_id.from_number(nr_cell_identity::create(gnb_id_t{current_gnb_id, default_gnb_id_bit_len}, default_sector_id).value().value());
+  cgi.push_back(cell);
+  msg->global_ran_node_id.set_global_gnb_id() = build_global_gnb_id(plmn, current_gnb_id);
+  return pack_ngap_message(m, "PWSFailureIndication");
+}
+
+static byte_buffer build_pws_restart_indication(const std::string& plmn)
+{
+  ngap_message m = {};
+  m.pdu.set_init_msg().load_info_obj(ASN1_NGAP_ID_PWS_RESTART_IND);
+  auto& msg = m.pdu.init_msg().value.pws_restart_ind();
+  auto& cgi = msg->cell_id_list_for_restart.set_nr_cgi_listfor_restart();
+  nr_cgi_s cell = {};
+  cell.plmn_id.from_string(plmn);
+  cell.nr_cell_id.from_number(nr_cell_identity::create(gnb_id_t{current_gnb_id, default_gnb_id_bit_len}, default_sector_id).value().value());
+  cgi.push_back(cell);
+  msg->global_ran_node_id.set_global_gnb_id() = build_global_gnb_id(plmn, current_gnb_id);
+  tai_s tai = {};
+  tai.plmn_id.from_string(plmn);
+  tai.tac.from_string("000007");
+  msg->tai_list_for_restart.push_back(tai);
+  return pack_ngap_message(m, "PWSRestartIndication");
+}
 static std::string sockaddr_to_string(const sockaddr& addr, socklen_t addr_len)
 {
   const auto info = get_nameinfo(addr, addr_len);
@@ -1375,6 +1724,169 @@ static std::string describe_ngap_pdu(const byte_buffer& pdu)
     return "decode-failed";
   }
   return get_message_type(msg.pdu);
+}
+
+static std::optional<std::string> describe_ngap_pdu_ies(const byte_buffer& pdu)
+{
+  asn1::cbit_ref bref(pdu);
+  ngap_message   msg = {};
+  if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+    return std::nullopt;
+  }
+
+  asn1::json_writer json;
+  msg.pdu.to_json(json);
+  return json.to_string();
+}
+static bool is_relevant_ngap_field(const std::string& key)
+{
+  static constexpr const char* fields[] = {
+      "aMF-UE-NGAP-ID", "rAN-UE-NGAP-ID", "AMF-UE-NGAP-ID", "RAN-UE-NGAP-ID", "gNB-ID", "Global-gNB-ID", "globalGNB-ID", "GlobalRANNodeID", "Extended-RANNodeName", "rANNodeNameVisibleString",
+      "rANNodeNameUTF8String", "RAN-node-name", "RANNodeName", "RRC-Establishment-Cause", "RRCEstablishmentCause", "pLMNIdentity", "tAC", "sST", "sD", "pDUSessionID",
+      "qosFlowIdentifier", "PDU-Session-ID", "NAS-PDU", "UE-NR-Capability", "UE-EUTRA-Capability", "UE-RadioCapability", "UERadioCapability", "Cause", "nAS-PDU", "pDUSessionNAS-PDU", "transportLayerAddress",
+      "gTP-TEID", "dRB-ID", "uL-HFN", "uL-PDCP-SN", "dL-HFN", "dL-PDCP-SN",
+      "cause", "radioNetwork", "transport", "protocol", "misc", "resetType",
+      "handoverType", "targetRANNodeID", "criticalityDiagnostics", "rRCContainer",
+      "sourceToTarget-TransparentContainer", "targetToSource-TransparentContainer",
+      "s-NSSAI", "supportedTAList", "nGRAN-TNLAssociationToAddList",
+      "nGRAN-TNLAssociationToRemoveList"};
+  return std::find(std::begin(fields), std::end(fields), key) != std::end(fields);
+}
+
+static void collect_scalar_ngap_values(const nlohmann::json& node, const std::string& label, std::vector<std::string>& fields)
+{
+  if (node.is_object()) {
+    for (const auto& item : node.items()) {
+      collect_scalar_ngap_values(item.value(), label, fields);
+    }
+  } else if (node.is_array()) {
+    for (const auto& item : node) {
+      collect_scalar_ngap_values(item, label, fields);
+    }
+  } else {
+    const std::string field = label + "=" + (node.is_string() ? node.get<std::string>() : node.dump());
+    if (std::find(fields.begin(), fields.end(), field) == fields.end()) { fields.push_back(field); }
+  }
+}
+
+static std::optional<std::string> ngap_ie_label(const nlohmann::json& id)
+{
+  if (id.is_string() && is_relevant_ngap_field(id.get<std::string>())) {
+    return id.get<std::string>();
+  }
+  if (!id.is_number()) {
+    return std::nullopt;
+  }
+  switch (id.get<uint64_t>()) {
+    case 10: return "AMF-UE-NGAP-ID";
+    case 15: return "Cause";
+    case 19: return "CriticalityDiagnostics";
+    case 27: return "GlobalRANNodeID";
+    case 38: return "NAS-PDU";
+    case 82: return "RANNodeName";
+    case 85: return "RAN-UE-NGAP-ID";
+    case 90: return "RRCEstablishmentCause";
+    case 102: return "SupportedTAList";
+    case 117: return "UE-NR-Capability";
+    case 121: return "UserLocationInformation";
+    default: return std::nullopt;
+  }
+}
+
+static void collect_relevant_ngap_fields(const nlohmann::json& node, std::vector<std::string>& fields)
+{
+  if (node.is_object()) {
+    const auto id = node.find("id");
+    const auto value = node.find("Value");
+    const auto label = id == node.end() ? std::nullopt : ngap_ie_label(*id);
+    const bool flatten_value = label.has_value() && value != node.end() &&
+                               (label == "AMF-UE-NGAP-ID" || label == "RAN-UE-NGAP-ID" ||
+                                label == "NAS-PDU" || label == "RANNodeName" || label == "UE-NR-Capability" ||
+                                label == "UE-EUTRA-Capability" || label == "PDU-Session-NAS-PDU");
+    if (flatten_value) {
+      collect_scalar_ngap_values(*value, label.value(), fields);
+    }
+    for (const auto& [key, child] : node.items()) {
+      if (key == "Value" && flatten_value) {
+        continue;
+      }
+      if (is_relevant_ngap_field(key) && !child.is_object() && !child.is_array()) {
+        const std::string field = key + "=" + (child.is_string() ? child.get<std::string>() : child.dump());
+        if (std::find(fields.begin(), fields.end(), field) == fields.end()) { fields.push_back(field); }
+      }
+      collect_relevant_ngap_fields(child, fields);
+    }
+  } else if (node.is_array()) {
+    for (const auto& child : node) {
+      collect_relevant_ngap_fields(child, fields);
+    }
+  }
+}
+
+static void add_unique_relevant_field(std::vector<std::string>& fields, const std::string& field)
+{
+  if (std::find(fields.begin(), fields.end(), field) == fields.end()) {
+    fields.push_back(field);
+  }
+}
+
+static void append_numeric_ie_fields(const std::string& serialized, std::vector<std::string>& fields)
+{
+  struct ie_label {
+    unsigned    id;
+    const char* name;
+  };
+  constexpr ie_label scalar_ies[] = {
+      {10, "AMF-UE-NGAP-ID"}, {38, "NAS-PDU"}, {82, "RANNodeName"}, {85, "RAN-UE-NGAP-ID"}};
+  for (const auto& ie : scalar_ies) {
+    const std::regex pattern{R"re("id"\s*:\s*)re" + std::to_string(ie.id) +
+                             R"re(\s*,\s*"criticality"\s*:\s*"[^"]*"\s*,\s*"Value"\s*:\s*(?:"([^"]*)"|([0-9]+)))re"};
+    for (std::sregex_iterator it(serialized.begin(), serialized.end(), pattern), end; it != end; ++it) {
+      add_unique_relevant_field(fields, std::string(ie.name) + "=" + ((*it)[1].matched ? (*it)[1].str() : (*it)[2].str()));
+    }
+  }
+
+  const std::regex ran_name_pattern{R"re("id"\s*:\s*82\s*,\s*"criticality"\s*:\s*"[^"]*"\s*,\s*"Value"\s*:\s*\{\s*"PrintableString"\s*:\s*"([^"]*)")re"};
+  for (std::sregex_iterator it(serialized.begin(), serialized.end(), ran_name_pattern), end; it != end; ++it) {
+    add_unique_relevant_field(fields, "RANNodeName=" + (*it)[1].str());
+  }
+
+  const std::regex capability_pattern{R"re("id"\s*:\s*117[\s\S]*?"OCTET STRING"\s*:\s*"([^"]*)")re"};
+  for (std::sregex_iterator it(serialized.begin(), serialized.end(), capability_pattern), end; it != end; ++it) {
+    add_unique_relevant_field(fields, "UE-NR-Capability=" + (*it)[1].str());
+  }
+
+  const std::regex gnb_id_pattern{R"re("gNB-ID"\s*:\s*"([^"]*)")re"};
+  for (std::sregex_iterator it(serialized.begin(), serialized.end(), gnb_id_pattern), end; it != end; ++it) {
+    const std::string bits = (*it)[1].str();
+    uint64_t value = 0;
+    bool is_binary = !bits.empty();
+    for (const char bit : bits) {
+      if (bit != '0' && bit != '1') { is_binary = false; break; }
+      value = (value << 1U) | static_cast<uint64_t>(bit - '0');
+    }
+    add_unique_relevant_field(fields, is_binary ? "gNB-ID=" + std::to_string(value) : "gNB-ID=" + bits);
+  }
+}
+static std::optional<std::string> format_relevant_ngap_fields(const byte_buffer& pdu)
+{
+  const auto decoded = describe_ngap_pdu_ies(pdu);
+  if (!decoded.has_value()) { return std::nullopt; }
+
+  std::vector<std::string> fields;
+  append_numeric_ie_fields(decoded.value(), fields);
+  try {
+    const auto parsed_json = nlohmann::json::parse(decoded.value());
+    collect_relevant_ngap_fields(parsed_json, fields);
+  } catch (const nlohmann::json::exception&) {
+    // Numeric IE extraction above remains useful even when repeated JSON keys
+    // cannot be represented by the JSON parser.
+  }
+  if (fields.empty()) { return std::nullopt; }
+
+  std::ostringstream output;
+  for (const auto& field : fields) { output << "  " << field << "\n"; }
+  return output.str();
 }
 
 static bool is_downlink_nas_authentication_reject(const byte_buffer& pdu)
@@ -1917,108 +2429,63 @@ static std::optional<ue_message_type> read_ue_message_type()
 {
   while (true) {
     std::printf("\nSelect NGAP packet to inject:\n");
-    std::printf("  1) NGSetupRequest\n");
-    std::printf("  2) NGReset\n");
-    std::printf("  3) NGResetAcknowledge\n");
-    std::printf("  4) RANConfigurationUpdate\n");
-    std::printf("  5) AMFConfigurationUpdateAcknowledge\n");
-    std::printf("  6) AMFConfigurationUpdateFailure\n");
-    std::printf("  7) ErrorIndication (non-UE-associated)\n");
-    std::printf("  8) InitialUEMessage\n");
-    std::printf("  9) UplinkNASTransport\n");
-    std::printf("  10) NASNonDeliveryIndication\n");
-    std::printf("  11) InitialContextSetupResponse\n");
-    std::printf("  12) InitialContextSetupFailure\n");
-    std::printf("  13) UEContextReleaseRequest\n");
-    std::printf("  14) UEContextReleaseComplete\n");
-    std::printf("  15) UEContextModificationResponse\n");
-    std::printf("  16) UEContextModificationFailure\n");
-    std::printf("  17) RRCInactiveTransitionReport\n");
-    std::printf("  18) UEContextSuspendRequest\n");
-    std::printf("  19) UEContextResumeRequest\n");
-    std::printf("  20) RANCPRelocationIndication\n");
-    std::printf("  21) ErrorIndication (UE-associated)\n");
-    std::printf("  22) PDUSessionResourceSetupResponse\n");
-    std::printf("  23) PDUSessionResourceModifyResponse\n");
-    std::printf("  24) PDUSessionResourceModifyIndication\n");
-    std::printf("  25) PDUSessionResourceNotify\n");
-    std::printf("  26) PDUSessionResourceReleaseResponse\n");
-    std::printf("  27) HandoverRequired\n");
-    std::printf("  28) HandoverRequestAcknowledge\n");
-    std::printf("  29) HandoverFailure\n");
-    std::printf("  30) HandoverNotify\n");
-    std::printf("  31) HandoverCancel\n");
-    std::printf("  32) PathSwitchRequest\n");
-    std::printf("  33) UplinkRANStatusTransfer\n");
-    std::printf("  34) UplinkRANEarlyStatusTransfer\n");
-    std::printf("  35) UERadioCapabilityInfoIndication\n");
-    std::printf("  36) UERadioCapabilityCheckResponse\n");
-    std::printf("  37) UERadioCapabilityIDMappingResponse\n");
-    std::printf("  38) LocationReport\n");
-    std::printf("  39) LocationReportingFailureIndication\n");
-    std::printf("  40) TraceFailureIndication\n");
-    std::printf("  41) CellTrafficTrace\n");
-    std::printf("  42) SecondaryRATDataUsageReport\n");
-    std::printf("  43) DuplicateRegistrationReplayFlow\n");
-    std::printf("  q) quit\n");
+    std::printf("  1) NGSetupRequest\n  2) NGReset\n  3) NGResetAcknowledge\n  4) RANConfigurationUpdate\n");
+    std::printf("  5) AMFConfigurationUpdateAcknowledge\n  6) AMFConfigurationUpdateFailure\n  7) ErrorIndication (non-UE-associated)\n  8) ConnectionEstablishmentIndication\n");
+    std::printf("  9) InitialUEMessage\n  10) UplinkNASTransport\n  11) NASNonDeliveryIndication\n  12) InitialContextSetupResponse\n  13) InitialContextSetupFailure\n");
+    std::printf("  14) UEContextReleaseRequest\n  15) UEContextReleaseComplete\n  16) UEContextModificationResponse\n  17) UEContextModificationFailure\n  18) RRCInactiveTransitionReport\n");
+    std::printf("  19) UEContextSuspendRequest\n  20) UEContextResumeRequest\n  21) UEContextSuspendResponse\n  22) UEContextResumeResponse\n  23) RANCPRelocationIndication\n  24) ErrorIndication (UE-associated)\n  25) RerouteNASRequest\n  26) UEInformationTransfer\n");
+    std::printf("  27) PDUSessionResourceSetupResponse\n  28) PDUSessionResourceModifyResponse\n  29) PDUSessionResourceModifyIndication\n  30) PDUSessionResourceNotify\n  31) PDUSessionResourceReleaseResponse\n");
+    std::printf("  32) BroadcastSessionModificationResponse\n  33) BroadcastSessionReleaseResponse\n  34) BroadcastSessionSetupResponse\n  35) BroadcastSessionTransportResponse\n  36) DistributionSetupResponse\n  37) DistributionReleaseResponse\n  38) MulticastSessionActivationResponse\n  39) MulticastSessionDeactivationResponse\n  40) MulticastSessionUpdateResponse\n  41) TimingSynchronisationStatusResponse\n");
+    std::printf("  42) HandoverRequired\n  43) HandoverRequestAcknowledge\n  44) HandoverFailure\n  45) HandoverNotify\n  46) HandoverCancel\n  47) HandoverSuccess\n  48) PathSwitchRequest\n  49) UplinkRANStatusTransfer\n  50) UplinkRANEarlyStatusTransfer\n  51) UplinkRANConfigurationTransfer\n  52) UplinkRIMInformationTransfer\n");
+    std::printf("  53) UERadioCapabilityInfoIndication\n  54) UERadioCapabilityCheckResponse\n  55) UERadioCapabilityIDMappingResponse\n  56) LocationReport\n  57) LocationReportingFailureIndication\n  58) TraceFailureIndication\n  59) CellTrafficTrace\n  60) SecondaryRATDataUsageReport\n");
+    std::printf("  61) UplinkNonUEAssociatedNRPPaTransport\n  62) UplinkUEAssociatedNRPPaTransport\n  63) UETNLABindingReleaseRequest\n  64) RANPagingRequest\n  65) TimingSynchronisationStatusReport\n  66) WriteReplaceWarningResponse\n  67) PWSFailureIndication\n  68) PWSRestartIndication\n  69) DuplicateRegistrationReplayFlow\n  q) quit\n");
 
     std::string line;
-    if (!read_line("Selection: ", line)) {
-      return std::nullopt;
-    }
+    if (!read_line("Selection: ", line)) return std::nullopt;
     line = trim_copy(line);
-
-    if (is_quit_command(line)) {
-      return std::nullopt;
+    if (is_quit_command(line)) return std::nullopt;
+    uint64_t selection = 0;
+    if (!parse_uint64(line, selection) || selection < 1 || selection > 69) {
+      std::printf("Invalid selection. Enter 1..69 or q.\n");
+      continue;
     }
-    if (line == "1") { return ue_message_type::ng_setup_request; }
-    if (line == "2") { return ue_message_type::ng_reset; }
-    if (line == "3") { return ue_message_type::ng_reset_acknowledge; }
-    if (line == "4") { return ue_message_type::ran_configuration_update; }
-    if (line == "5") { return ue_message_type::amf_configuration_update_acknowledge; }
-    if (line == "6") { return ue_message_type::amf_configuration_update_failure; }
-    if (line == "7") { return ue_message_type::non_ue_error_indication; }
-    if (line == "8") { return ue_message_type::initial_ue_message; }
-    if (line == "9") { return ue_message_type::uplink_nas_transport; }
-    if (line == "10") { return ue_message_type::nas_non_delivery_indication; }
-    if (line == "11") { return ue_message_type::initial_context_setup_response; }
-    if (line == "12") { return ue_message_type::initial_context_setup_failure; }
-    if (line == "13") { return ue_message_type::ue_context_release_request; }
-    if (line == "14") { return ue_message_type::ue_context_release_complete; }
-    if (line == "15") { return ue_message_type::ue_context_modification_response; }
-    if (line == "16") { return ue_message_type::ue_context_modification_failure; }
-    if (line == "17") { return ue_message_type::rrc_inactive_transition_report; }
-    if (line == "18") { return ue_message_type::ue_context_suspend_request; }
-    if (line == "19") { return ue_message_type::ue_context_resume_request; }
-    if (line == "20") { return ue_message_type::ran_cp_relocation_indication; }
-    if (line == "21") { return ue_message_type::ue_error_indication; }
-    if (line == "22") { return ue_message_type::pdu_session_resource_setup_response; }
-    if (line == "23") { return ue_message_type::pdu_session_resource_modify_response; }
-    if (line == "24") { return ue_message_type::pdu_session_resource_modify_indication; }
-    if (line == "25") { return ue_message_type::pdu_session_resource_notify; }
-    if (line == "26") { return ue_message_type::pdu_session_resource_release_response; }
-    if (line == "27") { return ue_message_type::handover_required; }
-    if (line == "28") { return ue_message_type::handover_request_acknowledge; }
-    if (line == "29") { return ue_message_type::handover_failure; }
-    if (line == "30") { return ue_message_type::handover_notify; }
-    if (line == "31") { return ue_message_type::handover_cancel; }
-    if (line == "32") { return ue_message_type::path_switch_request; }
-    if (line == "33") { return ue_message_type::uplink_ran_status_transfer; }
-    if (line == "34") { return ue_message_type::uplink_ran_early_status_transfer; }
-    if (line == "35") { return ue_message_type::ue_radio_capability_info_indication; }
-    if (line == "36") { return ue_message_type::ue_radio_capability_check_response; }
-    if (line == "37") { return ue_message_type::ue_radio_capability_id_mapping_response; }
-    if (line == "38") { return ue_message_type::location_report; }
-    if (line == "39") { return ue_message_type::location_reporting_failure_indication; }
-    if (line == "40") { return ue_message_type::trace_failure_indication; }
-    if (line == "41") { return ue_message_type::cell_traffic_trace; }
-    if (line == "42") { return ue_message_type::secondary_rat_data_usage_report; }
-    if (line == "43") { return ue_message_type::duplicate_registration_replay_flow; }
-
-    std::printf("Invalid selection. Enter 1..43 or q.\n");
+    static const ue_message_type types[] = {
+        ue_message_type::ng_setup_request, ue_message_type::ng_reset, ue_message_type::ng_reset_acknowledge,
+        ue_message_type::ran_configuration_update, ue_message_type::amf_configuration_update_acknowledge,
+        ue_message_type::amf_configuration_update_failure, ue_message_type::non_ue_error_indication,
+        ue_message_type::connection_establishment_indication, ue_message_type::initial_ue_message,
+        ue_message_type::uplink_nas_transport, ue_message_type::nas_non_delivery_indication,
+        ue_message_type::initial_context_setup_response, ue_message_type::initial_context_setup_failure,
+        ue_message_type::ue_context_release_request, ue_message_type::ue_context_release_complete,
+        ue_message_type::ue_context_modification_response, ue_message_type::ue_context_modification_failure,
+        ue_message_type::rrc_inactive_transition_report, ue_message_type::ue_context_suspend_request,
+        ue_message_type::ue_context_resume_request, ue_message_type::ue_context_suspend_response,
+        ue_message_type::ue_context_resume_response, ue_message_type::ran_cp_relocation_indication,
+        ue_message_type::ue_error_indication, ue_message_type::reroute_nas_request,
+        ue_message_type::ue_information_transfer, ue_message_type::pdu_session_resource_setup_response,
+        ue_message_type::pdu_session_resource_modify_response, ue_message_type::pdu_session_resource_modify_indication,
+        ue_message_type::pdu_session_resource_notify, ue_message_type::pdu_session_resource_release_response,
+        ue_message_type::broadcast_session_modification_response, ue_message_type::broadcast_session_release_response,
+        ue_message_type::broadcast_session_setup_response, ue_message_type::broadcast_session_transport_response,
+        ue_message_type::distribution_setup_response, ue_message_type::distribution_release_response,
+        ue_message_type::multicast_session_activation_response, ue_message_type::multicast_session_deactivation_response,
+        ue_message_type::multicast_session_update_response, ue_message_type::timing_synchronisation_status_response,
+        ue_message_type::handover_required, ue_message_type::handover_request_acknowledge, ue_message_type::handover_failure,
+        ue_message_type::handover_notify, ue_message_type::handover_cancel, ue_message_type::handover_success,
+        ue_message_type::path_switch_request, ue_message_type::uplink_ran_status_transfer,
+        ue_message_type::uplink_ran_early_status_transfer, ue_message_type::uplink_ran_configuration_transfer,
+        ue_message_type::uplink_rim_information_transfer, ue_message_type::ue_radio_capability_info_indication,
+        ue_message_type::ue_radio_capability_check_response, ue_message_type::ue_radio_capability_id_mapping_response,
+        ue_message_type::location_report, ue_message_type::location_reporting_failure_indication,
+        ue_message_type::trace_failure_indication, ue_message_type::cell_traffic_trace,
+        ue_message_type::secondary_rat_data_usage_report, ue_message_type::uplink_non_ue_associated_nrppa_transport,
+        ue_message_type::uplink_ue_associated_nrppa_transport, ue_message_type::ue_tnla_binding_release_request,
+        ue_message_type::ran_paging_request, ue_message_type::timing_synchronisation_status_report,
+        ue_message_type::write_replace_warning_response, ue_message_type::pws_failure_indication,
+        ue_message_type::pws_restart_indication, ue_message_type::duplicate_registration_replay_flow};
+    return types[selection - 1];
   }
 }
-
 
 struct error_indication_request {
   bool        include_amf_ue_ngap_id = false;
@@ -2210,12 +2677,37 @@ static std::optional<std::vector<injectable_ngap_pdu>> read_injectable_ngap_pdus
       const std::string tac    = read_tac_or_default("TAC", "000007");
       const auto        sst    = static_cast<uint8_t>(read_uint64_or_default("S-NSSAI SST", 1, 255));
       const std::string sd     = read_sd_or_default("S-NSSAI SD", "");
+      const bool        include_tnl_removal =
+          get_input_or_default<bool>("Include NGRAN-TNL association removal", false);
+      std::string ngran_tnl_address;
+      bool        include_amf_tnl_address = false;
+      std::string amf_tnl_address;
+      if (include_tnl_removal) {
+        ngran_tnl_address = read_ipv4_or_default("NGRAN TNL endpoint IPv4 address", "127.0.0.1");
+        include_amf_tnl_address =
+            get_input_or_default<bool>("Include AMF TNL endpoint address", false);
+        if (include_amf_tnl_address) {
+          amf_tnl_address = read_ipv4_or_default("AMF TNL endpoint IPv4 address", "127.0.0.1");
+        }
+      }
       print_confirmation("RANConfigurationUpdate", {{"Global-gNB-ID", default_to_string(gnb_id)},
                                                       {"PLMN", plmn},
                                                       {"TAC", tac},
                                                       {"SST", default_to_string(static_cast<unsigned>(sst))},
-                                                      {"SD", sd}});
-      return single(injectable_ngap_pdu{build_ran_configuration_update(gnb_id, plmn, tac, sst, sd), "RANConfigurationUpdate"});
+                                                      {"SD", sd},
+                                                      {"TNL-removal", include_tnl_removal ? "Y" : "N"},
+                                                      {"NGRAN-TNL-address", ngran_tnl_address},
+                                                      {"AMF-TNL-address", amf_tnl_address}});
+      return single(injectable_ngap_pdu{build_ran_configuration_update(gnb_id,
+                                                                        plmn,
+                                                                        tac,
+                                                                        sst,
+                                                                        sd,
+                                                                        include_tnl_removal,
+                                                                        ngran_tnl_address,
+                                                                        include_amf_tnl_address,
+                                                                        amf_tnl_address),
+                                         "RANConfigurationUpdate"});
     }
     case ue_message_type::amf_configuration_update_acknowledge: {
       print_confirmation("AMFConfigurationUpdateAcknowledge", {{"Optional-IEs", "none"}});
@@ -2732,6 +3224,126 @@ static std::optional<std::vector<injectable_ngap_pdu>> read_injectable_ngap_pdus
                                                                                tac),
                                          "SecondaryRATDataUsageReport"});
     }
+    case ue_message_type::connection_establishment_indication: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      print_confirmation("ConnectionEstablishmentIndication", {{"AMF-UE-NGAP-ID", default_to_string(amf_id)}, {"RAN-UE-NGAP-ID", default_to_string(ran_id)}});
+      return single({build_connection_establishment_indication(amf_id, ran_id), "ConnectionEstablishmentIndication"});
+    }
+    case ue_message_type::ue_context_suspend_response: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      print_confirmation("UEContextSuspendResponse", {{"AMF-UE-NGAP-ID", default_to_string(amf_id)}, {"RAN-UE-NGAP-ID", default_to_string(ran_id)}});
+      return single({build_ue_context_suspend_response(amf_id, ran_id), "UEContextSuspendResponse"});
+    }
+    case ue_message_type::ue_context_resume_response: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      print_confirmation("UEContextResumeResponse", {{"AMF-UE-NGAP-ID", default_to_string(amf_id)}, {"RAN-UE-NGAP-ID", default_to_string(ran_id)}});
+      return single({build_ue_context_resume_response(amf_id, ran_id), "UEContextResumeResponse"});
+    }
+    case ue_message_type::reroute_nas_request: {
+      const auto ran_id = read_ran_id(); const auto amf_id = read_amf_id();
+      const auto nas = read_valid_hex_or_default("NGAP message to reroute hex", "00");
+      print_confirmation("RerouteNASRequest", {{"RAN-UE-NGAP-ID", default_to_string(ran_id)}, {"AMF-UE-NGAP-ID", default_to_string(amf_id)}, {"NGAP-Message", nas}, {"AMF-Set-ID", "0"}});
+      return single({build_reroute_nas_request(ran_id, amf_id, make_hex_byte_buffer_or_throw(nas)), "RerouteNASRequest"});
+    }
+    case ue_message_type::ue_information_transfer: {
+      const auto set_id = read_fixed_hex_or_default("AMF Set ID hex", "0000", 2);
+      const auto pointer = read_fixed_hex_or_default("AMF Pointer hex", "00", 1);
+      const auto tmsi = read_fixed_hex_or_default("5G-TMSI hex", "00000000", 4);
+      print_confirmation("UEInformationTransfer", {{"AMF-Set-ID", set_id}, {"AMF-Pointer", pointer}, {"5G-TMSI", tmsi}});
+      return single({build_ue_information_transfer(set_id, pointer, tmsi), "UEInformationTransfer"});
+    }
+    case ue_message_type::broadcast_session_modification_response:
+    case ue_message_type::broadcast_session_release_response:
+    case ue_message_type::broadcast_session_setup_response:
+    case ue_message_type::broadcast_session_transport_response: {
+      const auto tmgi = read_fixed_hex_or_default("MBS TMGI hex", "000000000001", 6);
+      const auto transfer = read_valid_hex_or_default("MBS response transfer hex", "00");
+      if (message_type.value() == ue_message_type::broadcast_session_modification_response)
+        return single({build_broadcast_session_modification_response(tmgi, make_hex_byte_buffer_or_throw(transfer)), "BroadcastSessionModificationResponse"});
+      if (message_type.value() == ue_message_type::broadcast_session_release_response)
+        return single({build_broadcast_session_release_response(tmgi, make_hex_byte_buffer_or_throw(transfer)), "BroadcastSessionReleaseResponse"});
+      if (message_type.value() == ue_message_type::broadcast_session_setup_response)
+        return single({build_broadcast_session_setup_response(tmgi, make_hex_byte_buffer_or_throw(transfer)), "BroadcastSessionSetupResponse"});
+      return single({build_broadcast_session_transport_response(tmgi, make_hex_byte_buffer_or_throw(transfer)), "BroadcastSessionTransportResponse"});
+    }
+    case ue_message_type::distribution_setup_response: {
+      const auto tmgi = read_fixed_hex_or_default("MBS TMGI hex", "000000000001", 6);
+      const auto area = static_cast<uint32_t>(read_uint64_or_default("MBS Area Session ID", 1, 0xffffffffULL));
+      const auto transfer = read_valid_hex_or_default("Distribution response transfer hex", "00");
+      print_confirmation("DistributionSetupResponse", {{"TMGI", tmgi}, {"MBS-Area-Session-ID", default_to_string(area)}, {"Transfer", transfer}});
+      return single({build_distribution_setup_response(tmgi, area, make_hex_byte_buffer_or_throw(transfer)), "DistributionSetupResponse"});
+    }
+    case ue_message_type::distribution_release_response: {
+      const auto tmgi = read_fixed_hex_or_default("MBS TMGI hex", "000000000001", 6);
+      const auto area = static_cast<uint32_t>(read_uint64_or_default("MBS Area Session ID", 1, 0xffffffffULL));
+      print_confirmation("DistributionReleaseResponse", {{"TMGI", tmgi}, {"MBS-Area-Session-ID", default_to_string(area)}});
+      return single({build_distribution_release_response(tmgi, area), "DistributionReleaseResponse"});
+    }
+    case ue_message_type::multicast_session_activation_response:
+    case ue_message_type::multicast_session_deactivation_response:
+    case ue_message_type::multicast_session_update_response: {
+      const auto tmgi = read_fixed_hex_or_default("MBS TMGI hex", "000000000001", 6);
+      if (message_type.value() == ue_message_type::multicast_session_activation_response)
+        return single({build_multicast_session_activation_response(tmgi), "MulticastSessionActivationResponse"});
+      if (message_type.value() == ue_message_type::multicast_session_deactivation_response)
+        return single({build_multicast_session_deactivation_response(tmgi), "MulticastSessionDeactivationResponse"});
+      const auto area = static_cast<uint32_t>(read_uint64_or_default("MBS Area Session ID", 1, 0xffffffffULL));
+      return single({build_multicast_session_update_response(tmgi, area), "MulticastSessionUpdateResponse"});
+    }
+    case ue_message_type::timing_synchronisation_status_response: {
+      const auto routing = read_valid_hex_or_default("Routing ID hex", "00");
+      print_confirmation("TimingSynchronisationStatusResponse", {{"Routing-ID", routing}});
+      return single({build_timing_synchronisation_status_response(make_hex_byte_buffer_or_throw(routing)), "TimingSynchronisationStatusResponse"});
+    }
+    case ue_message_type::handover_success: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      print_confirmation("HandoverSuccess", {{"AMF-UE-NGAP-ID", default_to_string(amf_id)}, {"RAN-UE-NGAP-ID", default_to_string(ran_id)}});
+      return single({build_handover_success(amf_id, ran_id), "HandoverSuccess"});
+    }
+    case ue_message_type::uplink_ran_configuration_transfer: {
+      const auto transfer = read_valid_hex_or_default("SON configuration transfer hex", "00");
+      return single({build_uplink_ran_configuration_transfer(make_hex_byte_buffer_or_throw(transfer)), "UplinkRANConfigurationTransfer"});
+    }
+    case ue_message_type::uplink_rim_information_transfer: {
+      const auto transfer = read_valid_hex_or_default("RIM information transfer hex", "00");
+      return single({build_uplink_rim_information_transfer(make_hex_byte_buffer_or_throw(transfer)), "UplinkRIMInformationTransfer"});
+    }
+    case ue_message_type::uplink_non_ue_associated_nrppa_transport: {
+      const auto routing = read_valid_hex_or_default("Routing ID hex", "00");
+      const auto pdu = read_valid_hex_or_default("NRPPa PDU hex", "00");
+      return single({build_uplink_non_ue_associated_nrppa_transport(make_hex_byte_buffer_or_throw(routing), make_hex_byte_buffer_or_throw(pdu)), "UplinkNonUEAssociatedNRPPaTransport"});
+    }
+    case ue_message_type::uplink_ue_associated_nrppa_transport: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      const auto routing = read_valid_hex_or_default("Routing ID hex", "00");
+      const auto pdu = read_valid_hex_or_default("NRPPa PDU hex", "00");
+      return single({build_uplink_ue_associated_nrppa_transport(amf_id, ran_id, make_hex_byte_buffer_or_throw(routing), make_hex_byte_buffer_or_throw(pdu)), "UplinkUEAssociatedNRPPaTransport"});
+    }
+    case ue_message_type::ue_tnla_binding_release_request: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      return single({build_ue_tnla_binding_release_request(amf_id, ran_id), "UETNLABindingReleaseRequest"});
+    }
+    case ue_message_type::ran_paging_request: {
+      const auto amf_id = read_amf_id(); const auto ran_id = read_ran_id();
+      return single({build_ran_paging_request(amf_id, ran_id), "RANPagingRequest"});
+    }
+    case ue_message_type::timing_synchronisation_status_report: {
+      const auto routing = read_valid_hex_or_default("Routing ID hex", "00");
+      return single({build_timing_synchronisation_status_report(make_hex_byte_buffer_or_throw(routing)), "TimingSynchronisationStatusReport"});
+    }
+    case ue_message_type::write_replace_warning_response: {
+      const auto msg_id = read_fixed_hex_or_default("Warning Message ID hex", "0000", 2);
+      const auto serial = read_fixed_hex_or_default("Warning Serial Number hex", "0000", 2);
+      return single({build_write_replace_warning_response(msg_id, serial), "WriteReplaceWarningResponse"});
+    }
+    case ue_message_type::pws_failure_indication: {
+      const auto plmn = read_plmn_or_default("PLMN", "00f110");
+      return single({build_pws_failure_indication(plmn), "PWSFailureIndication"});
+    }
+    case ue_message_type::pws_restart_indication: {
+      const auto plmn = read_plmn_or_default("PLMN", "00f110");
+      return single({build_pws_restart_indication(plmn), "PWSRestartIndication"});
+    }
     case ue_message_type::duplicate_registration_replay_flow: {
       std::vector<injectable_ngap_pdu> pdus;
       const uint64_t ran_id = read_ran_id();
@@ -2964,6 +3576,232 @@ static bool wait_for_amf_message(sctp_socket& socket, const std::string& expecte
   }
 }
 
+class passive_ngap_capture
+{
+public:
+  ~passive_ngap_capture() { stop(); }
+
+  void start(const std::vector<sockaddr_storage>& amf_addresses, const std::string& interface_name, bool dump_hex_enabled)
+  {
+    for (const auto& address : amf_addresses) {
+      if (reinterpret_cast<const sockaddr*>(&address)->sa_family == AF_INET) {
+        amf_ipv4_addresses.push_back(reinterpret_cast<const sockaddr_in*>(&address)->sin_addr.s_addr);
+      }
+    }
+    if (amf_ipv4_addresses.empty()) {
+      throw std::runtime_error("Passive NGAP capture currently requires an IPv4 AMF address");
+    }
+
+    capture_fd = ::socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (capture_fd < 0) {
+      throw std::runtime_error(std::string("Failed to create passive capture socket: ") + std::strerror(errno) +
+                               " (root or CAP_NET_RAW is required)");
+    }
+
+    if (!interface_name.empty() && interface_name != "auto") {
+      const unsigned if_index = if_nametoindex(interface_name.c_str());
+      if (if_index == 0) {
+        const std::string error = std::strerror(errno);
+        ::close(capture_fd);
+        capture_fd = -1;
+        throw std::runtime_error("Failed to resolve capture interface " + interface_name + ": " + error);
+      }
+      sockaddr_ll bind_address = {};
+      bind_address.sll_family   = AF_PACKET;
+      bind_address.sll_protocol = htons(ETH_P_ALL);
+      bind_address.sll_ifindex  = static_cast<int>(if_index);
+      if (::bind(capture_fd, reinterpret_cast<sockaddr*>(&bind_address), sizeof(bind_address)) != 0) {
+        const std::string error = std::strerror(errno);
+        ::close(capture_fd);
+        capture_fd = -1;
+        throw std::runtime_error("Failed to bind passive capture interface " + interface_name + ": " + error);
+      }
+    }
+
+    dump_hex_enabled_ = dump_hex_enabled;
+    stop_requested     = false;
+    worker             = std::thread([this]() { capture_loop(); });
+    std::printf("NGAP injector: passive NGAP inspection enabled%s\n",
+                interface_name.empty() || interface_name == "auto" ? " on all interfaces" : (" on " + interface_name).c_str());
+  }
+
+  void stop()
+  {
+    stop_requested = true;
+    if (capture_fd >= 0) {
+      ::shutdown(capture_fd, SHUT_RDWR);
+    }
+    if (worker.joinable()) {
+      worker.join();
+    }
+    if (capture_fd >= 0) {
+      ::close(capture_fd);
+      capture_fd = -1;
+    }
+  }
+
+private:
+  static bool is_amf_address(uint32_t address, const std::vector<uint32_t>& amf_addresses)
+  {
+    return std::find(amf_addresses.begin(), amf_addresses.end(), address) != amf_addresses.end();
+  }
+
+  static uint16_t read_u16(const uint8_t* data)
+  {
+    uint16_t value = 0;
+    std::memcpy(&value, data, sizeof(value));
+    return ntohs(value);
+  }
+
+  static uint32_t read_u32(const uint8_t* data)
+  {
+    uint32_t value = 0;
+    std::memcpy(&value, data, sizeof(value));
+    return ntohl(value);
+  }
+
+  static std::string ipv4_string(uint32_t address)
+  {
+    in_addr value = {};
+    value.s_addr  = address;
+    char text[INET_ADDRSTRLEN] = {};
+    return ::inet_ntop(AF_INET, &value, text, sizeof(text)) == nullptr ? "unknown" : text;
+  }
+
+  bool is_duplicate_pdu(const std::string& direction, uint16_t source_port, uint16_t dest_port, unsigned stream, unsigned ppid, const byte_buffer& pdu)
+  {
+    const auto now = std::chrono::steady_clock::now();
+    constexpr auto duplicate_window = std::chrono::milliseconds{100};
+    for (auto it = recent_pdus.begin(); it != recent_pdus.end();) {
+      if (now - it->second > duplicate_window) { it = recent_pdus.erase(it); } else { ++it; }
+    }
+    std::string key = direction + ":" + std::to_string(source_port) + ":" + std::to_string(dest_port) + ":" + std::to_string(stream) + ":" + std::to_string(ppid) + ":";
+    key.reserve(key.size() + pdu.length());
+    for (const uint8_t byte : pdu) { key.push_back(static_cast<char>(byte)); }
+    if (recent_pdus.find(key) != recent_pdus.end()) { return true; }
+    recent_pdus.emplace(std::move(key), now);
+    return false;
+  }
+
+  static size_t ethernet_payload_offset(const uint8_t* packet, size_t length, uint16_t link_type, uint16_t& ether_type)
+  {
+    static_cast<void>(link_type);
+    ether_type = 0;
+    // AF_PACKET may expose raw IP, loopback, Ethernet, or VLAN framing.
+    constexpr std::array<size_t, 7> candidate_offsets = {0, 4, 14, 18, 22, 26, 30};
+    for (const size_t offset : candidate_offsets) {
+      if (length < offset + sizeof(iphdr)) {
+        continue;
+      }
+      const auto* ip = reinterpret_cast<const iphdr*>(packet + offset);
+      const size_t ip_header_length = static_cast<size_t>(ip->ihl) * 4;
+      if (ip->version == 4 && ip_header_length >= sizeof(iphdr) &&
+          length >= offset + ip_header_length && ip->protocol == IPPROTO_SCTP) {
+        ether_type = ETH_P_IP;
+        return offset;
+      }
+    }
+    return 0;
+  }
+
+  void inspect_packet(const uint8_t* packet, size_t length, uint16_t link_type)
+  {
+    uint16_t ether_type = 0;
+    const size_t ip_offset = ethernet_payload_offset(packet, length, link_type, ether_type);
+    if (ether_type != ETH_P_IP || length < ip_offset + sizeof(iphdr)) {
+      return;
+    }
+
+    const auto* ip = reinterpret_cast<const iphdr*>(packet + ip_offset);
+    const size_t ip_header_length = static_cast<size_t>(ip->ihl) * 4;
+    if (ip->version != 4 || ip_header_length < sizeof(iphdr) || length < ip_offset + ip_header_length ||
+        ip->protocol != IPPROTO_SCTP || (!is_amf_address(ip->saddr, amf_ipv4_addresses) &&
+                                           !is_amf_address(ip->daddr, amf_ipv4_addresses))) {
+      return;
+    }
+
+    const size_t sctp_offset = ip_offset + ip_header_length;
+    if (length < sctp_offset + 12) {
+      return;
+    }
+    const uint16_t source_port = read_u16(packet + sctp_offset);
+    const uint16_t dest_port   = read_u16(packet + sctp_offset + 2);
+    const std::string direction = is_amf_address(ip->saddr, amf_ipv4_addresses) ? "AMF->gNB" : "gNB->AMF";
+
+    size_t chunk_offset = sctp_offset + 12;
+    while (chunk_offset + 4 <= length) {
+      const uint8_t chunk_type = packet[chunk_offset];
+      const uint16_t chunk_length = read_u16(packet + chunk_offset + 2);
+      if (chunk_length < 4 || chunk_offset + chunk_length > length) {
+        return;
+      }
+      if (chunk_type == 0 && chunk_length >= 16) {
+        const unsigned stream = read_u16(packet + chunk_offset + 8);
+        const unsigned ppid   = read_u32(packet + chunk_offset + 12);
+        if (ppid == NGAP_PPID) {
+          const size_t payload_offset = chunk_offset + 16;
+          const size_t payload_length = chunk_length - 16;
+          byte_buffer pdu{byte_buffer::fallback_allocation_tag{},
+                          span<const uint8_t>{packet + payload_offset, payload_length}};
+          if (is_duplicate_pdu(direction, source_port, dest_port, stream, ppid, pdu)) {
+            chunk_offset += (chunk_length + 3) & ~static_cast<size_t>(3);
+            continue;
+          }
+          const std::string message_type = describe_ngap_pdu(pdu);
+          std::printf("NGAP inspector: %s %s:%u -> %s:%u stream=%u ppid=%u length=%zu type=%s\n",
+                      direction.c_str(),
+                      ipv4_string(ip->saddr).c_str(),
+                      source_port,
+                      ipv4_string(ip->daddr).c_str(),
+                      dest_port,
+                      stream,
+                      ppid,
+                      payload_length,
+                      message_type.c_str());
+          if (const auto decoded_fields = format_relevant_ngap_fields(pdu); decoded_fields.has_value()) {
+            std::printf("\033[1;32mNGAP inspector: relevant fields:\n%s\033[0m", decoded_fields->c_str());
+          }
+          if (dump_hex_enabled_) {
+            std::printf("NGAP inspector: hex=");
+            dump_hex(pdu);
+          }
+        }
+      }
+      chunk_offset += (chunk_length + 3) & ~static_cast<size_t>(3);
+    }
+  }
+
+  void capture_loop()
+  {
+    std::array<uint8_t, 65536> packet = {};
+    while (!stop_requested) {
+      pollfd descriptor = {capture_fd, POLLIN, 0};
+      const int result = ::poll(&descriptor, 1, 250);
+      if (result <= 0) {
+        continue;
+      }
+      sockaddr_ll packet_address = {};
+      socklen_t   packet_address_length = sizeof(packet_address);
+      const ssize_t bytes = ::recvfrom(capture_fd,
+                                       packet.data(),
+                                       packet.size(),
+                                       0,
+                                       reinterpret_cast<sockaddr*>(&packet_address),
+                                       &packet_address_length);
+      if (bytes > 0) {
+        inspect_packet(packet.data(), static_cast<size_t>(bytes), packet_address.sll_hatype);
+      }
+    }
+  }
+
+  int                 capture_fd = -1;
+  bool                dump_hex_enabled_ = true;
+  std::atomic<bool>   stop_requested = false;
+  std::thread         worker;
+  std::vector<uint32_t> amf_ipv4_addresses;
+  std::unordered_map<std::string, std::chrono::steady_clock::time_point> recent_pdus;
+};
+
 [[maybe_unused]] static probe_config parse_args(int argc, char** argv)
 {
   probe_config cfg;
@@ -2981,6 +3819,9 @@ static bool wait_for_amf_message(sctp_socket& socket, const std::string& expecte
       ->capture_default_str();
   app.add_option("--sctp-max-init-timeo-ms", cfg.max_init_timeo_ms, "SCTP INIT max timeout in milliseconds")
       ->capture_default_str();
+  app.add_flag("--inspect-ngap", cfg.inspect_ngap, "Passively inspect SCTP/NGAP packets involving the AMF address");
+  app.add_option("--capture-interface", cfg.capture_interface, "Interface for passive capture; empty captures all interfaces");
+  app.add_flag("--capture-hex", cfg.dump_capture_hex, "Also print raw hex for passively captured NGAP PDUs");
   app.add_flag_function("--no-hex", [&cfg](std::int64_t) { cfg.dump_pdu_hex = false; },
                         "Do not print the packed NGAP PDU hex dump");
 
@@ -3074,6 +3915,13 @@ static bool wait_for_amf_message(sctp_socket& socket, const std::string& expecte
               bound_port.has_value() ? std::to_string(bound_port.value()).c_str() : "unknown",
               peer_addresses.empty() ? "unknown" : join_strings(peer_addresses, ", ").c_str());
 
+  passive_ngap_capture passive_capture;
+  if (cfg.inspect_ngap) {
+    passive_capture.start(dest_addrs,
+                          cfg.capture_interface.empty() ? cfg.bind_interface : cfg.capture_interface,
+                          cfg.dump_capture_hex);
+  }
+
   std::printf("NGAP injector: SCTP association remains open; NGSetupRequest is not sent automatically, select menu option 1 to send it\n");
   while (true) {
     const auto injectable_pdus = read_injectable_ngap_pdus();
@@ -3124,6 +3972,7 @@ static bool wait_for_amf_message(sctp_socket& socket, const std::string& expecte
     std::printf("NGAP injector: sent SCTP EOF and closing socket\n");
   }
 
+  passive_capture.stop();
   socket.close();
   return 0;
 }

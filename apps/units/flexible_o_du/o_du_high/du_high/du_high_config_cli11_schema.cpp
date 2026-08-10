@@ -556,23 +556,13 @@ static void configure_cli11_ssb_args(CLI::App& app, du_high_unit_ssb_config& ssb
   add_option(app, "--ssb_block_power_dbm", ssb_params.ssb_block_power, "SS_PBCH_power_block in dBm")
       ->capture_default_str()
       ->range(-60, 50);
-  add_option_function<std::string>(
+  add_option_enum<ssb_pss_to_sss_epre>(
       app,
       "--pss_to_sss_epre_db",
-      [&ssb_params](const std::string& value) {
-        auto parsed_value = parse_int<unsigned>(value);
-        if (!parsed_value.has_value()) {
-          report_fatal_error("Invalid --pss_to_sss_epre_db value '{}'", value);
-        }
-
-        if (*parsed_value == 0) {
-          ssb_params.pss_to_sss_epre = ocudu::ssb_pss_to_sss_epre::dB_0;
-        } else {
-          ssb_params.pss_to_sss_epre = ocudu::ssb_pss_to_sss_epre::dB_3;
-        }
-      },
-      "SSB PSS to SSS EPRE ratio in dB {0, 3}")
-      ->enum_values({0, 3});
+      ssb_params.pss_to_sss_epre,
+      {0, 3},
+      [](int value) { return value == 0 ? ssb_pss_to_sss_epre::dB_0 : ssb_pss_to_sss_epre::dB_3; },
+      "SSB PSS to SSS EPRE ratio in dB {0, 3}");
 }
 
 static void configure_cli11_tdd_ul_dl_pattern_args(CLI::App& app, tdd_ul_dl_pattern_unit_config& pattern_params)
@@ -1872,16 +1862,12 @@ static void configure_cli11_inter_freq_carrier_freq_info_args(
     du_high_unit_sib_config::sib4_config::inter_freq_carrier_freq_config& config)
 {
   add_option(app, "--arfcn", config.arfcn, "ARFCN");
-  add_option_function<std::string>(
+  add_option_enum<subcarrier_spacing>(
       app,
       "--ssb_scs",
-      [&scs = config.ssb_scs](const std::string& value) -> std::string {
-        scs = to_subcarrier_spacing(value);
-        if (scs == subcarrier_spacing::invalid) {
-          report_error(fmt::format("Invalid SSB subcarrier spacing '" + value + "'").c_str());
-        }
-        return {};
-      },
+      config.ssb_scs,
+      {15, 30, 60, 120, 240},
+      [](int value) { return to_subcarrier_spacing(std::to_string(value)); },
       "SSB subcarrier spacing")
       ->capture_default_str();
   add_option(app, "--derive_ssb_index_from_cell", config.derive_ssb_index_from_cell, "Derive SSB index from cell")
@@ -2516,53 +2502,20 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
       ->range(0U, (1U << 14) - 1U);
   add_option(app, "--dl_arfcn", cell_params.dl_f_ref_arfcn, "Downlink ARFCN")->capture_default_str();
   add_auto_enum_option(app, "--band", cell_params.band, "NR band");
-  add_option_function<std::string>(
+  add_option_enum<subcarrier_spacing>(
       app,
       "--common_scs",
-      [&scs = cell_params.common_scs](const std::string& value) -> std::string {
-        scs = to_subcarrier_spacing(value);
-        if (scs == subcarrier_spacing::invalid) {
-          return fmt::format("Invalid common subcarrier spacing '{}'", value);
-        }
-        return {};
-      },
+      cell_params.common_scs,
+      {15, 30, 60, 120, 240},
+      [](int value) { return to_subcarrier_spacing(std::to_string(value)); },
       "Cell common subcarrier spacing")
       ->capture_default_str();
-  add_option_function<std::string>(
+  add_option_enum<bs_channel_bandwidth>(
       app,
       "--channel_bandwidth_MHz",
-      [&cell_params](const std::string& value) {
-        auto bw = parse_int<unsigned>(value);
-
-        report_fatal_error_if_not(bw.has_value(),
-                                  fmt::format("Invalid --channel_bandwidth_MHz value '" + value + "'").c_str());
-
-        const std::string error_message = "Error in the channel bandwidth property. Valid values "
-                                          "[5,10,15,20,25,30,40,50,60,70,80,90,100,200,400]";
-
-        // Bandwidth cannot be less than 5MHz.
-        if (*bw < 5U) {
-          report_error(error_message.c_str());
-        }
-
-        if (*bw < 26U) { // Check from [5-25] in steps of 5.
-          if ((*bw % 5) != 0) {
-            report_error(error_message.c_str());
-          }
-        } else if (*bw < 101U) { // Check from [30-100] in steps of 10.
-          if ((*bw % 10) != 0) {
-            report_error(error_message.c_str());
-          }
-        } else if (*bw < 401U) { // Check from [200-400] in steps of 200.
-          if ((*bw % 200) != 0) {
-            report_error(error_message.c_str());
-          }
-        } else {
-          report_error(error_message.c_str());
-        }
-
-        cell_params.channel_bw_mhz = static_cast<bs_channel_bandwidth>(*bw);
-      },
+      cell_params.channel_bw_mhz,
+      {5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 200, 400},
+      [](int value) { return static_cast<bs_channel_bandwidth>(value); },
       "Channel bandwidth in MHz")
       ->default_val(static_cast<unsigned>(cell_params.channel_bw_mhz));
   add_option(app, "--nof_antennas_ul", cell_params.nof_antennas_ul, "Number of antennas in uplink")

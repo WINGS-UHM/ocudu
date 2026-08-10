@@ -515,4 +515,31 @@ void add_auto_enum_option(CLI::App&             app,
       ->default_str("auto");
 }
 
+/// \brief Adds an option whose configuration value is one of a fixed set of integers, each mapping to an enum value.
+///
+/// Parsing the value as an integer (rather than a std::string that a callback later interprets) lets the configuration
+/// schema advertise \c "type: integer" with an \c enum of the \c allowed values, instead of an opaque string. \c
+/// convert maps an accepted value to the stored enum; it only ever runs on values in \c allowed because the membership
+/// check runs first.
+///
+/// \param app Application where the option will be added.
+/// \param option_name Option name.
+/// \param target Enum parameter where the mapped value will be stored after parsing.
+/// \param allowed Accepted integer values, surfaced as the schema \c enum and enforced at parse time.
+/// \param convert Maps an accepted integer to the stored enum value.
+/// \param desc Human readable description of the option.
+/// \return A chainable handle to the option added to the application.
+template <typename Enum>
+option_handle add_option_enum(CLI::App&                       app,
+                              const std::string&              option_name,
+                              Enum&                           target,
+                              std::initializer_list<int>      allowed,
+                              const std::function<Enum(int)>& convert,
+                              const std::string&              desc)
+{
+  option_handle option =
+      add_option_function<int>(app, option_name, [&target, convert](int value) { target = convert(value); }, desc);
+  return option->enum_values(allowed);
+}
+
 } // namespace ocudu

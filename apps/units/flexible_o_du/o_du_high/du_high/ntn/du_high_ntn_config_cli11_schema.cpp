@@ -22,10 +22,10 @@ static void configure_cli11_feeder_link(CLI::App& app, feeder_link_info_t& feede
       ->capture_default_str();
   add_option(app, "--dl_freq", feeder_link_info.dl_freq, "Downlink feeder link carrier frequency (gnb->sat) [Hz]")
       ->capture_default_str()
-      ->check(CLI::Range(0.0, 100e9));
+      ->range(0.0, 100e9);
   add_option(app, "--ul_freq", feeder_link_info.ul_freq, "Uplink feeder link carrier frequency (sat->gnb) [Hz]")
       ->capture_default_str()
-      ->check(CLI::Range(0.0, 100e9));
+      ->range(0.0, 100e9);
 }
 
 static void configure_cli11_ntn_neighbor_cell_args(CLI::App& app, du_high_unit_ntn_neighbor_cell_config& ncell);
@@ -44,26 +44,26 @@ static void configure_cli11_ntn_neighbor_cell_args(CLI::App& app, du_high_unit_n
 
   add_option_function<unsigned>(
       app, "--pci", [&ncell](unsigned val) { ncell.phys_cell_id = static_cast<pci_t>(val); }, "Physical Cell ID")
-      ->check(CLI::Range(0, static_cast<int>(MAX_PCI)));
+      ->range(0, static_cast<int>(MAX_PCI));
 
   add_option_function<unsigned>(
       app,
       "--carrier_freq",
       [&ncell](unsigned val) { ncell.carrier_freq = arfcn_t{val}; },
       "Carrier frequency (NR-ARFCN)")
-      ->check(CLI::Range(0U, 3279165U));
+      ->range(0U, 3279165U);
 
   add_option_function<unsigned>(
       app,
       "--cell_specific_koffset",
       [&ncell](unsigned value) { ncell.cell_specific_koffset = std::chrono::milliseconds(value); },
       "Cell-specific k-offset [ms]")
-      ->check(CLI::Range(1U, 1023U));
+      ->range(1U, 1023U);
 
   add_option(app, "--ntn_ul_sync_validity_dur", ncell.ntn_ul_sync_validity_dur, "UL sync validity duration [s]")
-      ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
+      ->enum_values({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900});
 
-  add_option(app, "--k_mac", ncell.k_mac, "K_mac offset")->check(CLI::Range(1U, 512U));
+  add_option(app, "--k_mac", ncell.k_mac, "K_mac offset")->range(1U, 512U);
 
   static ntn_polarization_t polarization;
   CLI::App*                 pol_subcmd = add_subcommand(app, "polarization", "Polarization for this neighbor");
@@ -95,13 +95,13 @@ static void configure_cli11_sat_switch_with_resync(CLI::App& app, du_high_unit_s
       "Time when target satellite starts serving (Unix time in ms or ISO 8601: YYYY-MM-DDTHH:MM:SS[.mmm])");
 
   add_option(app, "--ssb_time_offset_sf", sat_switch_config.ssb_time_offset_sf, "SSB time offset in subframes (0-159)")
-      ->check(CLI::Range(0U, 159U));
+      ->range(0U, 159U);
 
   add_option(app,
              "--ntn_ul_sync_validity_dur",
              sat_switch_config.ntn_ul_sync_validity_dur,
              "UL sync validity duration after switch. If not set, the serving cell value is used")
-      ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
+      ->enum_values({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900});
 
   add_option_function<unsigned>(
       app,
@@ -110,11 +110,11 @@ static void configure_cli11_sat_switch_with_resync(CLI::App& app, du_high_unit_s
         sat_switch_config.cell_specific_koffset = std::chrono::milliseconds(value);
       },
       "Cell-specific k-offset after switch [ms]. If not set, the serving cell value is used")
-      ->check(CLI::Range(1U, 1023U));
+      ->range(1U, 1023U);
 
   add_option(
       app, "--k_mac", sat_switch_config.k_mac, "K_mac offset after switch. If not set, the serving cell value is used")
-      ->check(CLI::Range(1U, 512U));
+      ->range(1U, 512U);
 
   static ntn_polarization_t polarization;
   CLI::App*                 pol_subcmd =
@@ -159,12 +159,12 @@ static void configure_cli11_ntn_args(CLI::App&                             app,
              serv_cell_ntn_config.cell_specific_koffset,
              "Cell-specific k-offset to be used for NTN [ms].")
       ->capture_default_str()
-      ->check(CLI::Range(1, 1023));
+      ->range(1, 1023);
 
   add_option(
       app, "--ntn_ul_sync_validity_dur", serv_cell_ntn_config.ntn_ul_sync_validity_dur, "An UL sync validity duration")
       ->capture_default_str()
-      ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
+      ->enum_values({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900});
 
   // Satellite reference (satellite_idx or inline ephemeris/gateway_location/ta_info).
   configure_cli11_ntn_satellite_args(app, serv_cell_ntn_config.sat_ref);
@@ -176,7 +176,7 @@ static void configure_cli11_ntn_args(CLI::App&                             app,
       serv_cell_ntn_config.distance_threshold,
       "Distance from the serving cell reference location and is used in location-based measurement. Unit is meters.")
       ->capture_default_str()
-      ->check(CLI::Range(0, 3276250));
+      ->range(0, 3276250);
 
   // T-Service.
   add_ntn_timestamp_option(

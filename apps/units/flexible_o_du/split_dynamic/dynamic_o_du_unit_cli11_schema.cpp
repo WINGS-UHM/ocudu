@@ -30,7 +30,7 @@ static void configure_cli11_ru_dummy_args(CLI::App& app, ru_dummy_unit_config& c
              "Time scaling factor applied to the slot duration. Must be greater than zero. "
              "A value greater than one slows down the RU, while a value between zero and one speeds it up.")
       ->capture_default_str()
-      ->check(CLI::NonNegativeNumber);
+      ->non_negative();
 }
 
 static void configure_cli11_cell_affinity_args(CLI::App& app, ru_dummy_cpu_affinities_cell_unit_config& config)

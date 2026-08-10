@@ -54,7 +54,7 @@ static void configure_cli11_log_args(CLI::App& app, du_low_unit_logger_config& l
              log_params.hex_max_size,
              "Maximum number of bytes to print in hex (zero for no hex dumps, -1 for unlimited bytes)")
       ->capture_default_str()
-      ->check(CLI::Range(-1, 1024));
+      ->range(-1, 1024);
 }
 
 static void configure_cli11_trace_args(CLI::App& app, du_low_unit_tracer_config& config)
@@ -191,13 +191,13 @@ static void configure_cli11_expert_phy_args(CLI::App& app, du_low_unit_expert_up
              expert_phy_params.max_processing_delay_slots,
              "Maximum allowed DL processing delay in slots.")
       ->capture_default_str()
-      ->check(CLI::Range(1, 30));
+      ->range(1, 30);
   add_option(app,
              "--prach_th_correction_factor",
              expert_phy_params.prach_th_correction_factor,
              "Correction factor of the PRACH detection threshold")
       ->capture_default_str()
-      ->check(CLI::NonNegativeNumber);
+      ->non_negative();
   add_option(app,
              "--pusch_dec_max_iterations",
              expert_phy_params.pusch_decoder_max_iterations,
@@ -248,7 +248,7 @@ static void configure_cli11_expert_phy_args(CLI::App& app, du_low_unit_expert_up
              expert_phy_params.nof_slots_request_headroom,
              "Maximum request headroom size in slots.")
       ->capture_default_str()
-      ->check(CLI::Range(0, 30));
+      ->range(0, 30);
   add_option(app,
              "--allow_request_on_empty_uplink_slot",
              expert_phy_params.allow_request_on_empty_uplink_slot,
@@ -273,7 +273,7 @@ static void configure_cli11_hwacc_pdsch_enc_args(CLI::App& app, std::optional<hw
 
   add_option(app, "--nof_hwacc", config->nof_hwacc, "Number of hardware-accelerated PDSCH encoding functions")
       ->capture_default_str()
-      ->check(CLI::Range(0, 64));
+      ->range(0, 64);
   add_option(app, "--cb_mode", config->cb_mode, "Operation mode of the PDSCH encoder (CB = true, TB = false [default])")
       ->capture_default_str();
   add_option(app,
@@ -293,7 +293,7 @@ static void configure_cli11_hwacc_pusch_dec_args(CLI::App& app, std::optional<hw
 
   add_option(app, "--nof_hwacc", config->nof_hwacc, "Number of hardware-accelerated PDSCH encoding functions")
       ->capture_default_str()
-      ->check(CLI::Range(0, 64));
+      ->range(0, 64);
   add_option(app, "--harq_context_size", config->harq_context_size, "Size of the HARQ context repository")
       ->capture_default_str();
   add_option(
@@ -322,7 +322,7 @@ static void configure_cli11_bbdev_hwacc_args(CLI::App& app, std::optional<bbdev_
       ->check(hwacc_type_check);
   add_option(app, "--id", config->id, "ID of the BBDEV-based hardware-accelerator.")
       ->capture_default_str()
-      ->check(CLI::Range(0, 65535));
+      ->range(0, 65535);
 
   // (Optional) Hardware-accelerated PDSCH encoding functions configuration.
   CLI::App* hwacc_pdsch_enc_subcmd =
@@ -339,13 +339,13 @@ static void configure_cli11_bbdev_hwacc_args(CLI::App& app, std::optional<bbdev_
              config->msg_mbuf_size,
              "Size of the mbufs storing unencoded and unrate-matched messages (in bytes)")
       ->capture_default_str()
-      ->check(CLI::Range(0, 64000));
+      ->range(0, 64000);
   add_option(app,
              "--rm_mbuf_size",
              config->rm_mbuf_size,
              "Size of the mbufs storing encoded and rate-matched messages (in bytes)")
       ->capture_default_str()
-      ->check(CLI::Range(0, 64000));
+      ->range(0, 64000);
   add_option(app, "--nof_mbuf", config->nof_mbuf, "Number of mbufs in the memory pool")->capture_default_str();
 }
 

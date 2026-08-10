@@ -27,7 +27,7 @@ static void configure_cli11_metrics_args(CLI::App& app, executor_metrics_config&
              config.report_period_ms,
              "Executors metrics report period in milliseconds")
       ->capture_default_str()
-      ->check(CLI::Range(0U, static_cast<unsigned>(NOF_SUBFRAMES_PER_FRAME * NOF_SFNS * NOF_HYPER_SFNS)));
+      ->range(0U, static_cast<unsigned>(NOF_SUBFRAMES_PER_FRAME * NOF_SFNS * NOF_HYPER_SFNS));
 }
 
 void ocudu::app_services::configure_cli11_with_executor_metrics_appconfig_schema(CLI::App&                app,

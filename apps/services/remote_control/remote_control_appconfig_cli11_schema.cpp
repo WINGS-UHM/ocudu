@@ -14,7 +14,7 @@ static void configure_cli11_remote_control_args(CLI::App& app, remote_control_ap
   add_option(app, "--bind_addr", config.bind_addr, "Remote Control Server bind address")->capture_default_str();
   add_option(app, "--port", config.port, "Port where the remote control server listens for incoming connections")
       ->capture_default_str()
-      ->check(CLI::Range(0, 65535));
+      ->range(0, 65535);
 }
 
 void ocudu::configure_cli11_with_remote_control_appconfig_schema(CLI::App& app, remote_control_appconfig& config)

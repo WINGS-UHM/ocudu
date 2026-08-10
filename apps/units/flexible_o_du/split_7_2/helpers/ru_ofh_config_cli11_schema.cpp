@@ -60,28 +60,28 @@ static void configure_cli11_ru_ofh_base_cell_args(CLI::App& app, ru_ofh_unit_bas
   // Note: For the timing parameters, worst case is 2 slots for scs 15KHz and 14 symbols. Implementation defined.
   add_option(app, "--t1a_max_cp_dl", config.T1a_max_cp_dl, "T1a maximum value for downlink Control-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--t1a_min_cp_dl", config.T1a_min_cp_dl, "T1a minimum value for downlink Control-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--t1a_max_cp_ul", config.T1a_max_cp_ul, "T1a maximum value for uplink Control-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--t1a_min_cp_ul", config.T1a_min_cp_ul, "T1a minimum value for uplink Control-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--t1a_max_up", config.T1a_max_up, "T1a maximum value for User-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--t1a_min_up", config.T1a_min_up, "T1a minimum value for User-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--ta4_max", config.Ta4_max, "Ta4 maximum value for User-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
   add_option(app, "--ta4_min", config.Ta4_min, "Ta4 minimum value for User-Plane")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1960));
+      ->range(0, 1960);
 
   if (config.T1a_min_cp_dl > config.T1a_max_cp_dl) {
     report_error("Invalid Open Fronthaul Radio Unit configuration detected. T1a maximum value must be greater than "
@@ -148,19 +148,19 @@ static void configure_cli11_ru_ofh_base_cell_args(CLI::App& app, ru_ofh_unit_bas
       ->check(compression_method_check);
   add_option(app, "--compr_bitwidth_ul", config.compression_bitwidth_ul, "Uplink compression bit width")
       ->capture_default_str()
-      ->check(CLI::Range(1, 16));
+      ->range(1, 16);
   add_option(app, "--compr_method_dl", config.compression_method_dl, "Downlink compression method")
       ->capture_default_str()
       ->check(compression_method_check);
   add_option(app, "--compr_bitwidth_dl", config.compression_bitwidth_dl, "Downlink compression bit width")
       ->capture_default_str()
-      ->check(CLI::Range(1, 16));
+      ->range(1, 16);
   add_option(app, "--compr_method_prach", config.compression_method_prach, "PRACH compression method")
       ->capture_default_str()
       ->check(compression_method_check);
   add_option(app, "--compr_bitwidth_prach", config.compression_bitwidth_prach, "PRACH compression bit width")
       ->capture_default_str()
-      ->check(CLI::Range(1, 16));
+      ->range(1, 16);
   add_option(app,
              "--enable_ul_static_compr_hdr",
              config.is_uplink_static_comp_hdr_enabled,
@@ -182,7 +182,7 @@ static void configure_cli11_ru_ofh_base_cell_args(CLI::App& app, ru_ofh_unit_bas
         std::get<ru_ofh_scaling_config>(config.iq_scaling_config).ru_reference_level_dBFS = value;
       },
       "RU IQ reference level mapped to the maximum RF power")
-      ->check(CLI::Range(-std::numeric_limits<float>::infinity(), 0.0f))
+      ->range(-std::numeric_limits<float>::infinity(), 0.0f)
       ->check([&config](const std::string& value) -> std::string {
         if (std::holds_alternative<ru_ofh_legacy_scaling_config>(config.iq_scaling_config)) {
           return "IQ scaling and RU reference level cannot be set at the same time";
@@ -224,7 +224,7 @@ static void configure_cli11_ru_ofh_base_cell_args(CLI::App& app, ru_ofh_unit_bas
         std::get<ru_ofh_legacy_scaling_config>(config.iq_scaling_config).iq_scaling = value;
       },
       "Linear IQ scaling factor. It replaces the RU reference level and subarrier back-off")
-      ->check(CLI::Range(0.0, 100.0))
+      ->range(0.0, 100.0)
       ->check([&config](const std::string& value) -> std::string {
         if (std::holds_alternative<ru_ofh_scaling_config>(config.iq_scaling_config)) {
           return "IQ scaling cannot be used in conjunction with other scaling parameters.";
@@ -314,26 +314,24 @@ static void configure_cli11_ru_ofh_cells_args(CLI::App& app, ru_ofh_unit_cell_co
       ->capture_default_str();
   add_option(app, "--check_link_status", config.check_link_status, "Ethernet link status checking flag")
       ->capture_default_str();
-  add_option(app, "--mtu", config.mtu_size, "NIC interface MTU size")
-      ->capture_default_str()
-      ->check(CLI::Range(1500, 9600));
+  add_option(app, "--mtu", config.mtu_size, "NIC interface MTU size")->capture_default_str()->range(1500, 9600);
   add_option(app, "--ru_mac_addr", config.ru_mac_address, "Radio Unit MAC address")->capture_default_str();
   add_option(app, "--du_mac_addr", config.du_mac_address, "Distributed Unit MAC address")->capture_default_str();
 
   CLI::Option* vlan_tag_cp_opt = add_option(app, "--vlan_tag_cp", config.vlan_tag_cp, "C-Plane VLAN identifier")
                                      ->capture_default_str()
-                                     ->check(CLI::Range(1, 4094));
+                                     ->range(1, 4094);
   CLI::Option* vlan_tag_up_opt = add_option(app, "--vlan_tag_up", config.vlan_tag_up, "U-Plane VLAN identifier")
                                      ->capture_default_str()
-                                     ->check(CLI::Range(1, 4094));
+                                     ->range(1, 4094);
 
   add_option(app, "--vlan_pcp_cp", config.vlan_pcp_cp, "C-Plane VLAN PCP")
       ->capture_default_str()
-      ->check(CLI::Range(0, 7))
+      ->range(0, 7)
       ->needs(vlan_tag_cp_opt);
   add_option(app, "--vlan_pcp_up", config.vlan_pcp_up, "U-Plane VLAN PCP")
       ->capture_default_str()
-      ->check(CLI::Range(0, 7))
+      ->range(0, 7)
       ->needs(vlan_tag_up_opt);
 
   add_option(app, "--prach_port_id", config.ru_prach_port_id, "RU PRACH port identifier")->capture_default_str();
@@ -344,10 +342,8 @@ static void configure_cli11_ru_ofh_cells_args(CLI::App& app, ru_ofh_unit_cell_co
 static void configure_cli11_ru_ofh_args(CLI::App& app, ru_ofh_unit_parsed_config& config)
 {
   ru_ofh_unit_config& ofh_cfg = config.config;
-  add_option(app, "--gps_alpha", ofh_cfg.gps_Alpha, "GPS Alpha")
-      ->capture_default_str()
-      ->check(CLI::Range(0.0, 1.2288e7));
-  add_option(app, "--gps_beta", ofh_cfg.gps_Beta, "GPS Beta")->capture_default_str()->check(CLI::Range(-32768, 32767));
+  add_option(app, "--gps_alpha", ofh_cfg.gps_Alpha, "GPS Alpha")->capture_default_str()->range(0.0, 1.2288e7);
+  add_option(app, "--gps_beta", ofh_cfg.gps_Beta, "GPS Beta")->capture_default_str()->range(-32768, 32767);
 
   // Common cell parameters.
   auto* base_cell_group = add_option_group(app, "base_cell");

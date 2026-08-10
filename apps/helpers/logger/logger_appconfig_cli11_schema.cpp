@@ -37,7 +37,7 @@ static void configure_cli11_log_args(CLI::App& app, logger_appconfig& log_params
              log_params.hex_max_size,
              "Maximum number of bytes to print in hex (zero for no hex dumps, -1 for unlimited bytes)")
       ->capture_default_str()
-      ->check(CLI::Range(-1, 1024));
+      ->range(-1, 1024);
   add_option(app,
              "--flush_app_banner",
              log_params.flush_app_banner,

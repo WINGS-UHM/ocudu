@@ -24,7 +24,7 @@ static void configure_cli11_udp_args(CLI::App& app, udp_appconfig& udp_params)
       ->capture_default_str();
   add_option(app, "--dscp", udp_params.dscp, "Differentiated Services Code Point value.")
       ->capture_default_str()
-      ->check(CLI::Range(0, 63));
+      ->range(0, 63);
 }
 
 void ocudu::configure_cli11_with_udp_config_schema(CLI::App& app, udp_appconfig& config)

@@ -31,7 +31,7 @@ void ocudu::configure_cli11_with_split6_o_du_low_unit_config_schema(CLI::App& ap
              "Start time jitter in milliseconds. A value of 0 disables the start time calculation and the session "
              "starts it as soon as possible")
       ->capture_default_str()
-      ->check(CLI::Range(0, 600));
+      ->range(0, 600);
 
   CLI::App* logger_subcmd = add_subcommand(app, "log", "Logger configuration")->configurable();
   app_helpers::add_log_option(*logger_subcmd, config.fapi_level, "--fapi_level", "FAPI log level");
@@ -42,7 +42,7 @@ void ocudu::configure_cli11_with_split6_o_du_low_unit_config_schema(CLI::App& ap
   add_option(
       *periodicity_subcmd, "--du_report_period", config.du_report_period, "DU statistics report period in milliseconds")
       ->capture_default_str()
-      ->check(CLI::Range(0U, static_cast<unsigned>(NOF_SUBFRAMES_PER_FRAME * NOF_SFNS * NOF_HYPER_SFNS)));
+      ->range(0U, static_cast<unsigned>(NOF_SUBFRAMES_PER_FRAME * NOF_SFNS * NOF_HYPER_SFNS));
 }
 
 static void manage_ru(const CLI::App& app, split6_o_du_low_unit_config& config)

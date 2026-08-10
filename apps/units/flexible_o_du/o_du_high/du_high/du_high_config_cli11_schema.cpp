@@ -979,60 +979,24 @@ static void configure_cli11_pusch_args(CLI::App& app, du_high_unit_pusch_config&
              "msg3-DeltaPreamble, Power offset between msg3 and RACH preamble transmission")
       ->capture_default_str()
       ->range(-1, 6);
-  add_option_function<std::string>(
-      app,
-      "--p0_nominal_with_grant",
-      [&pusch_params](const std::string& value) {
-        auto pw = parse_int<int>(value);
-
-        report_fatal_error_if_not(pw.has_value(),
-                                  fmt::format("Invalid --p0_nominal_with_grant value '" + value + "'").c_str());
-
-        const std::string& error_message = "Must be a multiple of 2 and within the [-202, 24] interval";
-        if (*pw < -202 || *pw > 24 || *pw % 2 != 0) {
-          report_fatal_error(error_message.c_str());
-        }
-
-        pusch_params.p0_nominal_with_grant = *pw;
-      },
-      "P0 value for PUSCH with grant (except msg3). Value in dBm. Valid values must be multiple of 2 and "
-      "within the [-202, 24] interval.  Default: -76");
-  add_option_function<std::string>(
-      app,
-      "--p0_nominal_without_grant",
-      [&pusch_params](const std::string& value) {
-        auto pw = parse_int<int>(value);
-
-        report_fatal_error_if_not(pw.has_value(),
-                                  fmt::format("Invalid --p0_nominal_without_grant value '" + value + "'").c_str());
-
-        const std::string& error_message = "Must be a multiple of 2 and within the [-202, 24] interval";
-        if (*pw < -202 || *pw > 24 || *pw % 2 != 0) {
-          report_fatal_error(error_message.c_str());
-        }
-
-        pusch_params.p0_nominal_without_grant = *pw;
-      },
-      "P0 value for PUSCH without grant. Value in dBm. Valid values must be multiple of 2 and "
-      "within the [-202, 24] interval.  Default: -76");
-  add_option_function<std::string>(
-      app,
-      "--msg3_delta_power",
-      [&pusch_params](const std::string& value) {
-        auto pw = parse_int<int>(value);
-
-        report_fatal_error_if_not(pw.has_value(),
-                                  fmt::format("Invalid --msg3_delta_power value '" + value + "'").c_str());
-
-        const std::string& error_message = "Must be a multiple of 2 and within the [-6, 8] interval";
-        if (*pw < -6 || *pw > 8 || *pw % 2 != 0) {
-          report_fatal_error(error_message.c_str());
-        }
-
-        pusch_params.msg3_delta_power = *pw;
-      },
-      "Target power level at the network receiver side, in dBm. Valid values must be multiple of 2 and "
-      "within the [-6, 8] interval. Default: 8");
+  add_option(app,
+             "--p0_nominal_with_grant",
+             pusch_params.p0_nominal_with_grant,
+             "P0 value for PUSCH with grant (except msg3). Value in dBm. Valid values must be multiple of 2 and "
+             "within the [-202, 24] interval.  Default: -76")
+      ->capture_default_str();
+  add_option(app,
+             "--p0_nominal_without_grant",
+             pusch_params.p0_nominal_without_grant,
+             "P0 value for PUSCH without grant. Value in dBm. Valid values must be multiple of 2 and "
+             "within the [-202, 24] interval.  Default: -76")
+      ->capture_default_str();
+  add_option(app,
+             "--msg3_delta_power",
+             pusch_params.msg3_delta_power,
+             "Target power level at the network receiver side, in dBm. Valid values must be multiple of 2 and "
+             "within the [-6, 8] interval. Default: 8")
+      ->capture_default_str();
   add_option(app, "--max_puschs_per_slot", pusch_params.max_puschs_per_slot, "Maximum number of PUSCH grants per slot")
       ->capture_default_str()
       ->range(1U, (unsigned)MAX_PUSCH_PDUS_PER_SLOT);
@@ -1212,22 +1176,12 @@ static void configure_cli11_pucch_args(CLI::App& app, du_high_unit_pucch_config&
     };
   };
 
-  add_option_function<std::string>(
-      app,
-      "--p0_nominal",
-      [&pucch_params](const std::string& value) {
-        auto pw = parse_int<int>(value);
-        report_fatal_error_if_not(pw.has_value(), fmt::format("Invalid --p0_nominal value '" + value + "'").c_str());
-
-        const std::string& error_message = "Must be a multiple of 2 and within the [-202, 24] interval";
-        if (*pw < -202 || *pw > 24 || *pw % 2 != 0) {
-          report_error(error_message.c_str());
-        }
-
-        pucch_params.p0_nominal = *pw;
-      },
-      "Power control parameter P0 for PUCCH transmissions. Value in dBm. Valid values must be multiple of 2 and "
-      "within the [-202, 24] interval. Default: -90");
+  add_option(app,
+             "--p0_nominal",
+             pucch_params.p0_nominal,
+             "Power control parameter P0 for PUCCH transmissions. Value in dBm. Valid values must be multiple of 2 and "
+             "within the [-202, 24] interval. Default: -90")
+      ->capture_default_str();
   add_option(app,
              "--pucch_resource_common",
              pucch_params.pucch_resource_common,
@@ -1487,23 +1441,12 @@ static void configure_cli11_srs_args(CLI::App& app, du_high_unit_srs_config& srs
              "Enable the reuse of SRS sequence id with the set reuse factor")
       ->capture_default_str()
       ->enum_values({1, 2, 3, 5, 6, 10, 15, 30});
-  add_option_function<std::string>(
-      app,
-      "--p0",
-      [&srs_params](const std::string& value) {
-        auto pw = parse_int<int>(value);
-
-        report_error_if_not(pw.has_value(), fmt::format("Invalid --p0 value '" + value + "'").c_str());
-
-        const std::string& error_message = "Must be a multiple of 2 and within the [-202, 24] interval";
-        if (*pw < -202 or *pw > 24 or *pw % 2 != 0) {
-          report_error(error_message.c_str());
-        }
-
-        srs_params.p0 = *pw;
-      },
-      "P0 value for SRS. Value in dBm. Valid values must be multiple of 2 and "
-      "within the [-202, 24] interval.  Default: -84");
+  add_option(app,
+             "--p0",
+             srs_params.p0,
+             "P0 value for SRS. Value in dBm. Valid values must be multiple of 2 and "
+             "within the [-202, 24] interval.  Default: -84")
+      ->capture_default_str();
 }
 
 static void configure_cli11_cg_args(CLI::App& app, du_high_configured_grants& cg_params)
@@ -1692,24 +1635,12 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_rach_config& 
              " PRACH opportunities do not overlap with the PUCCH resources")
       ->capture_default_str()
       ->range(0, 274);
-  add_option_function<std::string>(
-      app,
-      "--preamble_rx_target_pw",
-      [&prach_params](const std::string& value) {
-        auto pw = parse_int<int>(value);
-
-        report_fatal_error_if_not(pw.has_value(),
-                                  fmt::format("Invalid --preamble_rx_target_pw value '" + value + "'").c_str());
-
-        const std::string& error_message = "Must be a multiple of 2 and within the [-202, -60] interval";
-        // Bandwidth cannot be less than 5MHz.
-        if (*pw < -202 || *pw > -60 || *pw % 2 != 0) {
-          report_error(error_message.c_str());
-        }
-
-        prach_params.preamble_rx_target_pw = *pw;
-      },
-      "Target power level at the network receiver side, in dBm");
+  add_option(app,
+             "--preamble_rx_target_pw",
+             prach_params.preamble_rx_target_pw,
+             "Target power level at the network receiver side, in dBm. Valid values must be multiple of 2 and within "
+             "the [-202, -60] interval.")
+      ->capture_default_str();
   add_option(app,
              "--preamble_trans_max",
              prach_params.preamble_trans_max,
@@ -2529,26 +2460,7 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
   add_option(app, "--additional_plmns", cell_params.additional_plmns, "List of PLMNs")
       ->capture_default_str()
       ->check(plmn_is_valid);
-  add_option_function<std::string>(
-      app,
-      "--tac",
-      [&cell_params](const std::string& value) {
-        auto tac = parse_int<unsigned>(value);
-
-        report_fatal_error_if_not(tac.has_value(), fmt::format("Invalid --tac value '" + value + "'").c_str());
-
-        // Values 0 and 0xfffffe are reserved.
-        if (*tac == 0U || *tac == 0xfffffeU) {
-          report_error("TAC values 0 or 0xfffffe are reserved");
-        }
-
-        if (*tac > 0xffffffU) {
-          report_error("TAC value out of range");
-        }
-
-        cell_params.tac = *tac;
-      },
-      "TAC");
+  add_option(app, "--tac", cell_params.tac, "TAC")->capture_default_str();
   add_option(app, "--enabled", cell_params.enabled, "Automatically activate the cell on startup")
       ->capture_default_str();
   add_option(app, "--cell_barred", cell_params.cell_barred, "MIB cellBarred: if true, UEs cannot camp on this cell")

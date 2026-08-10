@@ -1636,6 +1636,20 @@ static bool validate_cell_cg_config(const du_high_configured_grants& cg_cfg, uns
   return true;
 }
 
+// Validates that a dBm power-control value is a multiple of 2 within [min_value, max_value].
+static bool validate_power_ctrl_value(const char* name, int value, int min_value, int max_value)
+{
+  if (value < min_value || value > max_value || (value % 2) != 0) {
+    fmt::print("Invalid {} value {}. Valid values must be a multiple of 2 within the [{}, {}] interval.\n",
+               name,
+               value,
+               min_value,
+               max_value);
+    return false;
+  }
+  return true;
+}
+
 /// Validates the given cell application configuration. Returns true on success, otherwise false.
 static bool validate_base_cell_unit_config(const du_high_unit_base_cell_config& config)
 {
@@ -1651,6 +1665,23 @@ static bool validate_base_cell_unit_config(const du_high_unit_base_cell_config& 
     fmt::print("The number of UL antennas cannot be zero.\n");
     return false;
   }
+
+  if (config.tac == 0U || config.tac == 0xfffffeU || config.tac > 0xffffffU) {
+    fmt::print("Invalid TAC value {}. Valid TAC values are in [1, 16777215] excluding the reserved value 16777214 "
+               "(0xfffffe).\n",
+               config.tac);
+    return false;
+  }
+
+  if (!validate_power_ctrl_value("p0_nominal_with_grant", config.pusch_cfg.p0_nominal_with_grant, -202, 24) ||
+      !validate_power_ctrl_value("p0_nominal_without_grant", config.pusch_cfg.p0_nominal_without_grant, -202, 24) ||
+      !validate_power_ctrl_value("msg3_delta_power", config.pusch_cfg.msg3_delta_power, -6, 8) ||
+      !validate_power_ctrl_value("p0_nominal", config.pucch_cfg.p0_nominal, -202, 24) ||
+      !validate_power_ctrl_value("p0", config.srs_cfg.p0, -202, 24) ||
+      !validate_power_ctrl_value("preamble_rx_target_pw", config.prach_cfg.preamble_rx_target_pw, -202, -60)) {
+    return false;
+  }
+
   if (config.common_scs == ocudu::subcarrier_spacing::kHz15 and
       config.channel_bw_mhz > ocudu::bs_channel_bandwidth::MHz50) {
     fmt::print("Maximum Channel BW with SCS common 15kHz is 50MHz.\n");

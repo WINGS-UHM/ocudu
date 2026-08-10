@@ -491,7 +491,7 @@ void add_auto_enum_option(CLI::App&             app,
                           std::optional<Param>& param,
                           const std::string&    desc)
 {
-  add_option_function<std::string>(
+  option_handle option = add_option_function<std::string>(
       app,
       option_name,
       [&param](const std::string& in) -> void {
@@ -503,7 +503,8 @@ void add_auto_enum_option(CLI::App&             app,
         ss >> val;
         param = (Param)val;
       },
-      desc)
+      desc);
+  option
       ->check([](const std::string& in_str) -> std::string {
         if (in_str == "auto" or in_str.empty()) {
           return "";
@@ -513,6 +514,12 @@ void add_auto_enum_option(CLI::App&             app,
         return IntegerValidator(in_str);
       })
       ->default_str("auto");
+
+  // The value is parsed as a std::string only to intercept the "auto" sentinel; its logical value is the enum held in
+  // \c param. Record the schema leaf from that typed target so the schema advertises `type: integer` instead of the
+  // std::string parse type ("auto" simply means "omit the key": an unset optional, hence no default). leaf_slot makes
+  // recording last-declaration-wins, so this supersedes the string leaf that add_option_function just recorded.
+  config::record_option(app, option_name, param, desc, option.cli_option());
 }
 
 /// \brief Adds an option whose configuration value is one of a fixed set of integers, each mapping to an enum value.

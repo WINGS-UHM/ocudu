@@ -2429,16 +2429,56 @@ static std::optional<ue_message_type> read_ue_message_type()
 {
   while (true) {
     std::printf("\nSelect NGAP packet to inject:\n");
-    std::printf("  1) NGSetupRequest\n  2) NGReset\n  3) NGResetAcknowledge\n  4) RANConfigurationUpdate\n");
-    std::printf("  5) AMFConfigurationUpdateAcknowledge\n  6) AMFConfigurationUpdateFailure\n  7) ErrorIndication (non-UE-associated)\n  8) ConnectionEstablishmentIndication\n");
-    std::printf("  9) InitialUEMessage\n  10) UplinkNASTransport\n  11) NASNonDeliveryIndication\n  12) InitialContextSetupResponse\n  13) InitialContextSetupFailure\n");
-    std::printf("  14) UEContextReleaseRequest\n  15) UEContextReleaseComplete\n  16) UEContextModificationResponse\n  17) UEContextModificationFailure\n  18) RRCInactiveTransitionReport\n");
-    std::printf("  19) UEContextSuspendRequest\n  20) UEContextResumeRequest\n  21) UEContextSuspendResponse\n  22) UEContextResumeResponse\n  23) RANCPRelocationIndication\n  24) ErrorIndication (UE-associated)\n  25) RerouteNASRequest\n  26) UEInformationTransfer\n");
-    std::printf("  27) PDUSessionResourceSetupResponse\n  28) PDUSessionResourceModifyResponse\n  29) PDUSessionResourceModifyIndication\n  30) PDUSessionResourceNotify\n  31) PDUSessionResourceReleaseResponse\n");
-    std::printf("  32) BroadcastSessionModificationResponse\n  33) BroadcastSessionReleaseResponse\n  34) BroadcastSessionSetupResponse\n  35) BroadcastSessionTransportResponse\n  36) DistributionSetupResponse\n  37) DistributionReleaseResponse\n  38) MulticastSessionActivationResponse\n  39) MulticastSessionDeactivationResponse\n  40) MulticastSessionUpdateResponse\n  41) TimingSynchronisationStatusResponse\n");
-    std::printf("  42) HandoverRequired\n  43) HandoverRequestAcknowledge\n  44) HandoverFailure\n  45) HandoverNotify\n  46) HandoverCancel\n  47) HandoverSuccess\n  48) PathSwitchRequest\n  49) UplinkRANStatusTransfer\n  50) UplinkRANEarlyStatusTransfer\n  51) UplinkRANConfigurationTransfer\n  52) UplinkRIMInformationTransfer\n");
-    std::printf("  53) UERadioCapabilityInfoIndication\n  54) UERadioCapabilityCheckResponse\n  55) UERadioCapabilityIDMappingResponse\n  56) LocationReport\n  57) LocationReportingFailureIndication\n  58) TraceFailureIndication\n  59) CellTrafficTrace\n  60) SecondaryRATDataUsageReport\n");
-    std::printf("  61) UplinkNonUEAssociatedNRPPaTransport\n  62) UplinkUEAssociatedNRPPaTransport\n  63) UETNLABindingReleaseRequest\n  64) RANPagingRequest\n  65) TimingSynchronisationStatusReport\n  66) WriteReplaceWarningResponse\n  67) PWSFailureIndication\n  68) PWSRestartIndication\n  69) DuplicateRegistrationReplayFlow\n  q) quit\n");
+    const auto print_menu_entry = [](unsigned number, const char* name, const char* color, const char* scope) {
+      std::printf("  %2u) %s%s%s\033[0m\n", number, color, name, scope);
+    };
+    struct menu_entry {
+      const char* name;
+      const char* color;
+      const char* scope;
+    };
+    static const menu_entry menu[] = {
+        {"NGSetupRequest", "\033[1;32m", ""}, {"NGReset", "\033[1;32m", ""},
+        {"NGResetAcknowledge", "\033[1;33m", " (free5GC)"}, {"RANConfigurationUpdate", "\033[1;32m", ""},
+        {"AMFConfigurationUpdateAcknowledge", "\033[1;33m", " (OAIᵀ, free5GC)"}, {"AMFConfigurationUpdateFailure", "\033[1;33m", " (OAIᵀ, free5GC)"},
+        {"ErrorIndication (non-UE-associated)", "\033[1;32m", ""}, {"ConnectionEstablishmentIndication", "\033[1;31m", ""},
+        {"InitialUEMessage", "\033[1;32m", ""}, {"UplinkNASTransport", "\033[1;32m", ""},
+        {"NASNonDeliveryIndication", "\033[1;33m", " (OAIᵀ, free5GC)"}, {"InitialContextSetupResponse", "\033[1;32m", ""},
+        {"InitialContextSetupFailure", "\033[1;32m", ""}, {"UEContextReleaseRequest", "\033[1;32m", ""},
+        {"UEContextReleaseComplete", "\033[1;32m", ""}, {"UEContextModificationResponse", "\033[1;32m", ""},
+        {"UEContextModificationFailure", "\033[1;32m", ""}, {"RRCInactiveTransitionReport", "\033[1;33m", " (OAIᵀ, free5GC)"},
+        {"UEContextSuspendRequest", "\033[1;31m", ""}, {"UEContextResumeRequest", "\033[1;31m", ""},
+        {"UEContextSuspendResponse", "\033[1;31m", ""}, {"UEContextResumeResponse", "\033[1;31m", ""},
+        {"RANCPRelocationIndication", "\033[1;31m", ""}, {"ErrorIndication (UE-associated)", "\033[1;32m", ""},
+        {"RerouteNASRequest", "\033[1;33m", " (OAIᵀ, free5GCᵀ)"}, {"UEInformationTransfer", "\033[1;31m", ""},
+        {"PDUSessionResourceSetupResponse", "\033[1;32m", ""}, {"PDUSessionResourceModifyResponse", "\033[1;32m", ""},
+        {"PDUSessionResourceModifyIndication", "\033[1;32m", ""}, {"PDUSessionResourceNotify", "\033[1;32m", ""},
+        {"PDUSessionResourceReleaseResponse", "\033[1;32m", ""},
+        {"BroadcastSessionModificationResponse", "\033[1;31m", ""}, {"BroadcastSessionReleaseResponse", "\033[1;31m", ""},
+        {"BroadcastSessionSetupResponse", "\033[1;31m", ""}, {"BroadcastSessionTransportResponse", "\033[1;31m", ""},
+        {"DistributionSetupResponse", "\033[1;31m", ""}, {"DistributionReleaseResponse", "\033[1;31m", ""},
+        {"MulticastSessionActivationResponse", "\033[1;31m", ""}, {"MulticastSessionDeactivationResponse", "\033[1;31m", ""},
+        {"MulticastSessionUpdateResponse", "\033[1;31m", ""}, {"TimingSynchronisationStatusResponse", "\033[1;31m", ""},
+        {"HandoverRequired", "\033[1;32m", ""}, {"HandoverRequestAcknowledge", "\033[1;32m", ""},
+        {"HandoverFailure", "\033[1;32m", ""}, {"HandoverNotify", "\033[1;32m", ""},
+        {"HandoverCancel", "\033[1;32m", ""}, {"HandoverSuccess", "\033[1;31m", ""},
+        {"PathSwitchRequest", "\033[1;32m", ""}, {"UplinkRANStatusTransfer", "\033[1;32m", ""},
+        {"UplinkRANEarlyStatusTransfer", "\033[1;31m", ""}, {"UplinkRANConfigurationTransfer", "\033[1;32m", ""},
+        {"UplinkRIMInformationTransfer", "\033[1;31m", ""}, {"UERadioCapabilityInfoIndication", "\033[1;32m", ""},
+        {"UERadioCapabilityCheckResponse", "\033[1;33m", " (OAIᵀ, free5GC)"}, {"UERadioCapabilityIDMappingResponse", "\033[1;31m", ""},
+        {"LocationReport", "\033[1;33m", " (OAIᵀ, free5GC)"}, {"LocationReportingFailureIndication", "\033[1;33m", " (OAIᵀ, free5GC)"},
+        {"TraceFailureIndication", "\033[1;33m", " (OAIᵀ, free5GC)"}, {"CellTrafficTrace", "\033[1;33m", " (OAIᵀ, free5GC)"},
+        {"SecondaryRATDataUsageReport", "\033[1;33m", " (OAIᵀ, free5GC)"},
+        {"UplinkNonUEAssociatedNRPPaTransport", "\033[1;33m", " (OAI, free5GC)"}, {"UplinkUEAssociatedNRPPaTransport", "\033[1;33m", " (OAI, free5GC)"},
+        {"UETNLABindingReleaseRequest", "\033[1;33m", " (OAIᵀ, free5GCᵀ)"}, {"RANPagingRequest", "\033[1;31m", ""},
+        {"TimingSynchronisationStatusReport", "\033[1;31m", ""}, {"WriteReplaceWarningResponse", "\033[1;33m", " (free5GCᵀ)"},
+        {"PWSFailureIndication", "\033[1;33m", " (OAIᵀ, free5GCᵀ)"}, {"PWSRestartIndication", "\033[1;33m", " (OAIᵀ, free5GCᵀ)"},
+        {"DuplicateRegistrationReplayFlow", "\033[1;37m", " (injector-only)"}};
+    for (unsigned i = 0; i < sizeof(menu) / sizeof(menu[0]); ++i) {
+      print_menu_entry(i + 1, menu[i].name, menu[i].color, menu[i].scope);
+    }
+    std::printf("  q) quit\n");
+    std::printf("  Legend: \033[1;32mgreen\033[0m=all three; \033[1;33myellow\033[0m=one/two; ᵀ=TODO-only support\033[1;31mred\033[0m=none\n");
 
     std::string line;
     if (!read_line("Selection: ", line)) return std::nullopt;
@@ -3759,7 +3799,7 @@ private:
                       payload_length,
                       message_type.c_str());
           if (const auto decoded_fields = format_relevant_ngap_fields(pdu); decoded_fields.has_value()) {
-            std::printf("\033[1;32mNGAP inspector: relevant fields:\n%s\033[0m", decoded_fields->c_str());
+            std::printf("\033[1;36mNGAP inspector: relevant fields:\n%s\033[0m", decoded_fields->c_str());
           }
           if (dump_hex_enabled_) {
             std::printf("NGAP inspector: hex=");

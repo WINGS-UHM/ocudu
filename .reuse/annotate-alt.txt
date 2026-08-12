@@ -2,6 +2,7 @@
 /asn1/
 /cu_cp/
 /cu_up/
+/cuda/prach/
 /du/
 /du_high/
 /du_high_cu/

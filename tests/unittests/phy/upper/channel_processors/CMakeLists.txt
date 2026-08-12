@@ -5,6 +5,7 @@
 
 add_subdirectory(pdcch)
 add_subdirectory(pdsch)
+add_subdirectory(prach)
 add_subdirectory(pucch)
 add_subdirectory(pusch)
 add_subdirectory(ssb)

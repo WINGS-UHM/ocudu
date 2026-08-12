@@ -1753,6 +1753,26 @@ static bool is_relevant_ngap_field(const std::string& key)
   return std::find(std::begin(fields), std::end(fields), key) != std::end(fields);
 }
 
+static std::string format_transport_layer_address(const std::string& value)
+{
+  if (value.size() != 32 || value.find_first_not_of("01") != std::string::npos) {
+    return value;
+  }
+
+  std::ostringstream address;
+  for (unsigned octet = 0; octet != 4; ++octet) {
+    uint8_t value_octet = 0;
+    for (unsigned bit = 0; bit != 8; ++bit) {
+      value_octet = static_cast<uint8_t>((value_octet << 1U) | (value[octet * 8U + bit] - '0'));
+    }
+    if (octet != 0) {
+      address << '.';
+    }
+    address << static_cast<unsigned>(value_octet);
+  }
+  return address.str();
+}
+
 static void collect_scalar_ngap_values(const nlohmann::json& node, const std::string& label, std::vector<std::string>& fields)
 {
   if (node.is_object()) {
@@ -1764,7 +1784,11 @@ static void collect_scalar_ngap_values(const nlohmann::json& node, const std::st
       collect_scalar_ngap_values(item, label, fields);
     }
   } else {
-    const std::string field = label + "=" + (node.is_string() ? node.get<std::string>() : node.dump());
+    std::string value = node.is_string() ? node.get<std::string>() : node.dump();
+    if (label == "transportLayerAddress") {
+      value = format_transport_layer_address(value);
+    }
+    const std::string field = label + "=" + value;
     if (std::find(fields.begin(), fields.end(), field) == fields.end()) { fields.push_back(field); }
   }
 }
@@ -1830,6 +1854,65 @@ static void add_unique_relevant_field(std::vector<std::string>& fields, const st
   }
 }
 
+static void collect_nested_octet_strings(const nlohmann::json& node,
+                                         const std::string& target_key,
+                                         std::vector<std::string>& values)
+{
+  if (node.is_object()) {
+    for (const auto& item : node.items()) {
+      if (item.key() == target_key) {
+        if (item.value().is_string()) {
+          if (std::find(values.begin(), values.end(), item.value().get<std::string>()) == values.end()) {
+            values.push_back(item.value().get<std::string>());
+          }
+        } else if (item.value().is_object()) {
+          const auto octets = item.value().find("OCTET STRING");
+          if (octets != item.value().end() && octets->is_string()) {
+            if (std::find(values.begin(), values.end(), octets->get<std::string>()) == values.end()) {
+              values.push_back(octets->get<std::string>());
+            }
+          }
+        }
+      }
+      collect_nested_octet_strings(item.value(), target_key, values);
+    }
+  } else if (node.is_array()) {
+    for (const auto& item : node) {
+      collect_nested_octet_strings(item, target_key, values);
+    }
+  }
+}
+
+template<typename Transfer>
+static void append_nested_transfer_fields(const nlohmann::json& outer,
+                                          const char* transfer_key,
+                                          std::vector<std::string>& fields)
+{
+  std::vector<std::string> encoded_transfers;
+  collect_nested_octet_strings(outer, transfer_key, encoded_transfers);
+
+  for (const auto& encoded : encoded_transfers) {
+    auto bytes = make_byte_buffer(encoded);
+    if (!bytes.has_value()) {
+      continue;
+    }
+
+    asn1::cbit_ref bref(bytes.value());
+    Transfer transfer = {};
+    if (transfer.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+      continue;
+    }
+
+    asn1::json_writer nested_json;
+    transfer.to_json(nested_json);
+    try {
+      collect_relevant_ngap_fields(nlohmann::json::parse(nested_json.to_string()), fields);
+    } catch (const nlohmann::json::exception&) {
+      // The outer message fields remain useful if a nested JSON conversion fails.
+    }
+  }
+}
+
 static void append_numeric_ie_fields(const std::string& serialized, std::vector<std::string>& fields)
 {
   struct ie_label {
@@ -1878,6 +1961,20 @@ static std::optional<std::string> format_relevant_ngap_fields(const byte_buffer&
   try {
     const auto parsed_json = nlohmann::json::parse(decoded.value());
     collect_relevant_ngap_fields(parsed_json, fields);
+
+    // PDU-session transfer IEs are encoded OCTET STRINGs inside the outer
+    // NGAP message. Decode them with their generated ASN.1 types so fields
+    // such as TEID, transport address, and QFI become visible.
+    append_nested_transfer_fields<pdu_session_res_setup_resp_transfer_s>(
+        parsed_json, "pDUSessionResourceSetupResponseTransfer", fields);
+    append_nested_transfer_fields<pdu_session_res_modify_resp_transfer_s>(
+        parsed_json, "pDUSessionResourceModifyResponseTransfer", fields);
+    append_nested_transfer_fields<pdu_session_res_modify_ind_transfer_s>(
+        parsed_json, "pDUSessionResourceModifyIndicationTransfer", fields);
+    append_nested_transfer_fields<pdu_session_res_notify_transfer_s>(
+        parsed_json, "pDUSessionResourceNotifyTransfer", fields);
+    append_nested_transfer_fields<pdu_session_res_release_resp_transfer_s>(
+        parsed_json, "pDUSessionResourceReleaseResponseTransfer", fields);
   } catch (const nlohmann::json::exception&) {
     // Numeric IE extraction above remains useful even when repeated JSON keys
     // cannot be represented by the JSON parser.

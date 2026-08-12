@@ -1,0 +1,3 @@
+[submodule "N2AuthValidator"]
+	path = N2AuthValidator
+	url = https://github.com/WINGS-UHM/N2AuthValidator.git

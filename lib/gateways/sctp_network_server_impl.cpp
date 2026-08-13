@@ -3,6 +3,7 @@
 
 #include "sctp_network_server_impl.h"
 #include "sctp_dtls.h"
+#include "sctp_dtls_ssl.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/synchronization/sync_event.h"
 #include <netinet/sctp.h>
@@ -511,17 +512,9 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
   }
 
   /// TODO create DTLS SSL association.
-
-  /// Register peeled-off socket in IO broker.
-  assoc_ctxt.io_sub = broker.register_fd(
-      std::move(assoc_fd),
-      io_rx_executor,
-      [&assoc_ctxt]() { assoc_ctxt.receive(); },
-      [this, &assoc_ctxt](io_broker::error_code code) {
-        logger.info("Connection loss due to IO error code={}.", (int)code);
-        handle_association_shutdown(assoc_ctxt.assoc_id, "IO broker error");
-        remove_association(assoc_ctxt.assoc_id);
-      });
+  if (dtls_cfg.has_value()) {
+    auto ssl = ocudu::create_dtls_ssl(dtls_ssl_config{dtls_cfg->mode}, {*dtls_ctxt});
+  }
 
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);
 
@@ -533,7 +526,10 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
     auto pending_it = std::find_if(pending_connects.begin(),
                                    pending_connects.end(),
                                    [&addr](const pending_connect& pending) { return pending.contains(addr); });
-    if (pending_it != pending_connects.end()) {
+
+    /// If DTLS is not enabled, mark connection as complete. Otherwise, wait for the DTLS handshake before signaling the
+    /// connection is set up to upper layers.
+    if (pending_it != pending_connects.end() && !dtls_cfg.has_value()) {
       pending_it->event.set(true);
     }
     /// Register peeled-off socket in IO broker.

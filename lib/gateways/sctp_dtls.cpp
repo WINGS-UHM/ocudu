@@ -26,6 +26,9 @@ std::unique_ptr<dtls_context> ocudu::create_dtls_context(dtls_context_config cfg
 openssl_dtls_context::openssl_dtls_context(dtls_context_config cfg_) :
   cfg(std::move(cfg_)), logger(ocudulog::fetch_basic_logger("SCTP"))
 {
+  report_error_if_not(cfg.key_filename != "", "Invalid DTLS key filename");
+  report_error_if_not(cfg.cert_filename != "", "Invalid DTLS cert filename");
+  logger.info("Initializing DTLS context. cert={} key={}", cfg.cert_filename, cfg.key_filename);
 }
 
 openssl_dtls_context::~openssl_dtls_context()
@@ -92,13 +95,18 @@ bool openssl_dtls_context::init(int socket)
 
   // Create BIO to set all necessary parameters for following connections, e.g. SCTP-AUTH.
   // Will not be used.
+  // If this call fails, make sure AUTH is enabled in the kernel with:
+  // `sudo sysctl -w net.sctp.auth_enable=1`.
   BIO* bio = BIO_new_dgram_sctp(socket, BIO_NOCLOSE);
   if (!bio) {
     unsigned long err = ERR_get_error();
-    logger.error("Could not initialize DTLS context. Cause: failed to configure socket. session={} filename={} err={}",
-                 cfg.session_id,
-                 cfg.key_filename,
-                 ERR_reason_error_string(err));
+    logger.error(
+        "Could not initialize DTLS context. Cause: failed to configure socket. session={} key={} cert={} err={}",
+        cfg.session_id,
+        cfg.key_filename,
+        cfg.cert_filename,
+        ERR_reason_error_string(err));
+    logger.error("Make sure that net.sctp.auth_enable is set to 1");
     return false;
   }
   BIO_free(bio);

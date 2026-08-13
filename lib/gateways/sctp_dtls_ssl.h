@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "sctp_dtls_mode.h"
 #include "ocudu/ocudulog/logger.h"
 #include <memory>
 
@@ -16,7 +17,7 @@
 namespace ocudu {
 
 struct dtls_ssl_config {
-  enum class dtls_mode { client, server } mode;
+  dtls_mode mode;
 };
 
 class dtls_context;

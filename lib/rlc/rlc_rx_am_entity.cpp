@@ -278,7 +278,7 @@ void rlc_rx_am_entity::handle_data_pdu(byte_buffer_slice buf)
       stop_reassembly_timer = true;
     }
     if (rx_mod_base(st.rx_next_status_trigger) == rx_mod_base(st.rx_next + 1)) {
-      if (not rx_window[st.rx_next].has_gap) {
+      if (rx_window.has_sn(st.rx_next) && not rx_window[st.rx_next].has_gap) {
         stop_reassembly_timer = true;
       }
     }

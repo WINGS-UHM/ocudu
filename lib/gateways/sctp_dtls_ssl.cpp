@@ -22,6 +22,11 @@ openssl_dtls_ssl::openssl_dtls_ssl(const dtls_ssl_config& cfg_, const dtls_ssl_d
 {
 }
 
+openssl_dtls_ssl::~openssl_dtls_ssl()
+{
+  SSL_free(ssl);
+}
+
 bool openssl_dtls_ssl::init(int socket)
 {
   /// Create SSL connection and BIO. We associate this BIO with the correct association at this point.
@@ -32,12 +37,16 @@ bool openssl_dtls_ssl::init(int socket)
   ssl = SSL_new(ctx);
   if (ssl == nullptr) {
     int err = ERR_get_error();
-    logger.error("Could not initialize SSL. Cause: failure to create SSL. assoc_id={} err={}",
-                 0, // TODO write association id.
-                 ERR_reason_error_string(err));
+    logger.error("Could not initialize SSL. Cause: failure to create SSL. err={}", ERR_reason_error_string(err));
     return false;
   }
   bio = BIO_new_dgram_sctp(socket, BIO_NOCLOSE);
+  if (bio == nullptr) {
+    int err = ERR_get_error();
+    logger.error("Could not initialize SSL. Cause: failure to create BIO. err={}", ERR_reason_error_string(err));
+    return false;
+  }
+  SSL_set_bio(ssl, bio, bio);
 
   return true;
 }

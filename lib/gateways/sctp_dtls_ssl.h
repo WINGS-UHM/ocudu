@@ -45,6 +45,7 @@ class openssl_dtls_ssl : public dtls_ssl
 {
 public:
   openssl_dtls_ssl(const dtls_ssl_config& cfg_, const dtls_ssl_dependencies& ssl_ctx_);
+  ~openssl_dtls_ssl() override;
   bool init(int socket) override;
 
 private:

@@ -513,7 +513,7 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
 
   /// TODO create DTLS SSL association.
   if (dtls_cfg.has_value()) {
-    auto ssl = ocudu::create_dtls_ssl(dtls_ssl_config{dtls_cfg->mode}, {*dtls_ctxt});
+    assoc_ctxt.ssl = create_dtls_ssl(dtls_ssl_config{dtls_cfg->mode}, {*dtls_ctxt});
   }
 
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);

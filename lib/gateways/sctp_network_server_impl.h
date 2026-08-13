@@ -4,6 +4,7 @@
 #pragma once
 
 #include "sctp_dtls.h"
+#include "sctp_dtls_ssl.h"
 #include "sctp_network_gateway_common_impl.h"
 #include "ocudu/gateways/sctp_network_server.h"
 #include "ocudu/support/async/manual_event.h"
@@ -68,6 +69,7 @@ private:
     io_broker::subscriber              io_sub;
 
     std::unique_ptr<sctp_association_sdu_notifier> sctp_data_recv_notifier;
+    std::unique_ptr<dtls_ssl>                      ssl;
 
     sctp_associaton_context(int assoc_id, int fd_, sctp_network_server_impl& parent_);
     void                      receive();

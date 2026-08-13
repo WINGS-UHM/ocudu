@@ -88,7 +88,13 @@ void rlc_rx_um_entity::handle_pdu(byte_buffer_slice buf)
   }
 
   // We received an SDU segment
-  handle_segment_data_sdu(header, std::move(payload));
+  bool stored = handle_segment_data_sdu(header, std::move(payload));
+
+  // Return if nothing was added to the reception buffer
+  if (not stored) {
+    logger.log_debug("No new data added to RX window. sn={}", header.sn);
+    return;
+  }
 
   // Log state
   log_state(ocudulog::basic_levels::debug);

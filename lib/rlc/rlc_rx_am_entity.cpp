@@ -107,18 +107,17 @@ void rlc_rx_am_entity::handle_control_pdu(byte_buffer_slice buf)
 
 void rlc_rx_am_entity::handle_data_pdu(byte_buffer_slice buf)
 {
-  bool status_changed   = false;
+  bool stored           = false;
   bool status_requested = false;
   auto on_function_exit = make_scope_exit([&]() {
-    logger.log_debug(
-        "Post-processing for AMD PDU: status_changed={} status_requested={}", status_changed, status_requested);
-    if (status_changed || status_requested) {
+    logger.log_debug("Post-processing for AMD PDU: stored={} status_requested={}", stored, status_requested);
+    if (stored || status_requested) {
       refresh_status_report();
     }
     if (status_requested) {
       do_status.store(true, std::memory_order_relaxed);
     }
-    if (status_changed || status_requested) {
+    if (stored || status_requested) {
       notify_status_report_changed();
     }
   });
@@ -170,9 +169,15 @@ void rlc_rx_am_entity::handle_data_pdu(byte_buffer_slice buf)
 
   // Write to rx window either full SDU or SDU segment
   if (header.si == rlc_si_field::full_sdu) {
-    status_changed = handle_full_data_sdu(header, std::move(payload));
+    stored = handle_full_data_sdu(header, std::move(payload));
   } else {
-    status_changed = handle_segment_data_sdu(header, std::move(payload));
+    stored = handle_segment_data_sdu(header, std::move(payload));
+  }
+
+  // Return if nothing was added to the reception buffer
+  if (not stored) {
+    logger.log_debug("No new data added to RX window. sn={}", header.sn);
+    return;
   }
 
   // Log state

@@ -93,8 +93,8 @@ bool openssl_dtls_context::init(int socket)
   // Set verify callback.
   SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_callback);
 
-  // Create BIO to set all necessary parameters for following connections, e.g. SCTP-AUTH.
-  // Will not be used.
+  // Create BIO to set all necessary socket options required for DTLS, e.g. SCTP-AUTH.
+  // This BIO will not be used.
   // If this call fails, make sure AUTH is enabled in the kernel with:
   // `sudo sysctl -w net.sctp.auth_enable=1`.
   BIO* bio = BIO_new_dgram_sctp(socket, BIO_NOCLOSE);

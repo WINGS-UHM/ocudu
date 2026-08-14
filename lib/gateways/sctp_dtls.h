@@ -29,7 +29,7 @@ struct dtls_context_config {
 class dtls_context
 {
 public:
-  virtual bool init(int scoket) = 0;
+  virtual bool init(int socket) = 0;
   virtual ~dtls_context()       = default;
 };
 

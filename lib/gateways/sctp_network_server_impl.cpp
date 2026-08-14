@@ -50,15 +50,15 @@ public:
 
     transport_layer_address::native_type dest_addr  = client_addr.native();
     int                                  bytes_sent = ::sctp_sendmsg(fd,
-                                                                     pdu_span.data(),
-                                                                     pdu_span.size(),
-                                                                     const_cast<struct sockaddr*>(dest_addr.addr),
-                                                                     dest_addr.addrlen,
-                                                                     htonl(ppid),
-                                                                     0,
-                                                                     stream_no,
-                                                                     0,
-                                                                     0);
+                                    pdu_span.data(),
+                                    pdu_span.size(),
+                                    const_cast<struct sockaddr*>(dest_addr.addr),
+                                    dest_addr.addrlen,
+                                    htonl(ppid),
+                                    0,
+                                    stream_no,
+                                    0,
+                                    0);
     if (bytes_sent == -1) {
       logger.error("{} assoc={}: Closing SCTP association. Cause: Couldn't send {} B of data. errno={}",
                    if_name,
@@ -470,7 +470,7 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
     return;
   }
 
-  /// Peel-off a socket. This is done for easier DTLS support.
+  /// Peel-off a socket. This is required to support DTLS.
   int assoc_fd_raw = sctp_peeloff(socket.fd().value(), assoc_id);
   if (assoc_fd_raw == -1) {
     logger.error(
@@ -527,8 +527,8 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
                                    pending_connects.end(),
                                    [&addr](const pending_connect& pending) { return pending.contains(addr); });
 
-    /// If DTLS is not enabled, mark connection as complete. Otherwise, wait for the DTLS handshake before signaling the
-    /// connection is set up to upper layers.
+    /// If DTLS is not configured, mark connection as complete. Otherwise, wait for the DTLS handshake before signaling
+    /// the connection is set up to upper layers.
     if (pending_it != pending_connects.end() && !dtls_cfg.has_value()) {
       pending_it->event.set(true);
     }

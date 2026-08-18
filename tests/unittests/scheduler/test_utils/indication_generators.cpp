@@ -20,24 +20,28 @@ rach_indication_message::preamble ocudu::test_helper::create_preamble(unsigned p
   return preamble;
 }
 
+unsigned ocudu::test_helper::compute_prach_occasion_slot_index(const cell_configuration& cell_cfg,
+                                                               slot_point                prach_slot_rx)
+{
+  const rach_config_common& rach_cfg  = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  const prach_configuration prach_cfg = prach_configuration_get(band_helper::get_freq_range(cell_cfg.band()),
+                                                                band_helper::get_duplex_mode(cell_cfg.band()),
+                                                                rach_cfg.rach_cfg_generic.prach_config_index);
+  return ra_helper::get_prach_occasion_slot_index(prach_slot_rx, prach_cfg.format, rach_cfg.msg1_scs);
+}
+
 rnti_t ocudu::test_helper::compute_ra_rnti(const cell_configuration& cell_cfg,
                                            slot_point                prach_slot_rx,
                                            unsigned                  start_symbol,
                                            unsigned                  frequency_index)
 {
-  const prach_configuration prach_cfg = prach_configuration_get(
-      band_helper::get_freq_range(cell_cfg.band()),
-      band_helper::get_duplex_mode(cell_cfg.band()),
-      cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
-  // As per TS 38.321, 5.1.3, and TS 38.211, 5.3.2, slot_idx uses 15kHz numerology (subframe index) for long PRACH
-  // formats, and the SCS common numerology (actual slot index) for short formats.
-  const unsigned slot_idx =
-      is_long_preamble(prach_cfg.format) ? prach_slot_rx.subframe_index() : prach_slot_rx.slot_index();
-  return ra_helper::get_ra_rnti(slot_idx, start_symbol, frequency_index);
+  return ra_helper::get_ra_rnti(
+      compute_prach_occasion_slot_index(cell_cfg, prach_slot_rx), start_symbol, frequency_index);
 }
 
 rach_indication_message
-ocudu::test_helper::create_rach_indication(slot_point                                            slot_rx,
+ocudu::test_helper::create_rach_indication(const cell_configuration&                             cell_cfg,
+                                           slot_point                                            slot_rx,
                                            const std::vector<rach_indication_message::preamble>& preambles)
 {
   rach_indication_message rach_ind{};
@@ -48,6 +52,7 @@ ocudu::test_helper::create_rach_indication(slot_point                           
   }
   rach_ind.occasions.emplace_back();
   rach_ind.occasions.back().start_symbol    = 0;
+  rach_ind.occasions.back().slot_index      = compute_prach_occasion_slot_index(cell_cfg, slot_rx);
   rach_ind.occasions.back().frequency_index = 0;
 
   for (const auto& preamble : preambles) {

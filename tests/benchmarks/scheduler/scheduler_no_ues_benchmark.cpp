@@ -83,13 +83,13 @@ void benchmark_rach_scheduling()
   sched_cell_configuration_request_message cell_cfg_msg =
       sched_config_helper::make_default_sched_cell_configuration_request();
   test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
-  cfg_mng.add_cell(cell_cfg_msg);
+  const cell_configuration&               cell_cfg = *cfg_mng.add_cell(cell_cfg_msg);
   sch->handle_cell_configuration_request(cell_cfg_msg);
 
   auto&                   logger = ocudulog::fetch_basic_logger("SCHED", true);
   slot_point_extended     sl_tx{subcarrier_spacing::kHz15, 0};
   rach_indication_message rach_ind = test_helper::create_rach_indication(
-      sl_tx.without_hyper_sfn() - 4, {test_helper::create_preamble(0, to_rnti(0x4601))});
+      cell_cfg, sl_tx.without_hyper_sfn() - 4, {test_helper::create_preamble(0, to_rnti(0x4601))});
 
   // Run benchmark.
   bm->new_measure("SSB+SIB+RACH scheduling", 1, [&sch, &sl_tx, &rach_ind, &logger]() mutable {

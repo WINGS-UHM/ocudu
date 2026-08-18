@@ -576,7 +576,7 @@ protected:
     for (unsigned i = 0, e = wave_ues.size(); i != e; ++i) {
       preambles.push_back(test_helper::create_preamble(i, wave_rntis[i]));
     }
-    sched->handle_rach_indication(test_helper::create_rach_indication(next_slot_rx(), preambles));
+    sched->handle_rach_indication(test_helper::create_rach_indication(cell_cfg(), next_slot_rx(), preambles));
   }
 
   // Async lifecycle of a transient UE: attach in fallback, complete contention resolution before the ConRes timer

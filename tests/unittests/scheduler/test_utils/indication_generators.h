@@ -19,6 +19,12 @@ namespace test_helper {
 /// Create a detected PRACH preamble.
 rach_indication_message::preamble create_preamble(unsigned preamble_id, rnti_t tc_rnti);
 
+/// \brief Computes the t_id the PHY reports for a PRACH occasion detected at \c prach_slot_rx.
+///
+/// The RACH.indication slotIndex (SCF-222 Section 3.4.11), counted in slots of the PRACH subcarrier spacing, which
+/// TS 38.211 Section 5.3.2 takes as 15 kHz for the long preamble formats.
+unsigned compute_prach_occasion_slot_index(const cell_configuration& cell_cfg, slot_point prach_slot_rx);
+
 /// \brief Computes the RA-RNTI associated with a RACH occasion, as per TS 38.321, 5.1.3.
 ///
 /// MsgA PUSCH (2-step RACH) is scheduled and decoded using this RA-RNTI, not the preamble's TC-RNTI, as per
@@ -28,8 +34,12 @@ rnti_t compute_ra_rnti(const cell_configuration& cell_cfg,
                        unsigned                  start_symbol,
                        unsigned                  frequency_index);
 
-/// Create a RACH indication with one occation and multiple PRACH preambles.
-rach_indication_message create_rach_indication(slot_point                                            slot_rx,
+/// \brief Create a RACH indication with one occation and multiple PRACH preambles.
+///
+/// The occasion t_id is the one \ref compute_prach_occasion_slot_index derives from \c slot_rx for \c cell_cfg's
+/// PRACH configuration.
+rach_indication_message create_rach_indication(const cell_configuration&                             cell_cfg,
+                                               slot_point                                            slot_rx,
                                                const std::vector<rach_indication_message::preamble>& preambles);
 
 /// Create dummy UCI indication based on a PUCCH PDU.

@@ -88,6 +88,10 @@ public:
         cell_cfg.init_bwp.ul.rach_common()->rach_cfg_generic.prach_config_index};
     run_slot_until([this, &prach_mapper]() { return prach_mapper.has_prach_occasion(next_slot_rx()); });
     ind.slot_rx = next_slot_rx();
+    if (not ind.occasions.empty()) {
+      // The occasion index tracks the slot_rx just selected above.
+      ind.occasions[0].slot_index = test_helper::compute_prach_occasion_slot_index(cell_cfg, ind.slot_rx);
+    }
     ra_sch.handle_rach_indication(ind);
     tracker.on_new_rach_ind(ind);
   }
@@ -117,7 +121,7 @@ public:
     for (unsigned i = 0; i != nof_preambles; ++i) {
       preambles.push_back(create_random_preamble());
     }
-    return test_helper::create_rach_indication(next_slot_rx(), preambles);
+    return test_helper::create_rach_indication(cell_cfg, next_slot_rx(), preambles);
   }
 
   bool grants_scheduled_in_next_slots(unsigned nof_slots_to_check)
@@ -552,7 +556,7 @@ TEST_F(ra_scheduler_snr_backoff_test, weak_preamble_excluded_and_backoff_indicat
   rach_indication_message::preamble strong = create_preamble_with_snr(0.0F);
   rach_indication_message::preamble weak   = create_preamble_with_snr(-10.0F);
 
-  handle_rach_indication(test_helper::create_rach_indication(next_slot_rx(), {strong, weak}));
+  handle_rach_indication(test_helper::create_rach_indication(cell_cfg, next_slot_rx(), {strong, weak}));
 
   const bool found = run_slot_until([this]() { return not res_grid[0].result.dl.rar_grants.empty(); });
   ASSERT_TRUE(found);
@@ -573,7 +577,7 @@ TEST_F(ra_scheduler_count_backoff_test, excess_preambles_excluded_and_backoff_in
     preambles.push_back(create_preamble_with_snr(snr));
   }
 
-  handle_rach_indication(test_helper::create_rach_indication(next_slot_rx(), preambles));
+  handle_rach_indication(test_helper::create_rach_indication(cell_cfg, next_slot_rx(), preambles));
 
   bool bi_seen = false;
   for (unsigned slot_count = 0, max_slots = 1000; slot_count != max_slots and tracker.has_pending_ra(); ++slot_count) {
@@ -596,7 +600,7 @@ TEST_F(ra_scheduler_backoff_only_test, all_preambles_below_threshold_yields_back
   rach_indication_message::preamble weak1 = create_preamble_with_snr(-10.0F);
   rach_indication_message::preamble weak2 = create_preamble_with_snr(-20.0F);
 
-  handle_rach_indication(test_helper::create_rach_indication(next_slot_rx(), {weak1, weak2}));
+  handle_rach_indication(test_helper::create_rach_indication(cell_cfg, next_slot_rx(), {weak1, weak2}));
 
   const rar_information* backoff_rar = nullptr;
   const bool             found       = run_slot_until([this, &backoff_rar]() {
@@ -621,7 +625,7 @@ TEST_F(ra_scheduler_backoff_duration_test, duration_is_mapped_to_table_index)
 {
   rach_indication_message::preamble weak = create_preamble_with_snr(-10.0F);
 
-  handle_rach_indication(test_helper::create_rach_indication(next_slot_rx(), {weak}));
+  handle_rach_indication(test_helper::create_rach_indication(cell_cfg, next_slot_rx(), {weak}));
 
   const rar_information* backoff_rar = nullptr;
   const bool             found       = run_slot_until([this, &backoff_rar]() {
@@ -689,7 +693,7 @@ public:
   rach_indication_message
   create_msga_rach_indication(std::initializer_list<rach_indication_message::preamble> preambles) const
   {
-    return test_helper::create_rach_indication(next_slot_rx(), {preambles.begin(), preambles.end()});
+    return test_helper::create_rach_indication(cell_cfg, next_slot_rx(), {preambles.begin(), preambles.end()});
   }
 
   /// \brief Builds and forwards a MsgA RACH indication, and records the actual PRACH slot it lands on.
@@ -966,7 +970,7 @@ public:
     const unsigned cfra_preamble_id =
         cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb;
     auto preamble = test_helper::create_preamble(cfra_preamble_id, tc_rnti);
-    return test_helper::create_rach_indication(next_slot_rx(), {preamble});
+    return test_helper::create_rach_indication(cell_cfg, next_slot_rx(), {preamble});
   }
 
   void send_cfra_crc(rnti_t tc_rnti, bool success)
@@ -1029,7 +1033,7 @@ public:
     const unsigned cfra_preamble_id =
         cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb;
     auto preamble = test_helper::create_preamble(cfra_preamble_id, cfra_crnti);
-    return test_helper::create_rach_indication(next_slot_rx(), {preamble});
+    return test_helper::create_rach_indication(cell_cfg, next_slot_rx(), {preamble});
   }
 
   void do_run_slot() override

@@ -89,8 +89,9 @@ protected:
     for (unsigned i = 0; i != nof_preambles; ++i) {
       preambles[i] = this->create_preamble();
     }
-    rach_indication_message rach_ind = test_helper::create_rach_indication(next_slot_rx() - 1, preambles);
-    rach_ind.cell_index              = cell_idx;
+    rach_indication_message rach_ind =
+        test_helper::create_rach_indication(cell_cfg(cell_idx), next_slot_rx() - 1, preambles);
+    rach_ind.cell_index = cell_idx;
 
     return rach_ind;
   }

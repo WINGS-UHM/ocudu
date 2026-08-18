@@ -609,7 +609,7 @@ public:
     const unsigned cfra_preamble_id =
         cell_cfg().params.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb;
     auto preamble = test_helper::create_preamble(cfra_preamble_id, cfra_tc_rnti);
-    return test_helper::create_rach_indication(next_slot_rx(), {preamble});
+    return test_helper::create_rach_indication(cell_cfg(), next_slot_rx(), {preamble});
   }
 
   void send_cfra_crc(bool success)
@@ -724,7 +724,7 @@ public:
     const unsigned cfra_preamble_id =
         cell_cfg().params.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb;
     auto preamble = test_helper::create_preamble(cfra_preamble_id, cfra_tc_rnti);
-    return test_helper::create_rach_indication(next_slot_rx(), {preamble});
+    return test_helper::create_rach_indication(cell_cfg(), next_slot_rx(), {preamble});
   }
 
   void send_cfra_crc(bool success)
@@ -878,7 +878,7 @@ TEST_P(cfra_multi_ue_rar_test, cfra_pucch_does_not_block_other_ue_msg3_in_same_r
   const std::vector<rach_indication_message::preamble> preambles = {
       test_helper::create_preamble(cfra_preamble_id, cfra_tc_rnti),
       test_helper::create_preamble(cbra_preamble_id, cbra_tc_rnti)};
-  sched->handle_rach_indication(test_helper::create_rach_indication(next_slot_rx(), preambles));
+  sched->handle_rach_indication(test_helper::create_rach_indication(cell_cfg(), next_slot_rx(), preambles));
 
   bool cfra_msg3_seen = false;
   bool cbra_msg3_seen = false;
@@ -968,7 +968,7 @@ protected:
   {
     last_prach_slot_rx = next_slot_rx();
     auto preamble      = test_helper::create_preamble(MSGA_PREAMBLE_ID, tc_rnti);
-    sched->handle_rach_indication(test_helper::create_rach_indication(last_prach_slot_rx, {preamble}));
+    sched->handle_rach_indication(test_helper::create_rach_indication(cell_cfg(), last_prach_slot_rx, {preamble}));
   }
 
   /// Injects a CRC result for the MsgA PUSCH, addressed by the (shared, per-occasion) RA-RNTI, as per TS 38.211.

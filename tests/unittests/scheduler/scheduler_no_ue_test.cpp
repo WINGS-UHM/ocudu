@@ -74,8 +74,8 @@ TEST_F(sched_no_ue_tester, test_rach_indication)
   const unsigned      tx_delay = 2;
   slot_point_extended sl_rx{subcarrier_spacing::kHz15, 1};
   slot_point_extended sl_tx = sl_rx + tx_delay;
-  sch.handle_rach_indication(test_helper::create_rach_indication(sl_rx.without_hyper_sfn(),
-                                                                 {test_helper::create_preamble(0, to_rnti(0x4601))}));
+  sch.handle_rach_indication(test_helper::create_rach_indication(
+      cell_cfg, sl_rx.without_hyper_sfn(), {test_helper::create_preamble(0, to_rnti(0x4601))}));
 
   // Action 3: Run slot 0.
   const sched_result& res = sch.slot_indication(sl_tx, to_du_cell_index(0));

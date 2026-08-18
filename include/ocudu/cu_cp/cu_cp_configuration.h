@@ -17,6 +17,7 @@
 #include "ocudu/ran/supported_tracking_area.h"
 #include "ocudu/rrc/rrc_ue_config.h"
 #include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/io/transport_layer_address.h"
 #include <chrono>
 #include <map>
 #include <optional>
@@ -65,6 +66,8 @@ struct cu_cp_configuration {
   struct ngap_config {
     // Supported TAs for each AMF.
     std::vector<supported_tracking_area> supported_tas;
+    // Address of the SCTP association with the AMF.
+    transport_layer_address amf_addr = transport_layer_address::create_from_string("127.0.0.1");
   };
 
   struct ngap_params {

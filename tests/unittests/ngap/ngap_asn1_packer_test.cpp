@@ -59,13 +59,12 @@ protected:
 TEST_F(ngap_asn1_packer_test, when_packing_successful_then_pdu_matches_tv)
 {
   // Populate message.
-  ngap_context_t ngap_ctxt = {{411, 22},
-                              "tstgnb01",
-                              "AMF",
-                              cu_cp_amf_index_t::min,
-                              {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}},
-                              {},
-                              256};
+  ngap_context_t ngap_ctxt = {.gnb_id             = {411, 22},
+                              .ran_node_name      = "tstgnb01",
+                              .amf_name           = "AMF",
+                              .amf_index          = cu_cp_amf_index_t::min,
+                              .supported_tas      = {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}},
+                              .default_paging_drx = 256};
 
   ngap_message ngap_msg = {};
   ngap_msg.pdu.set_init_msg();

@@ -22,7 +22,8 @@ namespace ocudu::ocucp {
 
 /// Related to common type XNAP handover request, defined in TS 38.423 section 9.1.1.1.
 struct xnap_ue_context_info_ho_request {
-  unsigned                                                              amf_ue_id;
+  unsigned amf_ue_id;
+  /// Address of the SCTP association the source uses towards the AMF serving the UE.
   transport_layer_address                                               amf_addr;
   security::security_context                                            security_context;
   aggregate_maximum_bit_rate_t                                          ue_ambr;

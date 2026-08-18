@@ -21,6 +21,7 @@
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 #include "ocudu/xnap/xnap_types.h"
 #include <gtest/gtest.h>
 
@@ -248,6 +249,13 @@ public:
     report_fatal_error_if_not(
         test_helpers::is_valid_rrc_handover_preparation_info(test_helpers::get_rrc_container(xnap_pdu)),
         "Invalid Handover Preparation Info");
+
+    // The peer has to learn which AMF serves the UE, so that it can address the same one over NG-C
+    // (TS 38.423 section 9.2.1.13).
+    const auto& asn1_ue_context_info = xnap_pdu.pdu.init_msg().value.ho_request()->ue_context_info_ho_request;
+    report_fatal_error_if_not(tla_from_asn1_bitstring(asn1_ue_context_info.cp_tnl_info_source.endpoint_ip_address()) ==
+                                  amf_addr,
+                              "The Handover Request does not carry the address of the AMF association");
 
     local_xnap_ue_id =
         uint_to_local_xnap_ue_id(xnap_pdu.pdu.init_msg().value.ho_request()->source_ng_ra_nnode_ue_xn_ap_id);

@@ -19,6 +19,7 @@ namespace ocudu::ocucp {
 /// \param[in] ue The UE holding the context.
 /// \param[in] guami The GUAMI serving the UE.
 /// \param[in] amf_ue_id The AMF UE NGAP ID of the UE.
+/// \param[in] amf_addr The address of the SCTP association with the AMF serving the UE.
 /// \param[in] target_ssb_arfcn SSB ARFCN of the target cell, decoded from the MeasurementTimingConfiguration the peer
 /// advertised for it. Empty when it could not be decoded, in which case KgNB* cannot be derived.
 /// \param[in] logger CU-CP logger.
@@ -28,6 +29,7 @@ xnap_retrieve_ue_context_response collect_ue_context_for_retrieval(const xnap_re
                                                                    cu_cp_ue&                               ue,
                                                                    const guami_t&                          guami,
                                                                    amf_ue_id_t                             amf_ue_id,
+                                                                   const transport_layer_address&          amf_addr,
                                                                    std::optional<arfcn_t>  target_ssb_arfcn,
                                                                    ocudulog::basic_logger& logger);
 

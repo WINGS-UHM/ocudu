@@ -1470,8 +1470,13 @@ cu_cp_impl::handle_xnap_retrieve_ue_context_request(const xnap_retrieve_ue_conte
                            .get_ssb_arfcn(request.target_cell->meas_timing_cfg);
   }
 
-  return launch_no_op_task(collect_ue_context_for_retrieval(
-      request, *ue, served_guami.value(), ngap->get_amf_ue_id(request.ue_index), target_ssb_arfcn, logger));
+  return launch_no_op_task(collect_ue_context_for_retrieval(request,
+                                                            *ue,
+                                                            served_guami.value(),
+                                                            ngap->get_amf_ue_id(request.ue_index),
+                                                            ngap->get_ngap_context().amf_addr,
+                                                            target_ssb_arfcn,
+                                                            logger));
 }
 
 cu_cp_ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi,

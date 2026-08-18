@@ -29,6 +29,7 @@ ocudu::ocucp::collect_ue_context_for_retrieval(const xnap_retrieve_ue_context_re
                                                cu_cp_ue&                               ue,
                                                const guami_t&                          guami,
                                                amf_ue_id_t                             amf_ue_id,
+                                               const transport_layer_address&          amf_addr,
                                                std::optional<arfcn_t>                  target_ssb_arfcn,
                                                ocudulog::basic_logger&                 logger)
 {
@@ -79,11 +80,9 @@ ocudu::ocucp::collect_ue_context_for_retrieval(const xnap_retrieve_ue_context_re
                request.target_cell->nr_pci,
                target_ssb_arfcn->value());
 
-  auto& ue_context_info     = response.ue_context_info;
-  ue_context_info.amf_ue_id = amf_ue_id_to_uint(amf_ue_id);
-  // TODO: Report the address of the SCTP association with the serving AMF (TS 38.423 section 9.2.1.13). The CU-CP is
-  // given the N2 client, not the address it connects to.
-  ue_context_info.amf_addr         = transport_layer_address::create_from_string("127.0.0.1");
+  auto& ue_context_info            = response.ue_context_info;
+  ue_context_info.amf_ue_id        = amf_ue_id_to_uint(amf_ue_id);
+  ue_context_info.amf_addr         = amf_addr;
   ue_context_info.security_context = target_sec_context;
   ue_context_info.ue_ambr          = ue.get_ue_ambr();
 

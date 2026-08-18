@@ -148,6 +148,7 @@ std::vector<async_task<cu_cp_cho_candidate>> conditional_handover_coordinator_ro
         target.cgi,
         served_guami.value(),
         source_amf_ue_id,
+        ngap_ctxt.amf_addr,
         ue->get_ue_ambr(),
         ue->get_security_manager().get_security_context(),
         ue->get_up_resource_manager().get_pdu_sessions_map(),

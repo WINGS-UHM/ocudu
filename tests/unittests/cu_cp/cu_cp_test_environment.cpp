@@ -77,7 +77,7 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   // Fill NGAP config.
   for (const auto& [amf_index, amf_config] : amf_configs) {
     cu_cp_cfg.ngap.n2_gws.push_back(&*amf_config.amf_stub);
-    cu_cp_cfg.ngap.ngaps.push_back(cu_cp_configuration::ngap_config{amf_config.supported_tas});
+    cu_cp_cfg.ngap.ngaps.push_back(cu_cp_configuration::ngap_config{amf_config.supported_tas, amf_addr});
   }
   // Fill XNAP config. Each peer test stub becomes its own XnAP gateway; record the peer-gateway mapping.
   for (const auto& [_, peer] : xnc_peers) {

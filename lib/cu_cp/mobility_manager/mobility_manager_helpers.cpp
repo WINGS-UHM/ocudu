@@ -46,6 +46,7 @@ ocudu::ocucp::generate_xnap_handover_request(cu_cp_ue_index_t                   
                                              nr_cell_global_id_t                                       target_nr_cgi,
                                              guami_t                                                   guami,
                                              amf_ue_id_t                                               source_amf_ue_id,
+                                             const transport_layer_address&                            amf_addr,
                                              aggregate_maximum_bit_rate_t                              ue_ambr,
                                              const security::security_context&                         security_context,
                                              const std::map<pdu_session_id_t, up_pdu_session_context>& pdu_sessions,
@@ -53,13 +54,12 @@ ocudu::ocucp::generate_xnap_handover_request(cu_cp_ue_index_t                   
                                              const std::optional<location_report_request>& location_report_cfg)
 {
   xnap_handover_request request;
-  request.ue_index                             = source_ue_index;
-  request.cause                                = xnap_cause_radio_network_t::ho_desirable_for_radio_reasons;
-  request.nr_cgi                               = target_nr_cgi;
-  request.guami                                = guami;
-  request.ue_context_info_ho_request.amf_ue_id = amf_ue_id_to_uint(source_amf_ue_id);
-  // TODO: Fill correct AMF address.
-  request.ue_context_info_ho_request.amf_addr         = transport_layer_address::create_from_string("127.0.0.1");
+  request.ue_index                                    = source_ue_index;
+  request.cause                                       = xnap_cause_radio_network_t::ho_desirable_for_radio_reasons;
+  request.nr_cgi                                      = target_nr_cgi;
+  request.guami                                       = guami;
+  request.ue_context_info_ho_request.amf_ue_id        = amf_ue_id_to_uint(source_amf_ue_id);
+  request.ue_context_info_ho_request.amf_addr         = amf_addr;
   request.ue_context_info_ho_request.security_context = security_context;
   request.ue_context_info_ho_request.ue_ambr          = ue_ambr;
   for (const auto& [pid, pdu_session_ctxt] : pdu_sessions) {

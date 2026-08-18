@@ -122,6 +122,8 @@ protected:
   const nr_cell_identity  target_nci    = nr_cell_identity::create(0x19b0).value();
   /// SSB ARFCN the peer advertised for the target cell.
   static constexpr uint32_t target_ssb_arfcn = 632628;
+  /// Address of the SCTP association with the AMF serving the UE.
+  const transport_layer_address amf_addr = transport_layer_address::create_from_string("10.12.1.100");
   const guami_t guami{.plmn = plmn_identity::test_value(), .amf_set_id = 1, .amf_pointer = 1, .amf_region_id = 1};
 
   timer_manager           timers;
@@ -139,11 +141,12 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_ue_context_is_retrievable_then_cont
   cu_cp_ue* ue = create_attached_ue();
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_TRUE(response.success);
   ASSERT_EQ(response.guami.plmn, guami.plmn);
   ASSERT_EQ(response.ue_context_info.amf_ue_id, amf_ue_id_to_uint(amf_ue_id_t::min));
+  ASSERT_EQ(response.ue_context_info.amf_addr, amf_addr) << "The peer was not told which AMF serves the UE";
   ASSERT_EQ(response.ue_context_info.pdu_session_res_to_be_setup_list.size(), 1);
   ASSERT_EQ(response.ue_context_info.pdu_session_res_to_be_setup_list[uint_to_pdu_session_id(1)]
                 .qos_flow_setup_request_items.size(),
@@ -157,7 +160,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_ue_context_is_retrieved_then_local_
   const security::security_context sec_context_before = ue->get_security_manager().get_security_context();
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
   ASSERT_TRUE(response.success);
 
   // The UE stays in service at this node until the peer confirms the retrieval, so deriving KgNB* for the target cell
@@ -178,7 +181,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_mac_i_verification_fails_then_retri
   rrc_ue.mac_i_valid = false;
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_FALSE(response.success);
   ASSERT_TRUE(response.cause.has_value());
@@ -189,7 +192,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_ue_context_id_identifies_a_resume_t
   cu_cp_ue* ue = create_attached_ue();
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_resume_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      make_resume_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_TRUE(response.success);
   ASSERT_EQ(response.ue_context_info.pdu_session_res_to_be_setup_list.size(), 1);
@@ -207,7 +210,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_resume_mac_i_verification_fails_the
   rrc_ue.mac_i_valid = false;
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_resume_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      make_resume_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_TRUE(rrc_ue.resume_mac_i_verified);
   ASSERT_FALSE(response.success);
@@ -222,7 +225,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_ue_has_no_pdu_sessions_then_retriev
   ue->get_up_resource_manager().set_up_context(up_context{});
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_FALSE(response.success);
   ASSERT_EQ(response.cause, xnap_cause_t{xnap_cause_radio_network_t::non_relocation_of_context});
@@ -233,7 +236,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_ue_has_no_amf_ue_id_then_retrieval_
   cu_cp_ue* ue = create_attached_ue();
 
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::invalid, target_ssb_arfcn, logger);
+      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::invalid, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_FALSE(response.success);
   ASSERT_EQ(response.cause, xnap_cause_t{xnap_cause_radio_network_t::non_relocation_of_context});
@@ -245,7 +248,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_target_cell_ssb_arfcn_is_unknown_th
 
   // Deriving KgNB* takes the ARFCN of the target cell, so an unknown one is rejected (TS 33.501 section 6.11).
   const xnap_retrieve_ue_context_response response = collect_ue_context_for_retrieval(
-      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, std::nullopt, logger);
+      make_request(ue->get_ue_index()), *ue, guami, amf_ue_id_t::min, amf_addr, std::nullopt, logger);
 
   ASSERT_FALSE(response.success);
   ASSERT_EQ(response.cause, xnap_cause_t{xnap_cause_radio_network_t::cell_not_available});
@@ -260,7 +263,7 @@ TEST_F(cu_cp_ue_context_retrieval_test, when_target_cell_is_not_served_by_the_pe
   request.target_cell.reset();
 
   const xnap_retrieve_ue_context_response response =
-      collect_ue_context_for_retrieval(request, *ue, guami, amf_ue_id_t::min, target_ssb_arfcn, logger);
+      collect_ue_context_for_retrieval(request, *ue, guami, amf_ue_id_t::min, amf_addr, target_ssb_arfcn, logger);
 
   ASSERT_FALSE(response.success);
   ASSERT_EQ(response.cause, xnap_cause_t{xnap_cause_radio_network_t::cell_not_available});

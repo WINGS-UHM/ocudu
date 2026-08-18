@@ -81,7 +81,8 @@ struct xnap_retrieve_ue_context_request {
 struct xnap_ue_context_info_retrieve_ue_context_response {
   /// AMF UE NGAP ID the UE has at the AMF, carried by the NG-C UE associated Signalling reference IE. The AMF UE
   /// NGAP ID is 40 bits wide (TS 38.413 section 9.3.3.1), so it does not fit an unsigned.
-  uint64_t                                                              amf_ue_id = 0;
+  uint64_t amf_ue_id = 0;
+  /// Address of the SCTP association the old NG-RAN node uses towards the AMF serving the UE.
   transport_layer_address                                               amf_addr;
   security::security_context                                            security_context;
   aggregate_maximum_bit_rate_t                                          ue_ambr;

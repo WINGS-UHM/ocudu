@@ -41,3 +41,13 @@ ocudu::cuda::detail::copy_to_host_async(void* dst, const void* src, std::size_t 
       ::cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToHost, static_cast<::cudaStream_t>(stream.native())),
       "asynchronous device to host copy");
 }
+
+cuda_result ocudu::cuda::detail::device_memset_async(void* dst, int value, std::size_t size, const cuda_stream& stream)
+{
+  if (!stream.is_valid()) {
+    return make_unexpected(std::string("CUDA device fill failed: the stream is not valid"));
+  }
+
+  return check_cuda_error(::cudaMemsetAsync(dst, value, size, static_cast<::cudaStream_t>(stream.native())),
+                          "asynchronous device fill");
+}

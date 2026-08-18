@@ -26,6 +26,9 @@ cuda_result copy_to_device_async(void* dst, const void* src, std::size_t size, c
 /// See \ref copy_to_device_async().
 cuda_result copy_to_host_async(void* dst, const void* src, std::size_t size, const cuda_stream& stream);
 
+/// See \ref device_zero_async().
+cuda_result device_memset_async(void* dst, int value, std::size_t size, const cuda_stream& stream);
+
 } // namespace detail
 
 /// \brief Copies host data into a device block blocking until the copy completes.
@@ -107,6 +110,24 @@ cuda_result copy_to_host_async(span<T> dst, const device_vector<T>& src, const c
   }
 
   return detail::copy_to_host_async(dst.data(), src.data(), src.size() * sizeof(T), stream);
+}
+
+/// \brief Queues a fill of a device block with zeros
+///
+/// \param[out] data   Device block to fill
+/// \param[in]  stream Stream in which the fill is queued
+/// \return A successful result, or a description of the error
+///
+/// \remark The call returns before the fill has completed, so the block must not be read until it
+/// has, which is what \ref cuda_event is for
+template <typename T>
+cuda_result device_zero_async(device_vector<T>& data, const cuda_stream& stream)
+{
+  if (data.empty()) {
+    return {};
+  }
+
+  return detail::device_memset_async(data.data(), 0, data.size_bytes(), stream);
 }
 
 } // namespace cuda

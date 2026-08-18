@@ -101,6 +101,7 @@ void mac_cell_rach_handler_impl::handle_rach_indication(const mac_rach_indicatio
   for (const auto& occasion : rach_ind.occasions) {
     auto& sched_occasion           = sched_rach.occasions.emplace_back();
     sched_occasion.start_symbol    = occasion.start_symbol;
+    sched_occasion.slot_index      = occasion.slot_index;
     sched_occasion.frequency_index = occasion.frequency_index;
     const unsigned ra_rnti_slot_idx =
         prach_format_is_long ? rach_ind.slot_rx.subframe_index() : rach_ind.slot_rx.slot_index();

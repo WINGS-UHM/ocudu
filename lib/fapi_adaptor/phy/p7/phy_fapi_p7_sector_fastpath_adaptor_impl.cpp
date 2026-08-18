@@ -44,7 +44,8 @@ phy_fapi_p7_sector_fastpath_adaptor_impl::phy_fapi_p7_sector_fastpath_adaptor_im
                                                                           .dbfs_to_dbm_conversion_factor =
                                                                               config.dbfs_to_dbm_conversion_factor,
                                                                           .db_to_dbfs_conversion_factor =
-                                                                              config.db_to_dbfs_conversion_factor},
+                                                                              config.db_to_dbfs_conversion_factor,
+                                                                          .msg1_scs = config.prach_cfg.msg1_scs},
                      phy_to_fapi_results_event_fastpath_translator_dependencies{.logger = dependencies.logger}),
   fapi_translator(generate_fapi_to_phy_translator_config(config),
                   generate_fapi_to_phy_translator_dependencies(std::move(dependencies))),

@@ -8,6 +8,7 @@
 #include "ocudu/fapi/p7/builders/rx_data_indication_builder.h"
 #include "ocudu/fapi/p7/builders/srs_indication_builder.h"
 #include "ocudu/fapi/p7/builders/uci_indication_builder.h"
+#include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/support/units.h"
 
 using namespace ocudu;
@@ -38,6 +39,7 @@ phy_to_fapi_results_event_fastpath_translator::phy_to_fapi_results_event_fastpat
   sector_id(cfg.sector_id),
   dbfs_to_dbm_conversion_factor(cfg.dbfs_to_dbm_conversion_factor),
   db_to_dbfs_conversion_factor(cfg.db_to_dbfs_conversion_factor),
+  msg1_scs(cfg.msg1_scs),
   logger(dependencies.logger),
   p7_notifier(&dummy_p7_notifier)
 {
@@ -72,7 +74,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
   static constexpr unsigned         fd_ra_index = 0U;
   fapi::rach_indication_pdu_builder builder_pdu = builder.set_pdu(
       result.context.start_symbol,
-      slot.slot_index(),
+      ra_helper::get_prach_occasion_slot_index(slot, result.context.format, msg1_scs),
       fd_ra_index,
       fapi::fapi_power_unit(result.result.rssi_dB, dbfs_to_dbm_conversion_factor, db_to_dbfs_conversion_factor),
       std::nullopt);

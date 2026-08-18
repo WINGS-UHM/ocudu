@@ -5,7 +5,9 @@
 #pragma once
 
 #include "ocudu/adt/span.h"
+#include "ocudu/ran/prach/prach_format_type.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <array>
 #include <chrono>
@@ -40,6 +42,39 @@ inline uint8_t get_msg3_delay(subcarrier_spacing pdcch_and_pusch_scs, uint8_t k2
   // Given the assumption mu_PUSCH == mu_PDCCH, MSG3_delay simplifies to MSG3_delay =  k2 + Delta
   // [TS 38.214, Section 6.1.2.1 and 6.1.2.1.1].
   return k2 + get_pusch_delay_delta(pdcch_and_pusch_scs);
+}
+
+/// \brief Returns the t_id of a PRACH occasion, i.e. the \c slot_index argument of \ref get_ra_rnti and
+/// \ref get_msgb_rnti.
+///
+/// The occasion's slot index in the system frame, counted in slots of the numerology that TS 38.211 Section 5.3.2
+/// associates with the PRACH subcarrier spacing. Supports PRACH subcarrier spacings up to 120 kHz, which bounds the
+/// t_id below 80.
+///
+/// \param[in] occasion_slot Slot the PRACH occasion starts in, in its own numerology.
+/// \param[in] format Preamble format.
+/// \param[in] ra_scs PRACH subcarrier spacing. Ignored for long preamble formats, whose reference numerology is
+/// always 15 kHz, so it may be \c subcarrier_spacing::invalid for those.
+/// \return The t_id. Values {0,...,79}.
+inline unsigned
+get_prach_occasion_slot_index(slot_point occasion_slot, prach_format_type format, subcarrier_spacing ra_scs)
+{
+  static constexpr unsigned MAX_REF_NUMEROLOGY = 3;
+
+  const unsigned ref_numerology    = is_long_preamble(format) ? 0U : to_numerology_value(ra_scs);
+  const unsigned native_numerology = occasion_slot.numerology();
+  ocudu_assert(ref_numerology <= MAX_REF_NUMEROLOGY,
+               "Invalid PRACH subcarrier spacing {} for a short preamble format",
+               to_string(ra_scs));
+  ocudu_assert(ref_numerology <= native_numerology,
+               "PRACH subcarrier spacing {} is finer than the slot subcarrier spacing {}",
+               to_string(ra_scs),
+               to_string(occasion_slot.scs()));
+  const unsigned ref_slots_per_subframe = 1U << ref_numerology;
+  const unsigned slots_per_subframe     = occasion_slot.nof_slots_per_subframe();
+
+  return occasion_slot.subframe_index() * ref_slots_per_subframe +
+         (occasion_slot.slot_index() % slots_per_subframe) * ref_slots_per_subframe / slots_per_subframe;
 }
 
 /// \brief Computes the RA-RNTI based on PRACH parameters, as per TS 38.321, Section 5.1.3.

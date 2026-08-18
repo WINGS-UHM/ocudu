@@ -16,6 +16,8 @@ struct phy_to_fapi_results_event_fastpath_translator_config {
   unsigned sector_id;
   float    dbfs_to_dbm_conversion_factor;
   float    db_to_dbfs_conversion_factor;
+  /// Random access subcarrier spacing, parameter \f$\Delta f^{RA}\f$, from \c msg1-SubcarrierSpacing.
+  subcarrier_spacing msg1_scs;
 };
 
 /// PHY to FAPI results event fastpath translator dependencies.
@@ -70,6 +72,8 @@ private:
   /// Value in dB relative to Full Scale (dBFS) equivalent to 0 dB in normalized units, i.e., as coming from the
   /// physical layer.
   float db_to_dbfs_conversion_factor;
+  /// Random access subcarrier spacing, used to report the PRACH occasion slot index.
+  const subcarrier_spacing msg1_scs;
   /// FAPI logger.
   ocudulog::basic_logger& logger;
   /// FAPI P7 indications notifier.

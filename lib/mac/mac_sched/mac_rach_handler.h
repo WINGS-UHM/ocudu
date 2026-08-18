@@ -105,7 +105,6 @@ private:
   mac_rach_handler&     parent;
   const du_cell_index_t cell_index;
   rach_config_common    rach_cfg_common;
-  const bool            prach_format_is_long;
   /// Number of slots a MsgA TC-RNTI mapping entry remains valid for, before being treated as expired.
   const unsigned msga_tc_rnti_ttl_slots;
 

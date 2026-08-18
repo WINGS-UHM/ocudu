@@ -15,6 +15,22 @@
 
 using namespace ocudu;
 
+namespace {
+
+/// t_id the PHY reports for a PRACH occasion detected in \c slot_rx, given a cell's PRACH configuration.
+unsigned compute_prach_occasion_slot_index(const sched_cell_configuration_request_message& sched_cfg,
+                                           slot_point                                      slot_rx)
+{
+  const rach_config_common& rach_cfg = *sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  const prach_configuration prach_cfg =
+      prach_configuration_get(band_helper::get_freq_range(sched_cfg.ran.dl_carrier.band),
+                              band_helper::get_duplex_mode(sched_cfg.ran.dl_carrier.band),
+                              rach_cfg.rach_cfg_generic.prach_config_index);
+  return ra_helper::get_prach_occasion_slot_index(slot_rx, prach_cfg.format, rach_cfg.msg1_scs);
+}
+
+} // namespace
+
 class mac_rach_handler_test : public ::testing::Test
 {
 protected:
@@ -38,7 +54,7 @@ protected:
     rach.slot_rx                                 = {to_numerology_value(params.scs_common), 0};
     mac_rach_indication::rach_occasion& occ      = rach.occasions.emplace_back();
     occ.frequency_index                          = 0;
-    occ.slot_index                               = 0;
+    occ.slot_index                               = compute_prach_occasion_slot_index(sched_cfg, rach.slot_rx);
     occ.start_symbol                             = 0;
     mac_rach_indication::rach_preamble& preamble = occ.preambles.emplace_back();
     preamble.index                               = preamble_id;
@@ -166,24 +182,18 @@ protected:
     rach.slot_rx                                 = slot_rx;
     mac_rach_indication::rach_occasion& occ      = rach.occasions.emplace_back();
     occ.frequency_index                          = 0;
-    occ.slot_index                               = 0;
+    occ.slot_index                               = compute_prach_occasion_slot_index(sched_cfg, slot_rx);
     occ.start_symbol                             = 0;
     mac_rach_indication::rach_preamble& preamble = occ.preambles.emplace_back();
     preamble.index                               = preamble_id;
     return rach;
   }
 
-  /// Computes the RA-RNTI expected for a RACH occasion at (slot_rx, start_symbol=0, frequency_index=0), mirroring
-  /// the exact same logic used by mac_cell_rach_handler_impl.
+  /// RA-RNTI expected for the occasion a preamble detected in \c slot_rx belongs to.
   rnti_t expected_ra_rnti(slot_point slot_rx) const
   {
-    const auto&               rach_cfg = *sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;
-    const prach_configuration prach_cfg =
-        prach_configuration_get(band_helper::get_freq_range(sched_cfg.ran.dl_carrier.band),
-                                band_helper::get_duplex_mode(sched_cfg.ran.dl_carrier.band),
-                                rach_cfg.rach_cfg_generic.prach_config_index);
-    const unsigned slot_idx = is_long_preamble(prach_cfg.format) ? slot_rx.subframe_index() : slot_rx.slot_index();
-    return ra_helper::get_ra_rnti(slot_idx, /*symbol_index=*/0, /*frequency_index=*/0);
+    return ra_helper::get_ra_rnti(
+        compute_prach_occasion_slot_index(sched_cfg, slot_rx), /*symbol_index=*/0, /*frequency_index=*/0);
   }
 
   ocudulog::basic_logger&                  logger;
@@ -209,6 +219,30 @@ TEST_F(mac_rach_handler_msga_test, when_msga_preamble_detected_then_tc_rnti_reso
   const std::optional<rnti_t> resolved = cell_handler.resolve_msga_tc_rnti(ra_rnti, MSGA_PREAMBLE_ID, slot_rx);
   ASSERT_TRUE(resolved.has_value());
   ASSERT_EQ(*resolved, alloc_tc_rnti);
+}
+
+/// The RA-RNTI t_id is the occasion slot index the PHY reports (SCF-222 Section 3.4.11), not the indication slot.
+TEST_F(mac_rach_handler_msga_test, when_occasion_slot_index_differs_from_indication_slot_then_ra_rnti_uses_the_occasion)
+{
+  const slot_point slot_rx             = {to_numerology_value(params.scs_common), 0, 7};
+  const unsigned   occasion_slot_index = compute_prach_occasion_slot_index(sched_cfg, slot_rx);
+  ASSERT_NE(occasion_slot_index, slot_rx.slot_index()) << "Test setup error: the two slots must differ";
+
+  cell_handler.handle_rach_indication(make_msga_rach_indication(slot_rx, MSGA_PREAMBLE_ID));
+  ASSERT_TRUE(sched.last_rach_ind.has_value());
+  ASSERT_EQ(occasion_slot_index, sched.last_rach_ind.value().occasions[0].slot_index)
+      << "The occasion slot index must be forwarded to the scheduler";
+  const rnti_t alloc_tc_rnti = sched.last_rach_ind.value().occasions[0].preambles[0].tc_rnti;
+
+  const rnti_t                ra_rnti  = expected_ra_rnti(slot_rx);
+  const std::optional<rnti_t> resolved = cell_handler.resolve_msga_tc_rnti(ra_rnti, MSGA_PREAMBLE_ID, slot_rx);
+  ASSERT_TRUE(resolved.has_value()) << "TC-RNTI was registered under an RA-RNTI derived from the wrong slot";
+  ASSERT_EQ(*resolved, alloc_tc_rnti);
+
+  // The same requirement checked from the outside, independently of how either side derives the t_id.
+  const rnti_t slot_ra_rnti = ra_helper::get_ra_rnti(slot_rx.slot_index(), /*symbol_index=*/0, /*frequency_index=*/0);
+  ASSERT_FALSE(cell_handler.resolve_msga_tc_rnti(slot_ra_rnti, MSGA_PREAMBLE_ID, slot_rx).has_value())
+      << "TC-RNTI must not be reachable through an RA-RNTI derived from the indication slot";
 }
 
 TEST_F(mac_rach_handler_msga_test, when_tc_rnti_is_resolved_then_it_can_be_resolved_again_before_expiry)

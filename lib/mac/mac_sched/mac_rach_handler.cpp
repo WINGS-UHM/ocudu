@@ -5,22 +5,12 @@
 #include "mac_rach_handler.h"
 #include "../rnti_manager.h"
 #include "ocudu/adt/format.h"
-#include "ocudu/ran/band_helper.h"
-#include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 #include "ocudu/scheduler/scheduler_rach_handler.h"
 #include <algorithm>
 
 using namespace ocudu;
-
-static bool compute_prach_format_is_long(const rach_config_common& rach_cfg, const ran_cell_config& ran_cfg)
-{
-  const prach_configuration prach_cfg = prach_configuration_get(band_helper::get_freq_range(ran_cfg.dl_carrier.band),
-                                                                band_helper::get_duplex_mode(ran_cfg.dl_carrier.band),
-                                                                rach_cfg.rach_cfg_generic.prach_config_index);
-  return is_long_preamble(prach_cfg.format);
-}
 
 static unsigned get_nof_ssbs_per_ro(const rach_config_common& rach_cfg)
 {
@@ -42,8 +32,6 @@ mac_cell_rach_handler_impl::mac_cell_rach_handler_impl(mac_rach_handler&        
   parent(parent_),
   cell_index(sched_cfg.cell_index),
   rach_cfg_common(*sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common),
-  prach_format_is_long(
-      compute_prach_format_is_long(*sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common, sched_cfg.ran)),
   msga_tc_rnti_ttl_slots(
       sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->two_step_rach_cfg.has_value()
           ? static_cast<unsigned>(
@@ -103,10 +91,8 @@ void mac_cell_rach_handler_impl::handle_rach_indication(const mac_rach_indicatio
     sched_occasion.start_symbol    = occasion.start_symbol;
     sched_occasion.slot_index      = occasion.slot_index;
     sched_occasion.frequency_index = occasion.frequency_index;
-    const unsigned ra_rnti_slot_idx =
-        prach_format_is_long ? rach_ind.slot_rx.subframe_index() : rach_ind.slot_rx.slot_index();
     const rnti_t occasion_ra_rnti =
-        ra_helper::get_ra_rnti(ra_rnti_slot_idx, occasion.start_symbol, occasion.frequency_index);
+        ra_helper::get_ra_rnti(occasion.slot_index, occasion.start_symbol, occasion.frequency_index);
     for (const auto& preamble : occasion.preambles) {
       rnti_t selected_rnti = rnti_t::INVALID_RNTI;
       if (ra_helper::is_msg1_cf_preamble(rach_cfg_common, preamble.index)) {

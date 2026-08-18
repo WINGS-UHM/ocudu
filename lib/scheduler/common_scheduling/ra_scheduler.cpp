@@ -171,12 +171,6 @@ ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
   ra_crb_lims(pdsch_helper::get_ra_crb_limits_common(
       cell_cfg.params.dl_cfg_common.init_dl_bwp,
       cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id)),
-  prach_format_is_long(is_long_preamble(
-      prach_configuration_get(
-          band_helper::get_freq_range(cell_cfg.band()),
-          band_helper::get_duplex_mode(cell_cfg.band()),
-          cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
-          .format)),
   prach_occasion_duration_slots(compute_prach_occasion_duration_slots(cell_cfg)),
   backoff_indicator_value(backoff_ms_to_indicator(sched_cfg.backoff_indicator_duration)),
   pucch_crbs(compute_pucch_crbs(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs,
@@ -372,11 +366,7 @@ void ra_scheduler::handle_msg1_occasion(const rach_indication_message::occasion&
                                         span<const rach_indication_message::preamble> preambles,
                                         slot_point                                    prach_slot_rx)
 {
-  // As per Section 5.1.3, TS 38.321, and from Section 5.3.2, TS 38.211, slot_idx uses as the numerology of reference
-  // 15kHz for long PRACH Formats (i.e, slot_idx = subframe index); whereas, for short PRACH formats, it uses the same
-  // numerology as the SCS common (i.e, slot_idx = actual slot index within the frame).
-  const unsigned slot_idx = prach_format_is_long ? prach_slot_rx.subframe_index() : prach_slot_rx.slot_index();
-  const rnti_t   ra_rnti  = ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+  const rnti_t ra_rnti = ra_helper::get_ra_rnti(occ.slot_index, occ.start_symbol, occ.frequency_index);
 
   // Search for pending RAR with matching RA-RNTI and Rx Slot.
   auto               rar_it = std::find_if(pending_rars.begin(), pending_rars.end(), [&](const pending_rar_alloc& rar) {
@@ -497,9 +487,8 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
   const rach_config_common_two_step::msgA_pusch_config& msga_pusch_cfg = two_step_cfg.pusch;
 
   // Derive MsgB-RNTI.
-  const unsigned slot_idx  = prach_format_is_long ? prach_slot_rx.subframe_index() : prach_slot_rx.slot_index();
-  const rnti_t   msgb_rnti = ra_helper::get_msgb_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
-  const rnti_t   ra_rnti   = ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+  const rnti_t msgb_rnti = ra_helper::get_msgb_rnti(occ.slot_index, occ.start_symbol, occ.frequency_index);
+  const rnti_t ra_rnti   = ra_helper::get_ra_rnti(occ.slot_index, occ.start_symbol, occ.frequency_index);
 
   // Search for a pending MsgB entry matching in MsgB-RNTI and PRACH slot.
   auto msgb_it = std::find_if(pending_msgbs.begin(), pending_msgbs.end(), [&](const pending_msgb_alloc& msgb) {

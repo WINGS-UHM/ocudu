@@ -217,6 +217,30 @@ TEST_P(ra_scheduler_common_test, when_no_rach_indication_received_then_no_rar_al
   ASSERT_FALSE(grants_scheduled_in_next_slots(10));
 }
 
+/// \brief The RA-RNTI comes from the reported occasion slot index, not from the indication slot.
+///
+/// The RAR is only matched if the scheduler and the tracker both take t_id from the occasion.
+TEST_P(ra_scheduler_common_test, when_occasion_slot_index_differs_from_rx_slot_then_ra_rnti_uses_the_occasion)
+{
+  handle_rach_indication(create_rach_indication(1));
+
+  // The t_id is counted in the PRACH subcarrier spacing, so it only differs from the indication slot when that is
+  // coarser than the cell's, which not every configuration under test provides.
+  const slot_point prach_slot_rx = next_slot_rx();
+  if (test_helper::compute_prach_occasion_slot_index(cell_cfg, prach_slot_rx) == prach_slot_rx.slot_index()) {
+    GTEST_SKIP() << "This PRACH configuration counts the t_id in the slot's own numerology, so the two coincide";
+  }
+
+  for (unsigned slot_count = 0, max_slot_count = 1000; slot_count < max_slot_count and tracker.nof_msg3_acked() == 0;
+       ++slot_count) {
+    run_slot();
+    handle_crc_for_pending_puschs(true);
+  }
+
+  ASSERT_EQ(tracker.nof_rars(), 1);
+  ASSERT_EQ(tracker.nof_msg3_acked(), 1);
+}
+
 TEST_P(ra_scheduler_common_test,
        when_rach_indication_with_single_preamble_received_then_one_rar_and_one_msg3_are_allocated)
 {

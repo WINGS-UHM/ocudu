@@ -6,7 +6,7 @@
 
 #include "../mac_dl/mac_dl_configurator.h"
 #include "mac_config.h"
-#include "ocudu/adt/circular_array.h"
+#include "ocudu/adt/circular_vector.h"
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/support/timers.h"
 #include <atomic>
@@ -82,8 +82,8 @@ private:
   /// Ring of metric reports under construction.
   /// \remark The size of this ring is large enough to avoid that cell reports for different slots end up overwriting
   /// each other.
-  static constexpr size_t                          report_ring_size = 4;
-  circular_array<report_context, report_ring_size> report_ring;
+  static constexpr size_t               report_ring_size = 4;
+  circular_vector<report_context, true> report_ring{report_ring_size};
 
   // Timer that when triggered aggregates all existing cell reports.
   unique_timer aggr_timer;

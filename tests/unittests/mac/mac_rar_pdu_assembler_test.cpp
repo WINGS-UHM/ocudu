@@ -4,7 +4,7 @@
 
 #include "lib/mac/mac_dl/rar_pdu_assembler.h"
 #include "mac_test_helpers.h"
-#include "ocudu/adt/circular_array.h"
+#include "ocudu/adt/circular_vector.h"
 #include "ocudu/mac/ue_con_res_id.h"
 #include "ocudu/support/bit_encoding.h"
 #include "ocudu/support/test_utils.h"
@@ -257,13 +257,13 @@ TEST(rar_assembler_test, rar_assembler_maintains_old_results)
   // that the RAR assembler has to keep these results stored.
   static constexpr unsigned MEMORY_RESULT_IN_SLOTS = MAX_RAR_PDUS_PER_SLOT * NOF_SUBFRAMES_PER_FRAME;
 
-  circular_array<span<const uint8_t>, MEMORY_RESULT_IN_SLOTS> previous_pdus;
-  circular_array<rar_information, MEMORY_RESULT_IN_SLOTS>     previous_rars;
+  circular_vector<span<const uint8_t>, true> previous_pdus(MEMORY_RESULT_IN_SLOTS);
+  circular_vector<rar_information, true>     previous_rars(MEMORY_RESULT_IN_SLOTS);
 
-  unsigned nof_slots_tests = MEMORY_RESULT_IN_SLOTS * 64;
+  unsigned nof_slots_tests = previous_pdus.size() * 64;
   for (unsigned i = 0; i < nof_slots_tests; ++i) {
     pdu_pool.tick(i);
-    if (i >= MEMORY_RESULT_IN_SLOTS) {
+    if (i >= previous_pdus.size()) {
       // Test old results to check if they are still valid.
       test_encoded_rar(previous_rars[i], previous_pdus[i]);
     }

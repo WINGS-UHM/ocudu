@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ocudu/adt/complex.h"
+#include "ocudu/support/math/pow2_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <array>
 #include <numeric>
@@ -46,15 +47,6 @@ constexpr unsigned divide_round(unsigned num, unsigned den)
   return static_cast<unsigned>(std::round(static_cast<float>(num) / static_cast<float>(den)));
 }
 
-/// \brief Calculates the integer power of 2.
-///
-/// \param[in] power Indicates the power of 2 to calculate.
-/// \return The result of the operation.
-constexpr unsigned pow2(unsigned power)
-{
-  return 1U << power;
-}
-
 /// \brief Calculates the squared modulus of a complex value.
 /// \param[in] x Complex value.
 /// \return The squared absolute of the given value, i.e. \f$\abs{x}^2=x\cdot\conj{x}=\Re(x)^2+\Im(x)^2\f$.
@@ -74,30 +66,6 @@ inline bool is_near_zero(float value)
 inline bool is_near_zero(cf_t value)
 {
   return abs_sq(value) < near_zero;
-}
-
-/// \brief Calculates \f$\left \lceil log_2(n) \right \rceil\f$.
-///
-/// \tparam Integer Any unsigned integer type.
-/// \param[in] value Parameter \f$n\f$.
-/// \return The result of the calculation if \c value is not zero. Otherwise 0.
-template <typename Integer>
-constexpr Integer log2_ceil(Integer value)
-{
-  static_assert(std::is_unsigned_v<Integer>, "log2_ceil only works for unsigned integers");
-
-  // Avoid unbounded results.
-  if (value <= 0) {
-    return 0;
-  }
-
-  Integer result = 0;
-  Integer v      = value - 1;
-  while (v > 0) {
-    v >>= 1U;
-    ++result;
-  }
-  return result;
 }
 
 /// \brief Converts a value in decibels to linear amplitude ratio

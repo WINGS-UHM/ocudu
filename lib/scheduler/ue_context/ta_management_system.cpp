@@ -13,8 +13,8 @@ ta_management_system::ta_management_system(const scheduler_ta_control_config& ta
   ta_cfg(ta_cfg_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   // Note: The window size needs to be strictly larger than the measurement period to avoid ambiguity. 4 is an
-  // arbitrary value.
-  // TODO: Use power of 2 size for faster mod.
+  // arbitrary value. The size is rounded up to a power of 2, which also keeps the wheel index continuous when the
+  // wheel counter wraps around.
   time_wheel(ta_cfg.ta_cmd_offset_threshold >= 0 ? ta_cfg.measurement_period + 4 : 0)
 {
   if (ta_cfg.ta_cmd_offset_threshold < 0) {

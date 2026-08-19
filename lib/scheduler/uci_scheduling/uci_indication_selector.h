@@ -195,10 +195,10 @@ private:
 
   /// \brief Each element of the circular vector maps a slot to a linked list with the UCI entries expected to be
   /// received in that slot.
-  circular_vector<stable_id_intrusive_list<&uci_entry::next>> uci_wheel;
+  circular_vector<stable_id_intrusive_list<&uci_entry::next>, true> uci_wheel;
   /// \brief Each element of the circular vector maps a slot to a linked list with the UCI entries expected to timeout
   /// in that slot.
-  circular_vector<stable_id_intrusive_list<&uci_entry::next_short_timeout>> short_timeout_wheel;
+  circular_vector<stable_id_intrusive_list<&uci_entry::next_short_timeout>, true> short_timeout_wheel;
 };
 
 } // namespace ocudu

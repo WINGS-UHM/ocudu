@@ -120,7 +120,7 @@ private:
   /// \brief Time wheel for UEs.
   /// Each entry index corresponds to a slot offset within a window of size prohibit+measurement period.
   /// Each entry points to a linked list of UE row IDs, which are scheduled to complete their measurement.
-  circular_vector<time_wheel_slot> time_wheel;
+  circular_vector<time_wheel_slot, true> time_wheel;
 
   /// Current index in the time wheel.
   unsigned next_wheel_index = 0;

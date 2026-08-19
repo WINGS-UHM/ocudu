@@ -8,6 +8,8 @@
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/math/pow2_utils.h"
+#include <algorithm>
 
 namespace ocudu {
 
@@ -24,21 +26,9 @@ namespace ocudu {
 constexpr unsigned get_allocator_ring_size_gt_min(unsigned           minimum_value,
                                                   subcarrier_spacing scs = subcarrier_spacing::kHz15)
 {
-  auto power2_ceil = [](unsigned x) {
-    if (x <= 1) {
-      return 1U;
-    }
-    unsigned power = 2;
-    x--;
-    while (x >>= 1) {
-      power <<= 1;
-    }
-    return power;
-  };
-
   const unsigned slots_per_frame = 10U * get_nof_slots_per_subframe(scs);
-  const unsigned frames_ceil     = divide_ceil(minimum_value, slots_per_frame);
-  return power2_ceil(frames_ceil) * slots_per_frame;
+  const unsigned frames_ceil     = std::max(divide_ceil(minimum_value, slots_per_frame), 1U);
+  return to_next_pow2(frames_ceil) * slots_per_frame;
 }
 
 /// \brief Retrieves how far in advance the scheduler can allocate resources in the UL resource grid.

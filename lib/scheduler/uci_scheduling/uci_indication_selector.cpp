@@ -4,6 +4,7 @@
 
 #include "uci_indication_selector.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 
 using namespace ocudu;
 
@@ -16,24 +17,13 @@ uci_indication_selector::uci_indication_selector(uci_indication_timeout_notifier
   pucch_sinr_threshold_dB(pucch_sinr_threshold_dB_),
   timeout_notifier(timeout_notifier_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
-  uci_wheel(ack_timeout_slots),
-  short_timeout_wheel(SHORT_PUCCH_TIMEOUT_SLOTS)
+  uci_wheel(get_pow2_allocator_ring_size_gt_min(ack_timeout_slots)),
+  short_timeout_wheel(get_pow2_allocator_ring_size_gt_min(SHORT_PUCCH_TIMEOUT_SLOTS))
 {
   uci_pool.reserve(
       std::min<unsigned>(ack_timeout_slots * std::min<unsigned>(max_pucch_grants_per_slot, MAX_PUCCH_PDUS_PER_SLOT),
                          max_nof_ue_contexts * MAX_NOF_HARQS));
   report_fatal_error_if_not(uci_ack_timeout > SHORT_PUCCH_TIMEOUT_SLOTS, "Invalid UCI ACK timeout");
-
-  // The wheels are indexed by slot_point::count(), so their size must divide the number of slots per hyper system
-  // frame. Otherwise, the wheel index becomes discontinuous close to the slot point wrap-around. Verifying the
-  // condition for the lowest numerology is enough, as it implies the condition for the higher ones.
-  const unsigned nof_slots_per_hyper_sfn = slot_point{subcarrier_spacing::kHz15, 0}.nof_slots_per_hyper_system_frame();
-  report_fatal_error_if_not(nof_slots_per_hyper_sfn % uci_wheel.size() == 0,
-                            "UCI timeout wheel of size={} does not fit an integer number of times in a hyper SFN",
-                            uci_wheel.size());
-  report_fatal_error_if_not(nof_slots_per_hyper_sfn % short_timeout_wheel.size() == 0,
-                            "Short UCI timeout wheel of size={} does not fit an integer number of times in a hyper SFN",
-                            short_timeout_wheel.size());
 }
 
 uci_action uci_indication_selector::create_action(const uci_indication::uci_pdu& pdu) const

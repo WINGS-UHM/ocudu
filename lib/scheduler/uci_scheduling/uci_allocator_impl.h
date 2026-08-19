@@ -80,7 +80,7 @@ private:
   ocudulog::basic_logger& logger;
 
   // \brief Ring of UCI allocations indexed by slot.
-  circular_vector<slot_alloc_list> uci_alloc_grid;
+  circular_vector<slot_alloc_list, true> uci_alloc_grid;
 
   const unsigned max_pucch_payload;
 };

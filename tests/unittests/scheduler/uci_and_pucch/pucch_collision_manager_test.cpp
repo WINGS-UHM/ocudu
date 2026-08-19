@@ -338,7 +338,7 @@ TEST_F(pucch_collision_manager_rg_test, free_doesnt_clear_grants_if_resource_was
 
 TEST_F(pucch_collision_manager_rg_test, slot_indication_clears_pucch_res_grid)
 {
-  const unsigned ring_size = get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(0));
+  const unsigned ring_size = get_pow2_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(0));
   for (unsigned i = 0; i != ring_size; ++i) {
     ASSERT_TRUE(col_manager.alloc(slot_alloc, ded_res[0], rnti).has_value());
     run_slot();

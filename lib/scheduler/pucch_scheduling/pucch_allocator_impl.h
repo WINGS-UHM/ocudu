@@ -307,7 +307,7 @@ private:
   bool is_there_space_for_new_pucch_grants(const sched_result& slot_result, unsigned nof_grants_to_allocate) const;
 
   // \brief Ring of PUCCH allocations indexed by slot.
-  circular_vector<slot_context> slots_ctx;
+  circular_vector<slot_context, true> slots_ctx;
 
   const cell_configuration&                     cell_cfg;
   const unsigned                                max_pucch_grants_per_slot;

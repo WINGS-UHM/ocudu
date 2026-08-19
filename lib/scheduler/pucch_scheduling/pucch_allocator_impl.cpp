@@ -91,7 +91,8 @@ pucch_allocator_impl::pucch_allocator_impl(const cell_configuration& cell_cfg_,
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   // The ring must be at least 1 slot larger than the max. UL allocation delay, to take into account the current slot.
-  const unsigned ring_size = get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset) + 1);
+  const unsigned ring_size =
+      get_pow2_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset) + 1);
   slots_ctx.resize(ring_size);
 }
 

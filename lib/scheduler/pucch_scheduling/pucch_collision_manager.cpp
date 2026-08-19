@@ -141,7 +141,7 @@ pucch_collision_manager::pucch_collision_manager(const cell_configuration& cell_
   mux_matrix(make_mux_regions_matrix(cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch)),
   mux_region_lookup(build_mux_region_lookup(mux_matrix)),
   // The ring must be at least 1 slot larger than the max. UL allocation delay, to take into account the current slot.
-  slots_ctx(get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset) + 1),
+  slots_ctx(get_pow2_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset) + 1),
             {slot_context(cell_cfg)})
 {
 }

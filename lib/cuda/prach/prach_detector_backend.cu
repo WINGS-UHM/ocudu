@@ -423,6 +423,9 @@ public:
     }
   }
 
+  /// Takes ownership of the event the detections are timed with.
+  void set_done_event(cuda_event event) { done_event = std::move(event); }
+
   cuda_result detect(prach_detector_output&         output,
                      span<const uint32_t>           input,
                      span<const cf_t>               roots,
@@ -471,6 +474,11 @@ private:
   /// Contents of the root sequences currently held on the device.
   std::vector<cf_t> cached_roots;
 
+  /// \brief Event marking the end of one detection.
+  ///
+  /// Held for the lifetime of the backend: creating an event allocates, and a detection runs on a
+  /// real-time thread where allocation is not admissible.
+  cuda_event done_event;
 };
 
 cuda_result prach_detector_backend::impl::ensure_plan(int dft_size, int batch, const cuda_stream& stream)
@@ -625,16 +633,14 @@ cuda_result prach_detector_backend::impl::detect(prach_detector_output&         
     return result;
   }
 
-  // An event is cheaper to wait on than the whole stream for a path this short.
-  cuda_expected<cuda_event> done = cuda_event::create();
-  if (!done.has_value()) {
-    return make_unexpected(done.error());
-  }
-  result = done.value().record(stream);
+  // An event is cheaper to wait on than the whole stream for a path this short. It belongs to the
+  // backend rather than to the call, because creating one allocates and a detection runs on a
+  // real-time thread.
+  result = done_event.record(stream);
   if (!result.has_value()) {
     return result;
   }
-  result = done.value().synchronize();
+  result = done_event.synchronize();
   if (!result.has_value()) {
     return result;
   }
@@ -669,7 +675,15 @@ cuda_expected<prach_detector_backend> prach_detector_backend::create()
     return make_unexpected(std::string("No CUDA device is available for the PRACH detector"));
   }
 
-  return prach_detector_backend(std::make_unique<impl>());
+  auto pimpl = std::make_unique<impl>();
+
+  cuda_expected<cuda_event> done = cuda_event::create();
+  if (!done.has_value()) {
+    return make_unexpected(done.error());
+  }
+  pimpl->set_done_event(std::move(done.value()));
+
+  return prach_detector_backend(std::move(pimpl));
 }
 
 prach_detector_backend::prach_detector_backend(std::unique_ptr<impl> impl_) : pimpl(std::move(impl_)) {}

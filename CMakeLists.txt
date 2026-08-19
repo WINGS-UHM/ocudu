@@ -301,6 +301,7 @@ endif()
 ########################################################################
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/external/cmake-sbom")
 include(sbom)
+include(add_cuda_test)
 include(copyright)
 include(GNUInstallDirs)
 

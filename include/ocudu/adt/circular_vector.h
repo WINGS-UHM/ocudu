@@ -5,6 +5,7 @@
 
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/support/math/pow2_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <vector>
 
 namespace ocudu {
@@ -64,6 +65,7 @@ private:
   /// Maps an unbounded position into a valid container index.
   size_t wrap(size_t pos) const
   {
+    ocudu_assert(not empty(), "Access to an empty circular vector");
     if constexpr (ForcePower2Size) {
       // x mod y == x & (y - 1), when y is a power of 2.
       return pos & (size() - 1);

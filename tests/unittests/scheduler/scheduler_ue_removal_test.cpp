@@ -215,6 +215,28 @@ TEST_F(sched_ue_removal_test, when_ue_is_removed_then_any_pending_uci_does_not_c
   ASSERT_EQ(initial_nof_warnings, test_spy.get_warning_counter() + test_spy.get_error_counter());
 }
 
+TEST_F(sched_ue_removal_test, when_config_applied_event_is_processed_after_ue_removal_then_scheduler_does_not_crash)
+{
+  // Create UE with SRB0, SRB1 and a DRB configured.
+  du_ue_index_t ue_index = (du_ue_index_t)test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
+  add_ue(ue_index, rnti);
+
+  // Queue a UE removal event. When processed, it deactivates the UE (clearing its registered logical channels,
+  // including SRB1) and defers the actual removal from the UE repository to a later slot.
+  sched->handle_ue_removal_request(ue_index);
+
+  // Queue a "config applied" event for the *same* UE right behind the removal event, before either is drained by
+  // run_slot(). This mirrors a UE reconfiguration-applied (or CRNTI CE / CFRA Msg3 ACK) notification that was
+  // already in flight when the UE got torn down: it still references the UE's last (non-empty) dedicated config,
+  // which no longer matches the just-cleared logical channel map.
+  sched->handle_ue_config_applied(ue_index);
+
+  // Processing "ue_rem" clears the logical channel map; processing "ue_cfg_applied" right after must not try to
+  // re-register a now-unconfigured LCID (e.g. SRB1) with the inter-slice scheduler.
+  ASSERT_NO_FATAL_FAILURE(run_slot());
+}
+
 TEST_F(sched_ue_removal_test,
        when_ue_is_being_removed_but_keeps_receiving_sr_indications_then_scheduler_ignores_indications)
 {

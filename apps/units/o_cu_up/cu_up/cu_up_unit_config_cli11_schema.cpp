@@ -140,7 +140,10 @@ static void configure_cli11_cu_up_args(CLI::App& app, cu_up_unit_config& cu_up_p
   };
   add_option(app, "--plmn_list", cu_up_params.plmn_list, "List of supported PLMN IDs (e.g. \"00101\")")
       ->capture_default_str()
-      ->check(plmn_is_valid);
+      ->check(plmn_is_valid)
+      ->pattern("^[0-9]{5,6}$")
+      ->min_length(5)
+      ->max_length(6);
 }
 
 static void configure_cli11_log_args(CLI::App& app, cu_up_unit_logger_config& log_params)

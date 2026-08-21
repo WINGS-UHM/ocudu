@@ -75,7 +75,10 @@ static void configure_cli11_tai_slice_support_args(CLI::App& app, cu_cp_unit_plm
 /// Configures the CLI11 PLMD item arguments.
 static void configure_cli11_plmn_item_args(CLI::App& app, cu_cp_unit_plmn_item& config)
 {
-  add_option(app, "--plmn", config.plmn_id, "PLMN to be configured");
+  add_option(app, "--plmn", config.plmn_id, "PLMN to be configured")
+      ->pattern("^[0-9]{5,6}$")
+      ->min_length(5)
+      ->max_length(6);
 
   // TAI slice support list.
   add_option_object_list<cu_cp_unit_plmn_item::tai_slice_t>(app,
@@ -385,7 +388,7 @@ static void configure_cli11_cells_args(CLI::App& app, cu_cp_unit_cell_config_ite
              "the CU-CP")
       ->range(22, 32);
   add_option(app, "--pci", config.pci, "Physical Cell Id")->range(0, 1007);
-  add_option(app, "--plmn", config.plmn_id, "PLMN of the cell");
+  add_option(app, "--plmn", config.plmn_id, "PLMN of the cell")->pattern("^[0-9]{5,6}$")->min_length(5)->max_length(6);
   add_option(app, "--tac", config.tac, "Tracking Area Code")->range(0, 0xffffff);
   add_option(app, "--ssb_arfcn", config.ssb_arfcn, "SSB ARFCN");
   add_option(app, "--ssb_scs", config.ssb_scs, "SSB subcarrier spacing")->enum_values({15, 30, 60, 120, 240});

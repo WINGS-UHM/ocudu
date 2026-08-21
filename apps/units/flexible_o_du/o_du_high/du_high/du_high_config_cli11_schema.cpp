@@ -2456,10 +2456,18 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
   auto plmn_is_valid = [](const std::string& value) -> std::string {
     return plmn_identity::parse(value).has_value() ? "" : "Invalid PLMN format";
   };
-  add_option(app, "--plmn", cell_params.plmn, "PLMN")->capture_default_str()->check(plmn_is_valid);
+  add_option(app, "--plmn", cell_params.plmn, "PLMN")
+      ->capture_default_str()
+      ->check(plmn_is_valid)
+      ->pattern("^[0-9]{5,6}$")
+      ->min_length(5)
+      ->max_length(6);
   add_option(app, "--additional_plmns", cell_params.additional_plmns, "List of PLMNs")
       ->capture_default_str()
-      ->check(plmn_is_valid);
+      ->check(plmn_is_valid)
+      ->pattern("^[0-9]{5,6}$")
+      ->min_length(5)
+      ->max_length(6);
   add_option(app, "--tac", cell_params.tac, "TAC")->capture_default_str();
   add_option(app, "--enabled", cell_params.enabled, "Automatically activate the cell on startup")
       ->capture_default_str();

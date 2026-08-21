@@ -10,6 +10,7 @@
 #include <fstream>
 #include <regex>
 #include <set>
+#include <sstream>
 #include <string>
 #include <sys/stat.h>
 #ifdef NUMA_SUPPORT

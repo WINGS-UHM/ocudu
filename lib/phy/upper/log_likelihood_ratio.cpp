@@ -6,6 +6,7 @@
 #include "ocudu/ocuduvec/compare.h"
 #include "ocudu/ocuduvec/copy.h"
 #include <cmath>
+#include <functional>
 #include <optional>
 
 #ifdef __AVX2__

@@ -7,6 +7,7 @@
 #include "ocudu/support/cpu_features.h"
 #include "ocudu/support/ocudu_test.h"
 #include "fmt/ostream.h"
+#include <functional>
 #include <getopt.h>
 #include <gtest/gtest.h>
 #include <random>

@@ -5,7 +5,9 @@
 
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/span.h"
+#include "ocudu/support/math/math_utils.h"
 #include "fmt/ranges.h"
+#include <vector>
 
 namespace ocudu {
 

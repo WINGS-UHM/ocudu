@@ -8,6 +8,7 @@
 #include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
 #include "ocudu/ran/precoding/precoding_codebook_helpers.h"
 #include "ocudu/ran/uci/uci_part2_size_calculator.h"
+#include "ocudu/support/math/math_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>

@@ -4,6 +4,7 @@
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "uci_part2_mapper_functions.h"
 #include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
+#include "ocudu/support/math/math_utils.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;

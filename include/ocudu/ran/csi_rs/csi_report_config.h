@@ -12,6 +12,7 @@
 #include "ocudu/ran/pusch/pusch_configuration.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
 #include <variant>
+#include <vector>
 
 namespace ocudu {
 

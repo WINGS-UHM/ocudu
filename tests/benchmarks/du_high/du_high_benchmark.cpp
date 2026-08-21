@@ -52,6 +52,7 @@
 #include "ocudu/support/test_utils.h"
 #include "ocudu/support/tracing/event_tracing.h"
 #include <pthread.h>
+#include <sstream>
 
 using namespace ocudu;
 using namespace odu;

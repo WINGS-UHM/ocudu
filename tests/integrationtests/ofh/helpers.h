@@ -7,6 +7,7 @@
 #include "ocudu/ofh/ethernet/ethernet_mac_address.h"
 #include "ocudu/ran/bs_channel_bandwidth.h"
 #include "ocudu/ru/ofh/ru_ofh_configuration.h"
+#include <sstream>
 
 namespace ocudu {
 

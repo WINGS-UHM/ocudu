@@ -4,6 +4,7 @@
 
 #include "ocudu/scheduler/result/resource_block_group.h"
 #include "ocudu/adt/format.h"
+#include "ocudu/support/math/math_utils.h"
 
 using namespace ocudu;
 

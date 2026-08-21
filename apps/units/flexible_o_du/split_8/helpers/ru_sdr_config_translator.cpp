@@ -7,6 +7,7 @@
 #include "ru_sdr_config.h"
 #include "ocudu/adt/format.h"
 #include "ocudu/ran/band_helper.h"
+#include <sstream>
 
 using namespace ocudu;
 

@@ -10,6 +10,7 @@
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
 #include "ocudu/ran/precoding/precoding_codebook_helpers.h"
+#include "ocudu/support/math/math_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>

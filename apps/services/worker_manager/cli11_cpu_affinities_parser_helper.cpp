@@ -7,6 +7,7 @@
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/interval.h"
 #include "ocudu/support/string_parsing_utils.h"
+#include <sstream>
 
 using namespace ocudu;
 

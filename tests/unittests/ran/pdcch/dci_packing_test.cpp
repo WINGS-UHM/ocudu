@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/ran/pdcch/dci_packing.h"
+#include "ocudu/support/math/math_utils.h"
 #include <gtest/gtest.h>
 #include <random>
 

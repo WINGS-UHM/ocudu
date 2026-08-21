@@ -6,6 +6,7 @@
 
 #include "apps/services/cmdline/cmdline_command.h"
 #include "ocudu/adt/bounded_bitset.h"
+#include <vector>
 
 namespace ocudu {
 namespace app_services {

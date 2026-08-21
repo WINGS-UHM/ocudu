@@ -6,6 +6,7 @@
 
 #include "ocudu/phy/support/shared_resource_grid.h"
 #include "ocudu/ru/ru_downlink_plane.h"
+#include <vector>
 
 namespace ocudu {
 

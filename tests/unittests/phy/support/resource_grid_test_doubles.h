@@ -12,6 +12,7 @@
 #include "ocudu/phy/support/resource_grid_writer.h"
 #include "ocudu/phy/support/shared_resource_grid.h"
 #include "ocudu/support/error_handling.h"
+#include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "ocudu/support/ocudu_test.h"
 #include "fmt/std.h"

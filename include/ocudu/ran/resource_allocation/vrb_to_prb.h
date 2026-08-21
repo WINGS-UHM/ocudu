@@ -8,6 +8,7 @@
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/resource_block.h"
+#include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <cstdint>
 

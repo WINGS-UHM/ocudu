@@ -13,6 +13,7 @@
 #include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/uci/uci_configuration.h"
 #include <optional>
+#include <vector>
 
 namespace ocudu {
 

@@ -4,6 +4,7 @@
 
 #include "scheduler_prb.h"
 #include "ocudu/scheduler/result/resource_block_group.h"
+#include <cmath>
 
 using namespace ocudu;
 

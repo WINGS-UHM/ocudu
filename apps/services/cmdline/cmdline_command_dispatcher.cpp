@@ -8,6 +8,7 @@
 #include "ocudu/support/string_parsing_utils.h"
 #include <csignal>
 #include <fcntl.h>
+#include <sstream>
 #include <unistd.h>
 
 using namespace ocudu;

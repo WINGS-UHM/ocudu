@@ -13,6 +13,7 @@
 #include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/tci.h"
 #include <variant>
+#include <vector>
 
 namespace ocudu {
 

@@ -13,6 +13,7 @@
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include <array>
 #include <optional>
+#include <vector>
 
 namespace ocudu {
 

@@ -51,7 +51,7 @@ struct default_bounded_bitset_tag {};
 template <size_t N, bool LowestInfoBitIsMSB = false, typename Tag = detail::default_bounded_bitset_tag>
 class bounded_bitset : public detail::bitset_crtp<bounded_bitset<N, LowestInfoBitIsMSB, Tag>, N, LowestInfoBitIsMSB>
 {
-  using word_t = uint64_t;
+  using word_t = bitset_detail::word_type;
   using base_t = detail::bitset_crtp<bounded_bitset<N, LowestInfoBitIsMSB, Tag>, N, LowestInfoBitIsMSB>;
 
 public:

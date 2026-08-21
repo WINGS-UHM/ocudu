@@ -8,11 +8,11 @@
 #include "ocudu/adt/span.h"
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/support/math/bit_ops.h"
-#include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <array>
-#include <cinttypes>
-#include <functional>
+#include <cstddef>
+#include <cstdint>
+#include <type_traits>
 
 namespace ocudu {
 
@@ -33,7 +33,7 @@ constexpr size_t get_word_idx(size_t bitidx) noexcept
 /// Number of words required to hold \c size bits.
 OCUDU_FORCE_INLINE constexpr size_t nof_words(size_t size) noexcept
 {
-  return divide_ceil(size, bits_per_word);
+  return (size + bits_per_word - 1) / bits_per_word;
 }
 
 /// Asserts that \c pos is a valid bit index of a bitset of size \c size.
@@ -392,8 +392,7 @@ public:
   template <class T>
   void for_each(size_t startpos, size_t endpos, T&& function, bool value = true) const noexcept
   {
-    static_assert(std::is_convertible_v<T, std::function<void(size_t)>>,
-                  "The function must have void(size_t) signature.");
+    static_assert(std::is_invocable_v<T&, size_t>, "The function must be invocable with a bit position.");
     static_assert(!LowestInfoBitIsMSB, "The for_each method is not yet available for reversed bitsets.");
 
     assert_range_bounds_(startpos, endpos);
@@ -740,7 +739,7 @@ public:
     static constexpr auto   integer_mask     = mask_lsb_ones<word_t>(bits_per_integer);
     const word_t            sz               = size_();
     const unsigned          last_word_steps =
-        (sz % bits_per_word) ? divide_ceil(sz % bits_per_word, bits_per_integer) : steps_per_word;
+        (sz % bits_per_word) ? ((sz % bits_per_word) + bits_per_integer - 1) / bits_per_integer : steps_per_word;
     const unsigned nof_words           = nof_words_();
     const unsigned nof_integers_packed = (nof_words - 1) * steps_per_word + last_word_steps;
     ocudu_assert(
@@ -907,8 +906,8 @@ private:
 template <typename Bitset, class Func>
 void for_each_bitset_interval(const Bitset& bitset, size_t startpos, size_t endpos, Func&& function, bool value)
 {
-  static_assert(std::is_convertible_v<Func, std::function<void(size_t, size_t)>>,
-                "The function must have void(size_t) signature.");
+  static_assert(std::is_invocable_v<Func&, size_t, size_t>,
+                "The function must be invocable with an interval start and end.");
 
   // Iterate for all intervals.
   for (int start_interval = bitset.find_lowest(startpos, endpos, value); start_interval != (-1);

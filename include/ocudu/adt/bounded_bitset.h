@@ -5,10 +5,9 @@
 
 #include "ocudu/adt/detail/bitset_base.h"
 #include "ocudu/support/math/bit_ops.h"
-#include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
-#include <cinttypes>
+#include <cstddef>
 
 namespace ocudu {
 
@@ -133,8 +132,8 @@ public:
       this->sanitize_();
       // Note: the clamping to the buffer capacity is redundant (prev_size <= max_size() always holds), but it lets the
       // compiler statically bound the loop and avoid a spurious -Warray-bounds.
-      const size_t prev_nof_words = std::min(divide_ceil(prev_size, bits_per_word), base_t::max_nof_words_());
-      const size_t new_nof_words  = divide_ceil(new_size, bits_per_word);
+      const size_t prev_nof_words = std::min(bitset_detail::nof_words(prev_size), base_t::max_nof_words_());
+      const size_t new_nof_words  = bitset_detail::nof_words(new_size);
       for (size_t i = new_nof_words; i < prev_nof_words; ++i) {
         this->buffer[i] = static_cast<word_t>(0);
       }

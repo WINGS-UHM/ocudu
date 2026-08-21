@@ -87,6 +87,15 @@ void add_constraints(const schema_constraints& constraints, YAML::Node& target)
     }
     target["enum"] = values;
   }
+  if (constraints.pattern) {
+    target["pattern"] = *constraints.pattern;
+  }
+  if (constraints.min_length) {
+    target["minLength"] = *constraints.min_length;
+  }
+  if (constraints.max_length) {
+    target["maxLength"] = *constraints.max_length;
+  }
 }
 
 // Forward declaration for recursion.

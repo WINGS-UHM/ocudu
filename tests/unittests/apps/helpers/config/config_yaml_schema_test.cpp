@@ -61,6 +61,13 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   std::vector<int> ids;
   add_option(app, "--ids", ids, "id list")->range(0, 9);
 
+  std::string code = "00101";
+  add_option(app, "--code", code, "a code")
+      ->capture_default_str()
+      ->pattern("^[0-9]{5,6}$")
+      ->min_length(5)
+      ->max_length(6);
+
   std::string yaml = app_helpers::generate_yaml_config_schema(root, "Test", "test-app");
 
   // Round-trips as valid YAML and ends with a newline.
@@ -92,6 +99,11 @@ TEST_F(config_yaml_schema_test, emits_expected_schema)
   EXPECT_EQ(props["flag"]["default"].as<bool>(), true);
   EXPECT_EQ(props["gain"]["type"].as<std::string>(), "number");
   EXPECT_DOUBLE_EQ(props["gain"]["default"].as<double>(), 0.5);
+  // String constraints: pattern + minLength/maxLength.
+  EXPECT_EQ(props["code"]["type"].as<std::string>(), "string");
+  EXPECT_EQ(props["code"]["pattern"].as<std::string>(), "^[0-9]{5,6}$");
+  EXPECT_EQ(props["code"]["minLength"].as<unsigned>(), 5u);
+  EXPECT_EQ(props["code"]["maxLength"].as<unsigned>(), 6u);
   EXPECT_EQ(props["name"]["type"].as<std::string>(), "string");
   EXPECT_EQ(props["name"]["default"].as<std::string>(), "abc");
 

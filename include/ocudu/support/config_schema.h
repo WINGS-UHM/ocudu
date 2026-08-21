@@ -63,8 +63,14 @@ struct schema_constraints {
   std::optional<schema_scalar> maximum;
   std::optional<schema_scalar> exclusive_minimum;
   std::vector<schema_scalar>   enums;
+  std::optional<std::string>   pattern;    // JSON Schema "pattern" (ECMA-262 regex) for a string value.
+  std::optional<std::uint64_t> min_length; // JSON Schema "minLength" for a string value.
+  std::optional<std::uint64_t> max_length; // JSON Schema "maxLength" for a string value.
 
-  bool empty() const { return !minimum && !maximum && !exclusive_minimum && enums.empty(); }
+  bool empty() const
+  {
+    return !minimum && !maximum && !exclusive_minimum && enums.empty() && !pattern && !min_length && !max_length;
+  }
 };
 
 /// Kind of a schema tree node.

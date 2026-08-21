@@ -167,6 +167,34 @@ public:
     return *this;
   }
 
+  /// Records a JSON Schema \c pattern (ECMA-262 regex) for the option's string value. Schema-only: it tightens the
+  /// generated schema for external validators; runtime value validation stays with the option's own check().
+  option_handle& pattern(std::string regex)
+  {
+    if (node_ != nullptr) {
+      node_->constraints.pattern = std::move(regex);
+    }
+    return *this;
+  }
+
+  /// Records a JSON Schema \c minLength for the option's string value (schema-only, see \ref pattern).
+  option_handle& min_length(std::uint64_t length)
+  {
+    if (node_ != nullptr) {
+      node_->constraints.min_length = length;
+    }
+    return *this;
+  }
+
+  /// Records a JSON Schema \c maxLength for the option's string value (schema-only, see \ref pattern).
+  option_handle& max_length(std::uint64_t length)
+  {
+    if (node_ != nullptr) {
+      node_->constraints.max_length = length;
+    }
+    return *this;
+  }
+
 private:
   CLI::Option*         opt_  = nullptr;
   config::schema_node* node_ = nullptr;

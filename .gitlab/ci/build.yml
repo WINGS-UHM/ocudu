@@ -252,7 +252,6 @@ variables:
     ENABLE_FFTW: "True"
     TEST_MODE: valgrind
     MARCH: x86-64-v3
-    LINKER: lld
 
 .smoke printers:
   extends: .build_and_unit
@@ -280,6 +279,7 @@ variables:
     ENABLE_EXPORT: "True"
     TEST_MODE: default
     MARCH: x86-64-v3
+    LINKER: mold
 
 # Combinations to use in schedules matrix
 

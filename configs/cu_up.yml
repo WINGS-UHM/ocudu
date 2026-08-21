@@ -6,7 +6,7 @@
 
 cu_up:
   plmn_list:
-    - 00101
+    - "00101"
 
   e1ap:
     gateways:

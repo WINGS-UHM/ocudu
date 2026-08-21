@@ -283,6 +283,17 @@ void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::
 
 void fapi_to_mac_indications_fastpath_translator::on_rach_indication(const fapi::rach_indication& msg)
 {
+  static constexpr unsigned MAX_OCCASION_SLOT_INDEX = 79;
+  if (msg.pdu.slot_index > MAX_OCCASION_SLOT_INDEX) {
+    logger.warning("Sector#{}: Discarding RACH indication for slot {}. Cause: reported PRACH occasion slot index {} "
+                   "exceeds the maximum of {}",
+                   sector_id,
+                   msg.slot,
+                   msg.pdu.slot_index,
+                   MAX_OCCASION_SLOT_INDEX);
+    return;
+  }
+
   mac_rach_indication indication;
   indication.slot_rx = msg.slot;
 

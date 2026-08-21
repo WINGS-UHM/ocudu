@@ -462,6 +462,7 @@ intermediate commits clean:
   extends: intermediate commits cached
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
+  cache: []
 
 valgrind changed tests:
   extends: .smoke valgrind

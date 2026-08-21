@@ -624,6 +624,60 @@ TEST_F(cu_cp_inter_cu_ng_handover_test, when_handover_request_received_then_hand
   ASSERT_TRUE(test_helpers::is_valid_ul_nas_transport_message(ngap_pdu));
 }
 
+// A UE that accesses this target through an inter-CU handover applies the AS security configuration signalled in the
+// HandoverCommand, so the security context is active once the handover completed. The AMF may set up further PDU
+// sessions right afterwards (TS 38.413 Section 8.2.1), which the target must admit.
+TEST_F(cu_cp_inter_cu_ng_handover_test, when_handover_completed_at_target_then_pdu_session_setup_request_is_admitted)
+{
+  // Inject Handover Request and await Bearer Context Setup Request.
+  ASSERT_TRUE(send_handover_request_and_await_bearer_context_setup_request());
+
+  // Inject Bearer Context Setup Response and await UE Context Setup Request.
+  ASSERT_TRUE(send_bearer_context_setup_response_and_await_ue_context_setup_request());
+
+  // Inject UE Context Setup Response and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_context_setup_response_and_await_bearer_context_modification_request());
+
+  // Inject Bearer Context Modification Response and await Handover Request Ack.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_handover_request_ack());
+  const ran_ue_id_t ran_ue_id =
+      uint_to_ran_ue_id(ngap_pdu.pdu.successful_outcome().value.ho_request_ack()->ran_ue_ngap_id);
+
+  // Inject NGAP DL RAN Status Transfer and Bearer Context Modification Response.
+  ASSERT_TRUE(send_dl_ran_status_transfer_and_await_bearer_context_modification_request());
+
+  // Inject Bearer Context Modification Response and ACK the PDCP state modification.
+  ASSERT_TRUE(send_bearer_context_modification_response());
+
+  // Inject RRC Reconfiguration Complete and await Handover Notify and UE Context Modification Request.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_handover_notify_and_ue_context_modification_request());
+
+  // Inject UE Context Modification Response to ACK the RRC reconfiguration complete indicator.
+  ASSERT_TRUE(send_ue_context_modification_response_empty(cu_ue_id, du_ue_id));
+
+  // Inject PDU Session Resource Setup Request for a new PDU session and await Bearer Context Modification Request.
+  const pdu_session_id_t psi2 = uint_to_pdu_session_id(2);
+  get_amf().push_tx_pdu(generate_valid_pdu_session_resource_setup_request_message(
+      amf_ue_id, ran_ue_id, {{psi2, {pdu_session_type_t::ipv4, {{uint_to_qos_flow_id(2), 9}}}}}));
+  ASSERT_TRUE(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_bearer_context_modification_request(e1ap_pdu));
+
+  // The new PDU session must be requested at the CU-UP.
+  const auto& bearer_ctxt_mod_req = e1ap_pdu.pdu.init_msg().value.bearer_context_mod_request();
+  ASSERT_TRUE(bearer_ctxt_mod_req->sys_bearer_context_mod_request_present);
+  const auto& pdu_sessions_to_setup =
+      bearer_ctxt_mod_req->sys_bearer_context_mod_request.ng_ran_bearer_context_mod_request()
+          .pdu_session_res_to_setup_mod_list;
+  ASSERT_EQ(pdu_sessions_to_setup.size(), 1U);
+  ASSERT_EQ(pdu_sessions_to_setup[0].pdu_session_id, pdu_session_id_to_uint(psi2));
+
+  // Let the CU-UP reject the new PDU session to conclude the procedure.
+  get_cu_up(cu_up_idx).push_tx_pdu(generate_bearer_context_modification_failure(cu_cp_e1ap_id, cu_up_e1ap_id));
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_pdu_session_resource_setup_response(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_expected_pdu_session_resource_setup_response(ngap_pdu, {}, {psi2}));
+}
+
 // Per TS 38.413 Section 8.4.6 (Uplink RAN Status Transfer), the source includes its own DRB ID in the DRBs Subject to
 // Status Transfer List IE, which the AMF then relays unchanged to the target via the Downlink RAN Status Transfer
 // procedure (Section 8.4.7). A fresh target always starts allocating from DRB1, but the source may report a higher DRB

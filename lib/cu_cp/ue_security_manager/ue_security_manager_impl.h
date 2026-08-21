@@ -24,6 +24,15 @@ public:
   // ngap_ue_security_manager
   [[nodiscard]] bool init_security_context(const security::security_context& sec_ctxt);
 
+  /// \brief Initialize the security context of a UE that accesses this node through an inter-CU handover (TS 38.413
+  /// section 8.4.2, TS 38.423 section 8.2.1).
+  ///
+  /// The AS algorithms selected here are signalled to the UE in the HandoverCommand and the UE applies them before
+  /// accessing this node, so the context is enabled without a Security Mode Command (TS 33.501 section 6.11).
+  ///
+  /// \param[in] sec_ctxt The security context received in the handover request.
+  [[nodiscard]] bool init_handover_security_context(const security::security_context& sec_ctxt);
+
   /// \brief Initialize the security context from one retrieved from a peer NG-RAN node (TS 38.423 section
   /// 8.2.5).
   ///

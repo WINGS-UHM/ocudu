@@ -62,6 +62,15 @@ bool ue_security_manager::init_security_context(const security::security_context
   return true;
 }
 
+bool ue_security_manager::init_handover_security_context(const security::security_context& sec_ctxt)
+{
+  if (not init_security_context(sec_ctxt)) {
+    return false;
+  }
+
+  return finalize_security_context();
+}
+
 bool ue_security_manager::init_retrieved_security_context(const security::security_context&                  sec_ctxt,
                                                           const std::optional<security::sec_selected_algos>& algos)
 {

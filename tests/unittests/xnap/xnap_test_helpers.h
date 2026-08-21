@@ -99,7 +99,7 @@ public:
     ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present\n");
     logger.info("Received a handover request");
 
-    if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
+    if (!ue_mng.find_ue(ue_index)->get_security_manager().init_handover_security_context(sec_ctxt)) {
       logger.info("Failed to initialize security context");
       return false;
     }

@@ -997,7 +997,7 @@ bool cu_cp_impl::handle_handover_request(cu_cp_ue_index_t                  ue_in
     return false;
   }
 
-  if (!ue->get_security_manager().init_security_context(sec_ctxt)) {
+  if (!ue->get_security_manager().init_handover_security_context(sec_ctxt)) {
     logger.info("ue={}: Security context initialization failed", ue_index);
     return false;
   }

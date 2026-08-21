@@ -1991,6 +1991,12 @@ inline simd_s_t ocudu_simd_ci16_loadu(const ci16_t* ptr)
   return ocudu_simd_s_loadu(reinterpret_cast<const int16_t*>(ptr));
 }
 
+/// \brief Calculates the normal square of complex 16-bit integers in a SIMD register.
+///
+/// The function expects that 16-bit integer real and imaginary parts are interleaved within the input SIMD register.
+///
+/// \param[in] v Input SIMD register containing 16-bit integers.
+/// \return A SIMD register containing an unsigned 32-bit integer value for each 16-bit integer pair.
 inline simd_i_t ocudu_simd_ci16_norm_sq(simd_s_t v)
 {
 #ifdef __AVX512F__
@@ -2003,30 +2009,45 @@ inline simd_i_t ocudu_simd_ci16_norm_sq(simd_s_t v)
   return _mm_madd_epi16(v, v);
 #else /* __SSE4_1__ */
 #ifdef __ARM_NEON
-  const int32x4_t sq_lo  = vmull_s16(vget_low_s16(v), vget_low_s16(v));
-  const int32x4_t sq_hi  = vmull_s16(vget_high_s16(v), vget_high_s16(v));
-  const int32x2_t sum_lo = vpadd_s32(vget_low_s32(sq_lo), vget_high_s32(sq_lo));
-  const int32x2_t sum_hi = vpadd_s32(vget_low_s32(sq_hi), vget_high_s32(sq_hi));
-  return vcombine_s32(sum_lo, sum_hi);
+  uint16x8_t v_abs  = vreinterpretq_u16_s16(vabsq_s16(v));
+  uint32x4_t sq_lo  = vmull_u16(vget_low_u16(v_abs), vget_low_u16(v_abs));
+  uint32x4_t sq_hi  = vmull_u16(vget_high_u16(v_abs), vget_high_u16(v_abs));
+  uint32x2_t sum_lo = vpadd_u32(vget_low_u32(sq_lo), vget_high_u32(sq_lo));
+  uint32x2_t sum_hi = vpadd_u32(vget_low_u32(sq_hi), vget_high_u32(sq_hi));
+  return vreinterpretq_s32_u32(vcombine_u32(sum_lo, sum_hi));
 #endif /* __ARM_NEON */
 #endif /* __SSE4_1__ */
 #endif /* __AVX2__ */
 #endif /* __AVX512F__ */
 }
 
-inline simd_sel_t ocudu_simd_i_max(simd_i_t a, simd_i_t b)
+/// \brief Selects the maximum unsigned 32-bit integer value among two SIMD registers.
+///
+/// SSE and AVX instructions sets do not have an intrinsics for unsigned integers. In these cases, the comparison is
+/// signed, it shifts the range to [-2^31, 2^31) to avoid an overflow.
+///
+/// \param[in] a First SIMD register.
+/// \param[in] b Second SIMD register.
+/// \return A SIMD selector register for 32-bit integers.
+inline simd_sel_t ocudu_simd_u32_max(simd_i_t a, simd_i_t b)
 {
 #ifdef __AVX512F__
-  return _mm512_cmpgt_epi32_mask(a, b);
+  return _mm512_cmpgt_epu32_mask(a, b);
 #else /* __AVX512F__ */
 #ifdef __AVX2__
-  return _mm256_castsi256_ps(_mm256_cmpgt_epi32(a, b));
+  // The complex norm squared produces an unsigned 32-bit integer with range [0, 2^32).
+  __m256i unsigned_bias = _mm256_set1_epi32(INT32_MIN);
+
+  return _mm256_castsi256_ps(
+      _mm256_cmpgt_epi32(_mm256_add_epi32(a, unsigned_bias), _mm256_add_epi32(b, unsigned_bias)));
 #else /* __AVX2__ */
 #ifdef __SSE4_1__
-  return (simd_sel_t)_mm_castsi128_ps(_mm_cmpgt_epi32(a, b));
+  __m128i unsigned_bias = _mm_set1_epi32(INT32_MIN);
+  return (simd_sel_t)_mm_castsi128_ps(
+      _mm_cmpgt_epi32(_mm_add_epi32(a, unsigned_bias), _mm_add_epi32(b, unsigned_bias)));
 #else /* __SSE4_1__ */
 #ifdef __ARM_NEON
-  return vcgtq_s32(a, b);
+  return vcgtq_u32(vreinterpretq_u32_s32(a), vreinterpretq_u32_s32(b));
 #endif /* __ARM_NEON */
 #endif /* __SSE4_1__ */
 #endif /* __AVX2__ */

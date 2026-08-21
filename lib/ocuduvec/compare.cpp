@@ -144,25 +144,18 @@ std::pair<unsigned, float> ocudu::ocuduvec::max_abs_element(span<const ci16_t> x
   uint64_t max_abs2  = 0;
 
 #if OCUDU_SIMD_CI16_SIZE
-  // The complex norm squared produces an unsigned 32-bit integer with range [0, 2^32). Given that the
-  // comparison is signed, it shifts the norm squared range to [-2^31, 2^31) to avoid an overflow.
-  static constexpr int32_t unsigned_bias = static_cast<int32_t>(INT32_MIN);
-
   alignas(SIMD_BYTE_ALIGN) std::array<int32_t, OCUDU_SIMD_CI16_SIZE> simd_vector_max_indexes;
   std::iota(simd_vector_max_indexes.begin(), simd_vector_max_indexes.end(), 0);
   simd_i_t simd_indexes     = ocudu_simd_i_load(simd_vector_max_indexes.data());
   simd_i_t simd_inc         = ocudu_simd_i_set1(OCUDU_SIMD_CI16_SIZE);
   simd_i_t simd_max_indexes = ocudu_simd_i_set1(0);
   simd_i_t simd_max_values  = ocudu_simd_i_set1(0);
-  simd_i_t bias             = ocudu_simd_i_set1(unsigned_bias);
 
   for (unsigned simd_end = OCUDU_SIMD_CI16_SIZE * (len / OCUDU_SIMD_CI16_SIZE); i != simd_end;
        i += OCUDU_SIMD_CI16_SIZE) {
-    simd_s_t   simd_v      = ocudu_simd_ci16_loadu(x.data() + i);
-    simd_i_t   simd_abs2   = ocudu_simd_ci16_norm_sq(simd_v);
-    simd_i_t   biased_abs2 = ocudu_simd_i_add(simd_abs2, bias);
-    simd_i_t   biased_max  = ocudu_simd_i_add(simd_max_values, bias);
-    simd_sel_t res         = ocudu_simd_i_max(biased_abs2, biased_max);
+    simd_s_t   simd_v    = ocudu_simd_ci16_loadu(x.data() + i);
+    simd_i_t   simd_abs2 = ocudu_simd_ci16_norm_sq(simd_v);
+    simd_sel_t res       = ocudu_simd_u32_max(simd_abs2, simd_max_values);
 
     simd_max_indexes = ocudu_simd_i_select(simd_max_indexes, simd_indexes, res);
     simd_max_values  = ocudu_simd_i_select(simd_max_values, simd_abs2, res);

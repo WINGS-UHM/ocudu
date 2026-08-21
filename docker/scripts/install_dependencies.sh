@@ -174,10 +174,10 @@ install_dependencies_arch() {
     local -a pkgs=()
 
     local -a build_pkgs=(
-        cmake fftw mbedtls yaml-cpp lksctp-tools gtest pkgconf
+        cmake fftw mbedtls3 yaml-cpp lksctp-tools gtest pkgconf
     )
     local -a run_pkgs=(
-        fftw mbedtls yaml-cpp lksctp-tools gtest libcap
+        fftw mbedtls3 yaml-cpp lksctp-tools gtest libcap
     )
     local -a extra_pkgs=(
         zeromq libuhd boost dpdk libelf libdwarf elfutils capnproto

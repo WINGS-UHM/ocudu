@@ -9,6 +9,10 @@ add_executable(bounded_bitset_test bounded_bitset_test.cpp)
 target_link_libraries(bounded_bitset_test ocudulog GTest::gtest ocudu_gtest_main)
 add_test(bounded_bitset_test bounded_bitset_test)
 
+add_executable(fixed_bitset_test fixed_bitset_test.cpp)
+target_link_libraries(fixed_bitset_test ocudulog GTest::gtest ocudu_gtest_main)
+add_test(fixed_bitset_test fixed_bitset_test)
+
 add_executable(interval_test interval_test.cpp)
 target_link_libraries(interval_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(interval_test interval_test)

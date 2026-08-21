@@ -15,7 +15,7 @@ FROM ubuntu:26.04
 ARG CODECHECKER_VERSION
 RUN DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid \ 
   apt-get update && apt-get install -y --no-install-recommends \
-  python3-pip clang clang-tidy cppcheck \
+  python3-pip clang clang-tidy cppcheck lld mold \
   cmake make ninja-build ccache \
   && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=codecheck_builder /root/.cache/pip/wheels /root/.cache/pip/wheels

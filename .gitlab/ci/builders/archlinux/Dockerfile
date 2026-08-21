@@ -16,7 +16,7 @@ RUN install_dependencies.sh && pacman -Syu --noconfirm \
   git \
   base-devel \
   which \
-  clang \
+  clang lld mold \
   ccache valgrind ninja \
   python-pip
 RUN pip install --break-system-packages gcovr==5.0

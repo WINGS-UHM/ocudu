@@ -34,28 +34,26 @@ class bounded_integer;
 template <size_t N, bool LowestInfoBitIsMSB, typename Tag>
 class bounded_bitset;
 
-/// \brief Converts the bounded_bitset to a string of hexadecimal digits.
-/// \tparam OutputIt Output fmt memory buffer type.
-/// \param[in] s Bitset to convert.
-/// \param[out] mem_buffer Fmt memory buffer.
-/// \param[in] reverse In which bit order to represent this bitset.
-/// \return The memory buffer passed as argument.
-template <size_t N, bool LowestInfoBitIsMSB, typename Tag, typename OutputIt>
-OutputIt to_hex_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, OutputIt&& mem_buffer, bool reverse)
+namespace detail {
+
+/// Shared implementation of \c to_hex_string for the ocudu bitset types.
+template <typename Bitset, typename OutputIt>
+OutputIt bitset_to_hex_string(const Bitset& s, OutputIt&& mem_buffer, bool reverse)
 {
   const size_t sz = s.size();
   if (sz == 0) {
     return mem_buffer;
   }
-  constexpr size_t bits_per_word = bounded_bitset<N, LowestInfoBitIsMSB, Tag>::bits_per_word;
-  const size_t     rem_bits      = sz % bits_per_word;
-  const size_t     rem_digits    = (rem_bits + 3U) / 4U;
-  const size_t     nwords        = (sz + bits_per_word - 1) / bits_per_word;
+  constexpr bool   lowest_info_bit_is_msb = Bitset::bit_order();
+  constexpr size_t bits_per_word          = Bitset::bits_per_word;
+  const size_t     rem_bits               = sz % bits_per_word;
+  const size_t     rem_digits             = (rem_bits + 3U) / 4U;
+  const size_t     nwords                 = (sz + bits_per_word - 1) / bits_per_word;
 
   const uint64_t* words = s.data();
 
   if (not reverse) {
-    if constexpr (LowestInfoBitIsMSB) {
+    if constexpr (lowest_info_bit_is_msb) {
       unsigned i = 0;
       for (; i != nwords - 1; ++i) {
         fmt::format_to(mem_buffer, "{:0>16x}", words[i]);
@@ -71,7 +69,7 @@ OutputIt to_hex_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, Outp
       }
     }
   } else {
-    if constexpr (LowestInfoBitIsMSB) {
+    if constexpr (lowest_info_bit_is_msb) {
       // first, potentially incomplete, word
       int i = nwords - 1;
       fmt::format_to(mem_buffer, "{:0>{}x}", bit_reverse(words[i]), rem_digits);
@@ -90,19 +88,15 @@ OutputIt to_hex_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, Outp
   return mem_buffer;
 }
 
-/// \brief Converts the bounded_bitset to a string of bits.
-/// \tparam OutputIt Output fmt memory buffer type.
-/// \param[in] s Bitset to convert.
-/// \param[out] mem_buffer Fmt memory buffer.
-/// \return The memory buffer passed as argument.
-template <size_t N, bool LowestInfoBitIsMSB, typename Tag, typename OutputIt>
-OutputIt to_bin_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, OutputIt&& mem_buffer, bool reverse)
+/// Shared implementation of \c to_bin_string for the ocudu bitset types.
+template <typename Bitset, typename OutputIt>
+OutputIt bitset_to_bin_string(const Bitset& s, OutputIt&& mem_buffer, bool reverse)
 {
   if (s.size() == 0) {
     return mem_buffer;
   }
 
-  reverse = reverse ^ LowestInfoBitIsMSB;
+  reverse = reverse ^ Bitset::bit_order();
 
   if (!reverse) {
     for (size_t i = s.size(); i != 0; --i) {
@@ -115,6 +109,120 @@ OutputIt to_bin_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, Outp
   }
   return mem_buffer;
 }
+
+} // namespace detail
+
+/// \brief Converts the bounded_bitset to a string of hexadecimal digits.
+/// \tparam OutputIt Output fmt memory buffer type.
+/// \param[in] s Bitset to convert.
+/// \param[out] mem_buffer Fmt memory buffer.
+/// \param[in] reverse In which bit order to represent this bitset.
+/// \return The memory buffer passed as argument.
+template <size_t N, bool LowestInfoBitIsMSB, typename Tag, typename OutputIt>
+OutputIt to_hex_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, OutputIt&& mem_buffer, bool reverse)
+{
+  return detail::bitset_to_hex_string(s, std::forward<OutputIt>(mem_buffer), reverse);
+}
+
+/// \brief Converts the bounded_bitset to a string of bits.
+/// \tparam OutputIt Output fmt memory buffer type.
+/// \param[in] s Bitset to convert.
+/// \param[out] mem_buffer Fmt memory buffer.
+/// \return The memory buffer passed as argument.
+template <size_t N, bool LowestInfoBitIsMSB, typename Tag, typename OutputIt>
+OutputIt to_bin_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, OutputIt&& mem_buffer, bool reverse)
+{
+  return detail::bitset_to_bin_string(s, std::forward<OutputIt>(mem_buffer), reverse);
+}
+
+namespace detail {
+
+/// Shared implementation of the fmt formatters of the ocudu bitset types.
+template <typename Bitset>
+struct bitset_formatter {
+  enum { hexadecimal, binary, bit_positions, intervals } mode = binary;
+  enum { forward, reverse } order                             = forward;
+
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin();
+    while (it != ctx.end() and *it != '}') {
+      if (*it == 'x') {
+        mode = hexadecimal;
+      }
+      if (*it == 'r') {
+        order = reverse;
+      }
+      if (*it == 'n') {
+        mode = bit_positions;
+      }
+      if (*it == 'i') {
+        mode = intervals;
+      }
+      ++it;
+    }
+
+    return it;
+  }
+
+  template <typename FormatContext>
+  auto format(const Bitset& s, FormatContext& ctx) const
+  {
+    if (mode == hexadecimal) {
+      return to_hex_string(s, ctx.out(), order == reverse);
+    }
+
+    if (mode == intervals) {
+      bool first = true;
+      fmt::format_to(ctx.out(), "{{");
+      for_each_interval(s, [&first, &ctx](size_t start_interval, size_t end_interval) {
+        // Append a comma if the interval is not the first.
+        if (first) {
+          first = false;
+        } else {
+          fmt::format_to(ctx.out(), ", ");
+        }
+
+        // Print interval if it is more than one bit, otherwise a single value.
+        if (end_interval - start_interval > 1) {
+          fmt::format_to(ctx.out(), "[{}, {})", start_interval, end_interval);
+        } else {
+          fmt::format_to(ctx.out(), "{}", start_interval);
+        }
+      });
+      fmt::format_to(ctx.out(), "}}");
+      return ctx.out();
+    }
+
+    if (mode == bit_positions) {
+      if (s.empty()) {
+        fmt::format_to(ctx.out(), "empty");
+      } else if (s.count() == 0) {
+        fmt::format_to(ctx.out(), "none");
+      } else if (s.is_contiguous()) {
+        unsigned lowest  = s.find_lowest();
+        unsigned highest = s.find_highest();
+        if (lowest == highest) {
+          // Single value.
+          fmt::format_to(ctx.out(), "{}", lowest);
+        } else {
+          // Format as a range.
+          fmt::format_to(ctx.out(), "[{}, {})", lowest, highest + 1);
+        }
+
+      } else {
+        // Format as a list of bit positions.
+        fmt::format_to(ctx.out(), "{}", s.get_bit_positions());
+      }
+      return ctx.out();
+    }
+
+    return to_bin_string(s, ctx.out(), order == reverse);
+  }
+};
+
+} // namespace detail
 
 template <typename T>
 class span;
@@ -250,89 +358,8 @@ struct formatter<ocudu::bit_buffer> {
 
 /// \brief Custom formatter for bounded_bitset<N, LowestInfoBitIsMSB, Tag>
 template <size_t N, bool LowestInfoBitIsMSB, typename Tag>
-struct formatter<ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>> {
-  enum { hexadecimal, binary, bit_positions, intervals } mode = binary;
-  enum { forward, reverse } order                             = forward;
-  template <typename ParseContext>
-  auto parse(ParseContext& ctx)
-  {
-    auto it = ctx.begin();
-    while (it != ctx.end() and *it != '}') {
-      if (*it == 'x') {
-        mode = hexadecimal;
-      }
-      if (*it == 'r') {
-        order = reverse;
-      }
-      if (*it == 'n') {
-        mode = bit_positions;
-      }
-      if (*it == 'i') {
-        mode = intervals;
-      }
-      ++it;
-    }
-
-    return it;
-  }
-
-  template <typename FormatContext>
-  auto format(const ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, FormatContext& ctx) const
-  {
-    if (mode == hexadecimal) {
-      return to_hex_string(s, ctx.out(), order == reverse);
-    }
-
-    if (mode == intervals) {
-      bool first = true;
-      fmt::format_to(ctx.out(), "{{");
-      for_each_interval(s, [&first, &ctx](size_t start_interval, size_t end_interval) {
-        // Append a comma if the interval is not the first.
-        if (first) {
-          first = false;
-        } else {
-          fmt::format_to(ctx.out(), ", ");
-        }
-
-        // Print interval if it is more than one bit, otherwise a single value.
-        if (end_interval - start_interval > 1) {
-          fmt::format_to(ctx.out(), "[{}, {})", start_interval, end_interval);
-        } else {
-          fmt::format_to(ctx.out(), "{}", start_interval);
-        }
-      });
-      fmt::format_to(ctx.out(), "}}");
-      return ctx.out();
-    }
-
-    if (mode == bit_positions) {
-      if (s.empty()) {
-        fmt::format_to(ctx.out(), "empty");
-      } else if (s.count() == 0) {
-        fmt::format_to(ctx.out(), "none");
-      } else if (s.is_contiguous()) {
-        unsigned lowest  = s.find_lowest();
-        unsigned highest = s.find_highest();
-        if (lowest == highest) {
-          // Single value.
-          fmt::format_to(ctx.out(), "{}", lowest);
-        } else {
-          // Format as a range.
-          fmt::format_to(ctx.out(), "[{}, {})", lowest, highest + 1);
-        }
-
-      } else {
-        // Format as a list of bit positions.
-        ocudu::static_vector<size_t, N> bit_pos = s.get_bit_positions();
-
-        fmt::format_to(ctx.out(), "{}", bit_pos);
-      }
-      return ctx.out();
-    }
-
-    return to_bin_string(s, ctx.out(), order == reverse);
-  }
-};
+struct formatter<ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>>
+  : public ocudu::detail::bitset_formatter<ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>> {};
 
 /// Formatter for bounded_integer<...> types.
 template <typename Integer, Integer MIN_VALUE, Integer MAX_VALUE>

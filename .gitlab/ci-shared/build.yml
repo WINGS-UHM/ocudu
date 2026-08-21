@@ -34,7 +34,8 @@ include:
     MARCH: "" # Empty for cmake default
     MTUNE: "" # Empty for cmake default
     MCPU: ""  # Empty for cmake default
-    OCUDU_TARGET: ""
+    OCUDU_TARGET: "all"
+    CMAKE_GENERATOR: "Ninja"
     # CACHE
     CCACHE_MAXSIZE: 3G
     # TEST

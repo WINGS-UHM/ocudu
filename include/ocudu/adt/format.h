@@ -34,6 +34,9 @@ class bounded_integer;
 template <size_t N, bool LowestInfoBitIsMSB, typename Tag>
 class bounded_bitset;
 
+template <size_t N, bool LowestInfoBitIsMSB>
+class fixed_size_bitset;
+
 namespace detail {
 
 /// Shared implementation of \c to_hex_string for the ocudu bitset types.
@@ -131,6 +134,29 @@ OutputIt to_hex_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, Outp
 /// \return The memory buffer passed as argument.
 template <size_t N, bool LowestInfoBitIsMSB, typename Tag, typename OutputIt>
 OutputIt to_bin_string(const bounded_bitset<N, LowestInfoBitIsMSB, Tag>& s, OutputIt&& mem_buffer, bool reverse)
+{
+  return detail::bitset_to_bin_string(s, std::forward<OutputIt>(mem_buffer), reverse);
+}
+
+/// \brief Converts the fixed_size_bitset to a string of hexadecimal digits.
+/// \tparam OutputIt Output fmt memory buffer type.
+/// \param[in] s Bitset to convert.
+/// \param[out] mem_buffer Fmt memory buffer.
+/// \param[in] reverse In which bit order to represent this bitset.
+/// \return The memory buffer passed as argument.
+template <size_t N, bool LowestInfoBitIsMSB, typename OutputIt>
+OutputIt to_hex_string(const fixed_size_bitset<N, LowestInfoBitIsMSB>& s, OutputIt&& mem_buffer, bool reverse)
+{
+  return detail::bitset_to_hex_string(s, std::forward<OutputIt>(mem_buffer), reverse);
+}
+
+/// \brief Converts the fixed_size_bitset to a string of bits.
+/// \tparam OutputIt Output fmt memory buffer type.
+/// \param[in] s Bitset to convert.
+/// \param[out] mem_buffer Fmt memory buffer.
+/// \return The memory buffer passed as argument.
+template <size_t N, bool LowestInfoBitIsMSB, typename OutputIt>
+OutputIt to_bin_string(const fixed_size_bitset<N, LowestInfoBitIsMSB>& s, OutputIt&& mem_buffer, bool reverse)
 {
   return detail::bitset_to_bin_string(s, std::forward<OutputIt>(mem_buffer), reverse);
 }
@@ -360,6 +386,11 @@ struct formatter<ocudu::bit_buffer> {
 template <size_t N, bool LowestInfoBitIsMSB, typename Tag>
 struct formatter<ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>>
   : public ocudu::detail::bitset_formatter<ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>> {};
+
+/// \brief Custom formatter for fixed_size_bitset<N, LowestInfoBitIsMSB>
+template <size_t N, bool LowestInfoBitIsMSB>
+struct formatter<ocudu::fixed_size_bitset<N, LowestInfoBitIsMSB>>
+  : public ocudu::detail::bitset_formatter<ocudu::fixed_size_bitset<N, LowestInfoBitIsMSB>> {};
 
 /// Formatter for bounded_integer<...> types.
 template <typename Integer, Integer MIN_VALUE, Integer MAX_VALUE>

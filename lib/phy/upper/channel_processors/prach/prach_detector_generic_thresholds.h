@@ -9,6 +9,7 @@
 
 #include "ocudu/ran/prach/prach_format_type.h"
 #include "ocudu/ran/prach/prach_subcarrier_spacing.h"
+#include <tuple>
 
 namespace ocudu::detail {
 
